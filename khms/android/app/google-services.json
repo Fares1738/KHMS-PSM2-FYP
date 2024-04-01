@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "819742488371",
+    "project_id": "khms-d556a",
+    "storage_bucket": "khms-d556a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:819742488371:android:4b223d23a81a07f1e3f046",
+        "android_client_info": {
+          "package_name": "com.psm2.khms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAR2OhAC-bPoxVdnkLlPEK4FbUoq3AmHj0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
