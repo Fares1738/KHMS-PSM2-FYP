@@ -8,7 +8,11 @@ Future main() async {
         appId: '1:819742488371:android:4b223d23a81a07f1e3f046',
         apiKey: 'AIzaSyAR2OhAC-bPoxVdnkLlPEK4FbUoq3AmHj0',
         projectId: 'khms-d556a',
-        messagingSenderId: '819742488371'),
+        messagingSenderId: '819742488371',
+        databaseURL: 'https://khms-d556a-default-rtdb.firebaseio.com',
+        storageBucket: 'khms-d556a.appspot.com',
+        authDomain: 'khms-d556a.firebaseapp.com',
+        ),
   );
   runApp(const MainApp());
 }
@@ -21,7 +25,7 @@ class MainApp extends StatelessWidget {
     return const MaterialApp(
       home: Scaffold(
         body: Center(
-          child: Text('Hello Yall!'),
+          child: Text('Hello Everyone!'),
         ),
       ),
     );
