@@ -1,5 +1,5 @@
 name: khms
-description: "A new Flutter project."
+description: "PSM2 Project"
 publish_to: 'none'
 version: 0.1.0
 
@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   firebase_core: ^2.27.2
+  flutter_dotenv: ^5.0.0
   flutter:
     sdk: flutter
 
@@ -18,3 +19,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
