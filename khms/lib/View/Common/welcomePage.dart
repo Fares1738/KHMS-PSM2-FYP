@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:khms/View/Common/loginPage.dart';
 import 'package:khms/View/Student/RegisterPage.dart';
 
 class WelcomePage extends StatelessWidget {
@@ -38,7 +39,12 @@ class WelcomePage extends StatelessWidget {
                     ),
                     const SizedBox(width: 30),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const LoginPage()));
+                      },
                       child: const Text('Login'),
                     ),
                   ],

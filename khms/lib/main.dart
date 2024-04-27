@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:khms/View/welcomePage.dart';
+import 'package:khms/View/Common/welcomePage.dart';
 
 
 Future main() async {
