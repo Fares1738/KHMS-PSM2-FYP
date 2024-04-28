@@ -1,7 +1,8 @@
-// ignore_for_file: library_private_types_in_public_api, file_names
+// ignore_for_file: file_names, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
-import 'package:khms/View/Student/studentHomePage.dart';
+import 'package:khms/Controller/studentController.dart';
+import 'package:khms/View/Common/appBar.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,29 +12,30 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final StudentController _controller =
+      StudentController(); // Use your controller
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
+      appBar: const CustomAppBar(),
       body: Padding(
         padding: const EdgeInsets.all(50.0),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const TextField(
-                decoration: InputDecoration(
-                  labelText: 'Username/Email',
-                ),
+              TextField(
+                controller: _emailController, // Link to controller
+                decoration: const InputDecoration(labelText: 'Username/Email'),
               ),
               const SizedBox(height: 10),
-              const TextField(
+              TextField(
+                controller: _passwordController, // Link to controller
                 obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                ),
+                decoration: const InputDecoration(labelText: 'Password'),
               ),
               const SizedBox(height: 20),
               Row(
@@ -41,17 +43,14 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const MyHomePage()));
+                      // Call the login function from your controller
+                      _controller.signInWithEmailAndPassword(
+                        context,
+                        _emailController.text,
+                        _passwordController.text,
+                      );
                     },
                     child: const Text('Login'),
-                  ),
-                  const SizedBox(width: 10),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('Signup Now'),
                   ),
                 ],
               ),
@@ -60,5 +59,13 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // Dispose of your controllers
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

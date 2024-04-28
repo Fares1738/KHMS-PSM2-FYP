@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:khms/View/Common/appBar.dart';
 import 'package:khms/View/Student/studentAccommodationApplication.dart';
+import 'package:khms/View/Student/studentComplaintsPage.dart';
 import 'Custom_Widgets/bottomNavStudent.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -22,10 +23,19 @@ class _MyHomePageState extends State<MyHomePage> {
         body: IndexedStack(
           index: _currentPageIndex,
           children: const [
-            Text("Home Page"),
-            Text("Complaints"),
-            Text("Maintenance"),
-            Text("Facilities"),
+            Center(
+              child: Text(
+                "Home Page",
+                style: TextStyle(fontSize: 24),
+              ),
+            ),
+            ComplaintsPage(),
+            Center(
+              child: Text(
+                "Facilities",
+                style: TextStyle(fontSize: 24),
+              ),
+            ),
             AccommodationApplicationPage(),
           ],
         ),

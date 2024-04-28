@@ -1,8 +1,8 @@
 // ignore_for_file: file_names, library_private_types_in_public_api, avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:khms/Controller/checkInController.dart';
 import 'package:khms/View/Common/appBar.dart';
-import 'package:khms/View/Student/studentCheckInPage_Second.dart';
 
 class CheckInPage extends StatefulWidget {
   const CheckInPage({super.key});
@@ -12,6 +12,7 @@ class CheckInPage extends StatefulWidget {
 }
 
 class _CheckInPageState extends State<CheckInPage> {
+  final CheckInController _controller = CheckInController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _passportController = TextEditingController();
@@ -73,11 +74,14 @@ class _CheckInPageState extends State<CheckInPage> {
                   // Button
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
+                      _controller.submitCheckInApplication(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => const CheckInPageSecond(),
-                        ),
+                        _firstNameController.text,
+                        _lastNameController.text,
+                        _passportController.text,
+                        _checkInDateController.text,
+                        _phoneNoController.text,
+                        _nationalityController.text,
                       );
                     },
                     child: const Text("Next"),

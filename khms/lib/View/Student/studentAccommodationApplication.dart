@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:khms/View/Student/studentCheckInPage_First.dart';
-import 'studentHomePage.dart';
+import 'package:khms/View/Student/studentCheckOutPage.dart';
 
 class AccommodationApplicationPage extends StatelessWidget {
   const AccommodationApplicationPage({super.key});
@@ -44,7 +44,7 @@ class AccommodationApplicationPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const MyHomePage(),
+                  builder: (context) => const CheckOutPage(),
                 ),
               );
             },

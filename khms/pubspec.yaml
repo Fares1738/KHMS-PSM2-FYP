@@ -8,10 +8,12 @@ environment:
 
 dependencies:
   firebase_core: ^2.27.2
-  flutter_dotenv: ^5.0.0
   flutter:
     sdk: flutter
   file_picker: ^8.0.1
+  image_picker: ^1.1.0
+  cloud_firestore: ^4.17.2
+  firebase_auth: ^4.19.4
 
 dev_dependencies:
   flutter_test:

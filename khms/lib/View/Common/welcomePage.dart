@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:khms/View/Common/loginPage.dart';
-import 'package:khms/View/Student/RegisterPage.dart';
+import 'package:khms/View/Student/studentRegisterPage.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});

@@ -11,9 +11,6 @@ Future main() async {
       apiKey: 'AIzaSyAR2OhAC-bPoxVdnkLlPEK4FbUoq3AmHj0',
       projectId: 'khms-d556a',
       messagingSenderId: '819742488371',
-      databaseURL: 'https://khms-d556a-default-rtdb.firebaseio.com',
-      storageBucket: 'khms-d556a.appspot.com',
-      authDomain: 'khms-d556a.firebaseapp.com',
     ),
   );
   runApp(const WelcomePage());

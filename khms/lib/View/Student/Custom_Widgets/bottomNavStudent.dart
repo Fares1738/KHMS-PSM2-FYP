@@ -27,10 +27,6 @@ class _StudentBottomNavigationBar extends State<StudentBottomNavigationBar> {
             label: 'Complaints',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.handyman_rounded),
-            label: 'Maintenance',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.gamepad_rounded),
             label: 'Facilities',
           ),
