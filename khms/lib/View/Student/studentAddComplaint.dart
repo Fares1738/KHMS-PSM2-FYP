@@ -1,10 +1,11 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, unused_local_variable, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:khms/Model/Complaint.dart';
 import 'dart:io';
-
 import 'package:khms/View/Common/appBar.dart';
+import 'package:khms/Controller/complaintsController.dart';
 
 class AddComplaintPage extends StatefulWidget {
   const AddComplaintPage({super.key});
@@ -18,7 +19,10 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
   String? _selectedLocation; // Room or Location
   String? _selectedMaintenanceType;
   String? _selectedSubType;
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
   File? _pickedImage;
+  final _controller = ComplaintsController();
 
   // Dropdown Lists
   final _maintenanceTypes = [
@@ -85,7 +89,14 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
               const SizedBox(
                 height: 10,
               ),
-              _buildDescriptionField(),
+              TextFormField(
+                maxLines: 2,
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText:
+                      "Description for the maintenance/complaint request",
+                ),
+              ),
               const SizedBox(
                 height: 10,
               ),
@@ -120,8 +131,36 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  // Handle form submission
+                onPressed: () async {
+                  final complaintDescription = _descriptionController
+                      .text; // Example assuming a TextField with a controller
+                  final complaintLocation = _selectedLocation == 'Location'
+                      ? _locationController.text
+                      : _selectedLocation; // Conditional logic based on radio button
+
+                  // 3. Create Complaint Object
+                  final complaint = Complaint(
+                      complaintDate: DateTime.now(),
+                      complaintDescription: complaintDescription,
+                      complaintLocation: complaintLocation as String,
+                      complaintStatus:
+                          ComplaintStatus.Pending, // Initially Pending
+                      complaintType: _selectedMaintenanceType!,
+                      complaintSubType: _selectedSubType!,
+                      complaintId:
+                          '', // Omit for auto-generated ID in Firestore
+                      studentId: '',
+                      //studentRoomNo: '',
+                      complaintImageUrl: '');
+
+                  try {
+                    final isSubmitted = await _controller.submitComplaint(
+                        context, complaint, _pickedImage);
+                  } catch (e) {
+                    print('Error submitting complaint: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Error submitting complaint.')));
+                  }
                 },
                 child: const Text('Submit'),
               ),
@@ -167,8 +206,14 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
   }
 
   Widget _buildLocationField() {
-    return const TextField(
-      decoration: InputDecoration(hintText: "Enter location"),
+    return TextField(
+      controller: _locationController,
+      decoration: const InputDecoration(hintText: "Enter location"),
+      onChanged: (value) {
+        setState(() {
+          _locationController.text = value;
+        });
+      },
     );
   }
 
@@ -219,17 +264,6 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
         }
         return null;
       },
-    );
-  }
-
-  Widget _buildDescriptionField() {
-    return TextFormField(
-      maxLines: 2,
-      decoration: const InputDecoration(
-        labelText: "Description for the maintenance/complaint request",
-      ),
-
-      // Consider adding a validator if the description field is mandatory
     );
   }
 }

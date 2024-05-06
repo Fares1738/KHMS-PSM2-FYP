@@ -1,17 +1,20 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, constant_identifier_names
 
-import 'package:khms/Model/Student.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+enum ComplaintStatus { Pending, Resolved }
 
 class Complaint {
   DateTime complaintDate;
   String complaintDescription;
   String complaintLocation;
-  String complaintStatus;
+  ComplaintStatus complaintStatus;
   String complaintType;
   String complaintSubType;
   String complaintId;
-  Student studentId;
-  Student studentRoomNo;
+  String complaintImageUrl;
+  String studentId;
+  //String studentRoomNo;
 
   Complaint({
     required this.complaintDate,
@@ -22,6 +25,38 @@ class Complaint {
     required this.complaintSubType,
     required this.complaintId,
     required this.studentId,
-    required this.studentRoomNo,
+    //required this.studentRoomNo,
+    required this.complaintImageUrl,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'complaintDate': complaintDate,
+      'complaintDescription': complaintDescription,
+      'complaintLocation': complaintLocation,
+      'complaintStatus': complaintStatus.name,
+      'complaintType': complaintType,
+      'complaintSubType': complaintSubType,
+      'complaintId': complaintId,
+      'studentId': studentId,
+      'complaintImageUrl': complaintImageUrl,
+      //'studentRoomNo': studentRoomNo,
+    };
+  }
+
+  factory Complaint.fromMap(Map<String, dynamic> data, String docId) {
+    return Complaint(
+      complaintDate: (data['complaintDate'] as Timestamp)
+          .toDate(), // Assuming Timestamp for Firestore dates
+      complaintDescription: data['complaintDescription'],
+      complaintLocation: data['complaintLocation'],
+      complaintStatus: ComplaintStatus.values.byName(data['complaintStatus']),
+      complaintType: data['complaintType'],
+      complaintSubType: data['complaintSubType'],
+      complaintId: docId, // Get the document ID
+      studentId: data['studentId'],
+      //studentRoomNo: data['studentRoomNo'],
+      complaintImageUrl: data['complaintImageUrl'],
+    );
+  }
 }

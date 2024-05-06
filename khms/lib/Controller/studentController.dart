@@ -93,7 +93,6 @@ class StudentController {
 
         final prefs2 = await SharedPreferences.getInstance();
         String? storedStudentId = prefs2.getString('studentID');
-        print("#############$storedStudentId##########");
 
         // Successful login - Navigate to home page (modify as needed)
         ScaffoldMessenger.of(context).showSnackBar(
