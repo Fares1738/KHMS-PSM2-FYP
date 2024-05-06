@@ -91,7 +91,7 @@ class CheckInController {
 
 Future<String> _uploadImageToFirebase(File image) async {
   // Create a unique file name (you might integrate timestamps, user IDs, etc.)
-  String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+  String fileName = DateTime.now().toString();
 
   // Define storage reference (adjust the path as needed)
   final storageRef =

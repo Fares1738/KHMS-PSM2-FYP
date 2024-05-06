@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, file_names
 
 import 'package:flutter/material.dart';
+import 'package:khms/Controller/checkOutController.dart';
 import 'package:khms/View/Common/appBar.dart';
 import 'package:khms/View/Student/studentHomePage.dart';
 
@@ -14,6 +15,7 @@ class CheckOutPage extends StatefulWidget {
 class _CheckOutPageState extends State<CheckOutPage> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  final _controller = CheckOutController();
 
   void _showDatePicker() async {
     final newDate = await showDatePicker(
@@ -36,7 +38,6 @@ class _CheckOutPageState extends State<CheckOutPage> {
       initialTime: TimeOfDay.now(),
       builder: (context, childWidget) {
         return MediaQuery(
-          // This will override the default dialog size to be smaller
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
           child: childWidget!,
         );
@@ -86,13 +87,23 @@ class _CheckOutPageState extends State<CheckOutPage> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text("Check-Out Application Submitted!")));
-                  Navigator.push(
+                onPressed: () async {
+                  final isSubmitted =
+                      await _controller.submitCheckOutApplication(
+                          context, _selectedDate, _selectedTime);
+
+                  if (isSubmitted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text("Check-Out Application Submitted!")));
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const MyHomePage()));
+                          builder: (context) => const MyHomePage()),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text("Please fill in all fields!")));
+                  }
                 },
                 child: const Text("Submit"),
               ),

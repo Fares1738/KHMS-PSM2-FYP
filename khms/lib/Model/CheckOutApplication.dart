@@ -1,14 +1,12 @@
-// ignore_for_file: file_names
-
-import 'package:khms/Model/Student.dart';
+// ignore_for_file: file_names 
 
 class CheckOutApplication {
   DateTime checkOutApplicationDate;
-  int checkOutApplicationId;
+  String checkOutApplicationId;
   DateTime checkOutDate;
   String checkOutStatus;
   String checkOutTime;
-  Student studentId;
+  String studentId; 
 
   CheckOutApplication({
     required this.checkOutApplicationDate,
@@ -18,4 +16,15 @@ class CheckOutApplication {
     required this.checkOutTime,
     required this.studentId,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'checkOutApplicationDate': checkOutApplicationDate,
+      'checkOutApplicationId': checkOutApplicationId,
+      'checkOutDate': checkOutDate,
+      'checkOutStatus': checkOutStatus,
+      'checkOutTime': checkOutTime,
+      'studentId': studentId, 
+    };
+  }
 }
