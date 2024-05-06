@@ -1,7 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:khms/View/Student/studentCheckInPage_First.dart';
+import 'package:khms/View/Student/studentCheckInPage.dart';
 import 'package:khms/View/Student/studentCheckOutPage.dart';
 
 class AccommodationApplicationPage extends StatelessWidget {

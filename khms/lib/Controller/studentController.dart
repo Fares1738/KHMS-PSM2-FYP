@@ -1,12 +1,12 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers, unused_element, file_names, use_build_context_synchronously, avoid_print, unused_catch_clause, unused_local_variable
 
 import 'package:flutter/material.dart';
-import 'package:khms/Controller/globals.dart';
 import 'package:khms/Model/Student.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:khms/View/Common/loginPage.dart';
 import 'package:khms/View/Student/studentHomePage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StudentController {
   final formKey = GlobalKey<FormState>();
@@ -45,6 +45,7 @@ class StudentController {
             .collection('Students')
             .doc(userCredential.user!.uid)
             .set(newStudent.toMap());
+            
 
         // ... (Success Handling) ...
         ScaffoldMessenger.of(context).showSnackBar(
@@ -84,9 +85,15 @@ class StudentController {
 
       if (studentDoc.exists) {
         // Set the global variable
-        globalStudentId =
+        String globalStudentId =
             studentDoc.data()!['studentId']; // Adapt if field name differs
 
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('studentID', globalStudentId);
+
+        final prefs2 = await SharedPreferences.getInstance();
+        String? storedStudentId = prefs2.getString('studentID');
+        print("#############$storedStudentId##########");
 
         // Successful login - Navigate to home page (modify as needed)
         ScaffoldMessenger.of(context).showSnackBar(

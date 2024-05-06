@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:khms/View/Common/appBar.dart';
+import 'package:khms/View/Student/studentHomePage.dart';
 
 class CheckOutPage extends StatefulWidget {
   const CheckOutPage({super.key});
@@ -86,7 +87,12 @@ class _CheckOutPageState extends State<CheckOutPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  // Handle form submission
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text("Check-Out Application Submitted!")));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const MyHomePage()));
                 },
                 child: const Text("Submit"),
               ),

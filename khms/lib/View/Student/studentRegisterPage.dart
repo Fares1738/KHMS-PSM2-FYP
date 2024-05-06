@@ -26,6 +26,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
@@ -47,7 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ),
         body: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 100, 16, 10),
+          padding: const EdgeInsets.fromLTRB(25, 100, 25, 10),
           child: Form(
             key: _controller.formKey,
             child: Column(
@@ -56,7 +57,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: _controller.usernameController,
                   decoration: const InputDecoration(
                     labelText: 'Username',
-                    icon: Icon(Icons.person_3),
+                    prefixIcon: Icon(Icons.person_3),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -70,7 +71,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: _controller.emailController,
                   decoration: const InputDecoration(
                     labelText: 'Email',
-                    icon: Icon(Icons.email_rounded),
+                    prefixIcon: Icon(Icons.email_rounded),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -84,9 +85,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 TextFormField(
                   controller: _controller.passwordController,
                   decoration: const InputDecoration(
-                    labelText: 'Password',
-                    icon: Icon(Icons.lock_rounded),
-                  ),
+                      labelText: 'Password',
+                      prefixIcon: Icon(Icons.lock_rounded),
+                      suffixIcon: Icon(Icons.visibility)),
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -100,7 +101,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: _controller.confirmPasswordController,
                   decoration: const InputDecoration(
                     labelText: 'Confirm Password',
-                    icon: Icon(Icons.lock_rounded),
+                    prefixIcon: Icon(Icons.lock_rounded),
+                    suffixIcon: Icon(Icons.visibility),
                   ),
                   obscureText: true,
                   validator: (value) {
@@ -121,6 +123,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     });
                   },
                 ),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () {
                     _controller.registerUser(context);

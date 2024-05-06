@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/studentController.dart';
-import 'package:khms/View/Common/appBar.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,42 +18,64 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppBar(),
-      body: Padding(
-        padding: const EdgeInsets.all(50.0),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(
-                controller: _emailController, // Link to controller
-                decoration: const InputDecoration(labelText: 'Username/Email'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _passwordController, // Link to controller
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password'),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      // Call the login function from your controller
-                      _controller.signInWithEmailAndPassword(
-                        context,
-                        _emailController.text,
-                        _passwordController.text,
-                      );
-                    },
-                    child: const Text('Login'),
-                  ),
-                ],
-              ),
-            ],
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Login'),
+          backgroundColor: Colors.white,
+          elevation: 0.0,
+          titleSpacing: 10.0,
+          leading: InkWell(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: const Icon(
+              Icons.arrow_back_rounded,
+              color: Colors.black54,
+            ),
+          ),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(30.0),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextField(
+                  controller: _emailController, // Link to controller
+                  decoration: const InputDecoration(
+                      labelText: 'Username/Email',
+                      prefixIcon: Icon(Icons.person)),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _passwordController, // Link to controller
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: Icon(Icons.lock),
+                      suffixIcon: Icon(Icons.visibility)),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        // Call the login function from your controller
+                        _controller.signInWithEmailAndPassword(
+                          context,
+                          _emailController.text,
+                          _passwordController.text,
+                        );
+                      },
+                      child: const Text('Login'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -40,8 +40,19 @@ class Student extends User {
       'studentEmail': studentEmail,
       'userName': userName,
       'userPassword': userPassword,
-      'userType': userType,
-      'studentId' : studentId
+      'userType': "Student",
+      'studentId' : studentId,
+      'studentFirstName': studentFirstName,
+      'studentLastName': studentLastName,
+      'studentNationality': studentNationality,
+      'studentmyKadPassportNumber': studentmyKadPassportNumber,
+      'studentPhoneNumber': studentPhoneNumber,
+      'studentIcNumber': studentIcNumber,
+      'studentPhoto': studentPhoto,
+      'studentMatricNo': studentMatricNo,
+      'studentMatricPhoto': studentMatricPhoto,
+      'studentRoomNo': studentRoomNo,
+
     };
   }
 }

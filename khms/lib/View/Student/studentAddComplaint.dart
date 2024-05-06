@@ -191,9 +191,6 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
     );
   }
 
-  // ... _buildSubTypeDropdown() and _buildDescriptionField() functions
-  // ... (The rest of your AddComplaintPage code)
-
   Widget _buildSubTypeDropdown() {
     if (_selectedMaintenanceType == null ||
         _selectedMaintenanceType == 'Other') {
@@ -235,6 +232,4 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
       // Consider adding a validator if the description field is mandatory
     );
   }
-
-// ... (The rest of your AddComplaintPage code)
 }

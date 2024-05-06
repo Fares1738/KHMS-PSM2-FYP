@@ -13,17 +13,17 @@ class ComplaintsPage extends StatefulWidget {
 class _ComplaintsPageState extends State<ComplaintsPage> {
   final List<ComplaintItem> _complaints = [
     ComplaintItem(
-        title: "Complaint #1",
-        description: "Short description of complaint 1."),
+        title: "Electrical Issue",
+        description: "The lights in my room are not working."),
     ComplaintItem(
-        title: "Complaint #2",
-        description: "Short description of complaint 2."),
+        title: "Plumbing Issue",
+        description: "The sink in the bathroom is leaking."),
     ComplaintItem(
-        title: "Complaint #3",
-        description: "Short description of complaint 3."),
+        title: "Sanitary Issue",
+        description: "The trash in the common area has not been cleared."),
     ComplaintItem(
-        title: "Complaint #4",
-        description: "Short description of complaint 4."),
+        title: "Pest Control Issue",
+        description: "There is a rat in the kitchen."),
   ];
 
   @override

@@ -21,7 +21,7 @@ class CheckInApplication {
       'checkInApplicationDate': Timestamp.fromDate(checkInApplicationDate),
       'checkInApplicationId': checkInApplicationId,
       'checkInDate': checkInDate,
-      'studentId': '',
+      'studentId': studentId,
       'checkInStatus': checkInStatus,
     };
   }
