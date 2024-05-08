@@ -21,6 +21,9 @@ class CheckInController {
     String matricNumber,
     String icNumber,
     String dateofBirth,
+    String roomType,
+    int duration,
+    int price,
     File? frontMatricPic,
     File? backMatricPic,
     File? passportMyKadPic,
@@ -32,12 +35,17 @@ class CheckInController {
 
       // Create CheckInApplication with placeholder
       CheckInApplication newApplication = CheckInApplication(
-        checkInApplicationDate: DateTime.now(),
-        checkInApplicationId: '', // Placeholder
-        checkInDate: checkInDate,
-        studentId: storedStudentId, // Link to the student
-        checkInStatus: 'Pending', // Initial status
-      );
+          checkInApplicationDate: DateTime.now(),
+          checkInApplicationId: '', // Placeholder
+          checkInDate: checkInDate,
+          studentId: storedStudentId, // Link to the student
+          checkInStatus: 'Pending',
+          duration: duration, // 1 month for short term, 3 month for long term
+          roomType: roomType, // Default to single room
+          price: price // Placeholder
+          );
+
+      //int calculatedPrice = newApplication.calculatePrice();
 
       // Add to Firestore; gets auto-generated ID
       DocumentReference docRef = await _firestore
@@ -78,7 +86,6 @@ class CheckInController {
           'passportMyKadImage': imageURL3,
         });
       }
-
 
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => const MyHomePage()));

@@ -30,7 +30,6 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Get studentId (Assuming you're getting it from SharedPreferences)
       final prefs = await SharedPreferences.getInstance();
       final studentId = prefs.getString('studentID') as String;
 

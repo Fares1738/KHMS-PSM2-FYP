@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/checkInController.dart';
+import 'package:khms/Model/CheckInApplication.dart';
 import 'package:khms/View/Common/appBar.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -24,6 +25,9 @@ class _CheckInPageState extends State<CheckInPage> {
   final _doBController = TextEditingController();
   final _iCController = TextEditingController();
   final _matricController = TextEditingController();
+  int? duration;
+  String? roomType;
+  int? priceToDisplay;
 
   File? _frontMatricPic;
   File? _backMatricPic;
@@ -127,6 +131,137 @@ class _CheckInPageState extends State<CheckInPage> {
                   ),
                   const SizedBox(height: 10),
 
+                  const Text(
+                    "Duration of Stay",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+                  const SizedBox(height: 5),
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          Radio<int>(
+                            value: 1,
+                            groupValue: duration,
+                            onChanged: (int? value) {
+                              setState(() {
+                                duration = value;
+                                if (duration != null && roomType != null) {
+                                  _calculatePrice();
+                                } else {
+                                  priceToDisplay =
+                                      null; // Reset price display if selections are incomplete
+                                }
+                              });
+                            },
+                          ),
+                          const Text("Short-Term - 1 Month"),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Radio<int>(
+                            value: 3,
+                            groupValue: duration,
+                            onChanged: (int? value) {
+                              setState(() {
+                                duration = value;
+                                if (duration != null && roomType != null) {
+                                  _calculatePrice();
+                                } else {
+                                  priceToDisplay =
+                                      null; // Reset price display if selections are incomplete
+                                }
+                              });
+                            },
+                          ),
+                          const Text("Long-Term - 3 Months"),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Type of Room",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+                  const SizedBox(height: 5),
+
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          Radio<String>(
+                            value: 'Single Room',
+                            groupValue: roomType,
+                            onChanged: (String? value) {
+                              setState(() {
+                                roomType = value;
+                                if (duration != null && roomType != null) {
+                                  _calculatePrice();
+                                } else {
+                                  priceToDisplay = null;
+                                }
+                              });
+                            },
+                          ),
+                          const Text("Single Room"),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Radio<String>(
+                            value: 'Double Room',
+                            groupValue: roomType,
+                            onChanged: (String? value) {
+                              setState(() {
+                                roomType = value;
+                                if (duration != null && roomType != null) {
+                                  _calculatePrice();
+                                } else {
+                                  priceToDisplay = null;
+                                }
+                              });
+                            },
+                          ),
+                          const Text("Double Room"),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Radio<String>(
+                            value: 'Triple Room',
+                            groupValue: roomType,
+                            onChanged: (String? value) {
+                              setState(() {
+                                roomType = value;
+                                if (duration != null && roomType != null) {
+                                  _calculatePrice();
+                                } else {
+                                  priceToDisplay = null;
+                                }
+                              });
+                            },
+                          ),
+                          const Text("Triple Room"),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const Text("Note: Double and Triple rooms are shared rooms"),
+
+                  const SizedBox(height: 10),
+
+                  if (duration != null &&
+                      roomType != null &&
+                      priceToDisplay != null)
+                    Text(
+                      'Price: $priceToDisplay RM',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 20),
+                    ),
+
+                  const SizedBox(height: 10),
                   Row(
                     // Add the row for buttons
                     mainAxisAlignment:
@@ -179,6 +314,9 @@ class _CheckInPageState extends State<CheckInPage> {
                         _matricController.text,
                         _iCController.text,
                         _doBController.text,
+                        roomType!,
+                        duration!,
+                        priceToDisplay!,
                         _frontMatricPic,
                         _backMatricPic,
                         _passportMyKadPic,
@@ -193,6 +331,24 @@ class _CheckInPageState extends State<CheckInPage> {
         ),
       ),
     );
+  }
+
+  void _calculatePrice() {
+    CheckInApplication application = CheckInApplication(
+        duration: duration,
+        roomType: roomType,
+        checkInApplicationDate: DateTime.now(),
+        checkInApplicationId: '',
+        checkInDate: '',
+        studentId: '',
+        checkInStatus: '',
+        price: priceToDisplay // Placeholder
+        );
+
+    int calculatedPrice = application.calculatePrice();
+    setState(() {
+      priceToDisplay = calculatedPrice;
+    });
   }
 
   Widget _buildUploadButton(String label, int buttonIndex) {

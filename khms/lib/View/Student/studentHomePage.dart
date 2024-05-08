@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:khms/View/Common/appBar.dart';
 import 'package:khms/View/Student/studentAccommodationApplication.dart';
 import 'package:khms/View/Student/studentComplaintsPage.dart';
+import 'package:khms/View/Student/studentFacilitiesPage.dart';
 import 'Custom_Widgets/bottomNavStudent.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -30,12 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             ComplaintsPage(),
-            Center(
-              child: Text(
-                "Facilities",
-                style: TextStyle(fontSize: 24),
-              ),
-            ),
+            FacilitiesPage(),
             AccommodationApplicationPage(),
           ],
         ),
