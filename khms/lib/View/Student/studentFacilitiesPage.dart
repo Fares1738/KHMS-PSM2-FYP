@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, unused_local_variable
+// ignore_for_file: library_private_types_in_public_api, unused_local_variable, file_names
 
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/facilitiesController.dart';
@@ -82,7 +82,7 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
             const SizedBox(height: 16.0),
             Text(
               'Select Time Slot',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8.0),
             DropdownButtonFormField<String>(
@@ -105,7 +105,7 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
             const SizedBox(height: 16.0),
             Text(
               'Select Facility Type',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8.0),
             DropdownButtonFormField<String>(
@@ -135,7 +135,7 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                     _selectedFacilityType != null) {
                   try {
                     final facilityData = Facilities(
-                        facilityApplicationId: '', // Firebase will generate
+                      facilityApplicationId: '', // Firebase will generate
                       facilityApplicationDate: _selectedDate!,
                       facilitySlot:
                           _selectedTimeSlot!, // Pass the selected time slot
@@ -145,8 +145,8 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                       studentRoomNo: '',
                     );
 
-                    final updatedFacilityData =
-                        await _controller.submitFacilityBooking(facilityData);
+                    final updatedFacilityData = await _controller
+                        .submitFacilityBooking(context, facilityData);
 
                     // Success! Handle accordingly.
                   } catch (error) {
