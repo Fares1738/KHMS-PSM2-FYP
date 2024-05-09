@@ -79,6 +79,19 @@ class ComplaintsController {
   Future<String> fetchStudentRoomNumber() async {
     final prefs4 = await SharedPreferences.getInstance();
     String? studentRoomNo = prefs4.getString('studentRoomNo');
+
+    if (studentRoomNo == null) {
+      final prefs = await SharedPreferences.getInstance();
+      final String storedStudentId = prefs.getString('studentID') as String;
+
+      final studentDoc = await FirebaseFirestore.instance
+          .collection('Students')
+          .doc(storedStudentId)
+          .get();
+
+      studentRoomNo = studentDoc.data()!['studentRoomNo'];
+    }
+
     return studentRoomNo!;
   }
 }
