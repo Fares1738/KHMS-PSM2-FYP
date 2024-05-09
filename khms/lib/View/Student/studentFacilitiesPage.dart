@@ -13,6 +13,7 @@ class FacilitiesPage extends StatefulWidget {
 
 class _FacilitiesPageState extends State<FacilitiesPage> {
   final FacilitiesController _controller = FacilitiesController();
+  List<String> bookedTimeSlots = [];
 
   DateTime? _selectedDate;
   String? _selectedTimeSlot;
@@ -54,6 +55,7 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
+
             Text(
               'Select Date',
               style: Theme.of(context).textTheme.titleLarge,
@@ -70,6 +72,9 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                 if (selectedDate != null) {
                   setState(() {
                     _selectedDate = selectedDate;
+                    _selectedTimeSlot = null; // Clear time slot selection
+                    _selectedFacilityType =
+                        null; // Clear facility type selection
                   });
                 }
               },
@@ -81,39 +86,23 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
             ),
             const SizedBox(height: 16.0),
             Text(
-              'Select Time Slot',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8.0),
-            DropdownButtonFormField<String>(
-              value: _selectedTimeSlot,
-              onChanged: (value) {
-                setState(() {
-                  _selectedTimeSlot = value;
-                });
-              },
-              items: _timeSlots.map((slot) {
-                return DropdownMenuItem<String>(
-                  value: slot,
-                  child: Text(slot),
-                );
-              }).toList(),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            Text(
               'Select Facility Type',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8.0),
             DropdownButtonFormField<String>(
               value: _selectedFacilityType,
-              onChanged: (value) {
+              onChanged: (value) async {
                 setState(() {
                   _selectedFacilityType = value;
+                  _selectedTimeSlot = null; // Clear time slot selection
                 });
+
+                if (_selectedDate != null && _selectedFacilityType != null) {
+                  bookedTimeSlots = await _controller.fetchBookedTimeSlots(
+                      _selectedDate!, _selectedFacilityType!);
+                  setState(() {}); // Force rebuild to update options
+                }
               },
               items: _facilityTypes.map((type) {
                 return DropdownMenuItem<String>(
@@ -125,6 +114,39 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 16.0),
+
+            Text(
+              'Select Time Slot',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8.0),
+            DropdownButtonFormField<String>(
+              value: _selectedTimeSlot,
+              onChanged: (value) async {
+                setState(() => _selectedTimeSlot = value);
+
+                if (_selectedDate != null && _selectedFacilityType != null) {
+                  bookedTimeSlots = await _controller.fetchBookedTimeSlots(
+                      _selectedDate!, _selectedFacilityType!);
+                  setState(() {}); // Force rebuild to update options
+                }
+              },
+              items: _timeSlots.map((slot) {
+                return DropdownMenuItem<String>(
+                  value: slot,
+                  enabled: !bookedTimeSlots.contains(slot),
+                  child: Opacity(
+                    opacity: bookedTimeSlots.contains(slot) ? 0.5 : 1.0,
+                    child: Text(slot),
+                  ), // Disable if in bookedTimeSlots
+                );
+              }).toList(),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+              ),
+            ),
+
             const SizedBox(height: 16.0),
 // Inside your _FacilitiesPageState class...
 

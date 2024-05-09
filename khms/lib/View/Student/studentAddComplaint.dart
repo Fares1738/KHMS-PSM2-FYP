@@ -24,6 +24,21 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
   File? _pickedImage;
   final _controller = ComplaintsController();
 
+  String? _roomNumber;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRoomNumber();
+  }
+
+  void _fetchRoomNumber() async {
+    final roomNumber = await ComplaintsController().fetchStudentRoomNumber();
+    setState(() {
+      _roomNumber = roomNumber;
+    });
+  }
+
   // Dropdown Lists
   final _maintenanceTypes = [
     "Electrical",
@@ -150,7 +165,7 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
                       complaintId:
                           '', // Omit for auto-generated ID in Firestore
                       studentId: '',
-                      //studentRoomNo: '',
+                      studentRoomNo: '',
                       complaintImageUrl: '');
 
                   try {
@@ -200,6 +215,11 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
             const Text("Location"),
           ],
         ),
+        if (_selectedLocation == 'Room' && _roomNumber != null)
+          Text(
+            'Your Room: $_roomNumber',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ), // Display room number
         if (_selectedLocation == 'Location') _buildLocationField(),
       ],
     );

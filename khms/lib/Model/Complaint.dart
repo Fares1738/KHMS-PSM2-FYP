@@ -14,7 +14,7 @@ class Complaint {
   String complaintId;
   String complaintImageUrl;
   String studentId;
-  //String studentRoomNo;
+  String? studentRoomNo;
 
   Complaint({
     required this.complaintDate,
@@ -25,7 +25,7 @@ class Complaint {
     required this.complaintSubType,
     required this.complaintId,
     required this.studentId,
-    //required this.studentRoomNo,
+    required this.studentRoomNo,
     required this.complaintImageUrl,
   });
 
@@ -40,7 +40,7 @@ class Complaint {
       'complaintId': complaintId,
       'studentId': studentId,
       'complaintImageUrl': complaintImageUrl,
-      //'studentRoomNo': studentRoomNo,
+      'studentRoomNo': studentRoomNo,
     };
   }
 
@@ -55,7 +55,7 @@ class Complaint {
       complaintSubType: data['complaintSubType'],
       complaintId: docId, // Get the document ID
       studentId: data['studentId'],
-      //studentRoomNo: data['studentRoomNo'],
+      studentRoomNo: data['studentRoomNo'],
       complaintImageUrl: data['complaintImageUrl'],
     );
   }

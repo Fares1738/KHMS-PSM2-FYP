@@ -35,4 +35,28 @@ class FacilitiesController {
       rethrow; // Rethrow the error for handling at the UI level
     }
   }
+
+  Future<List<String>> fetchBookedTimeSlots(
+      DateTime? selectedDate, String? facilityType) async {
+    final bookedSlots = <String>[];
+
+    // Start and end of selected day for querying
+    final dayStart =
+        DateTime(selectedDate!.year, selectedDate.month, selectedDate.day);
+    final dayEnd = DateTime(
+        selectedDate.year, selectedDate.month, selectedDate.day, 23, 59);
+
+    final querySnapshot = await _firestore
+        .collection('facilities')
+        .where('facilityApplicationDate',
+            isGreaterThanOrEqualTo: dayStart, isLessThanOrEqualTo: dayEnd)
+        .where('facilityType', isEqualTo: facilityType)
+        .get();
+
+    for (final doc in querySnapshot.docs) {
+      bookedSlots.add(doc.data()['facilitySlot'] as String);
+    }
+
+    return bookedSlots;
+  }
 }

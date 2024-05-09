@@ -88,11 +88,20 @@ class StudentController {
         String globalStudentId =
             studentDoc.data()!['studentId']; // Adapt if field name differs
 
+        String globalStudentRoomNo =
+            studentDoc.data()!['studentRoomNo']; // Adapt if field name differs
+
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('studentID', globalStudentId);
 
         final prefs2 = await SharedPreferences.getInstance();
-        String? storedStudentId = prefs2.getString('studentID');
+        await prefs2.setString('studentRoomNo', globalStudentRoomNo);
+
+        // final prefs3 = await SharedPreferences.getInstance();
+        // String? storedStudentId = prefs3.getString('studentID');
+
+        // final prefs4 = await SharedPreferences.getInstance();
+        // String? studentRoomNo = prefs4.getString('studentRoomNo');
 
         // Successful login - Navigate to home page (modify as needed)
         ScaffoldMessenger.of(context).showSnackBar(

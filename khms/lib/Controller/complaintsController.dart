@@ -75,4 +75,10 @@ class ComplaintsController {
       return Complaint.fromMap(doc.data(), doc.id);
     }).toList();
   }
+
+  Future<String> fetchStudentRoomNumber() async {
+    final prefs4 = await SharedPreferences.getInstance();
+    String? studentRoomNo = prefs4.getString('studentRoomNo');
+    return studentRoomNo!;
+  }
 }
