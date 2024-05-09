@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, unused_local_variable, file_names
+// ignore_for_file: unused_local_variable, library_private_types_in_public_api, file_names
 
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/facilitiesController.dart';
@@ -17,6 +17,7 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
 
   DateTime? _selectedDate;
   String? _selectedTimeSlot;
+  String? _selectedFacilityType;
 
   final List<String> _timeSlots = [
     '10:00 AM - 11:00 AM',
@@ -33,14 +34,49 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
     '09:00 PM - 10:00 PM',
   ];
 
-  String? _selectedFacilityType;
-
   final List<String> _facilityTypes = [
     'Futsal Court',
     'BBQ',
     'Pool Table',
     'Ping-pong Table'
   ];
+
+  Widget _buildDropdownSection(
+      String title, DropdownButtonFormField<String> dropdown) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 8.0),
+        GestureDetector(
+          onTap: _selectedDate == null
+              ? () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please select a date first.'),
+                    ),
+                  );
+                }
+              : null,
+          child: Opacity(
+            opacity: _selectedDate != null ? 1.0 : 0.5,
+            child: AbsorbPointer(
+              absorbing: _selectedDate == null,
+              child: dropdown,
+            ),
+          ),
+        ),
+        if (_selectedDate == null)
+          const SizedBox(
+            height: 15,
+            child: Text(
+              'Please select a date first',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +91,6 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-
             Text(
               'Select Date',
               style: Theme.of(context).textTheme.titleLarge,
@@ -72,9 +107,8 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                 if (selectedDate != null) {
                   setState(() {
                     _selectedDate = selectedDate;
-                    _selectedTimeSlot = null; // Clear time slot selection
-                    _selectedFacilityType =
-                        null; // Clear facility type selection
+                    _selectedTimeSlot = null;
+                    _selectedFacilityType = null;
                   });
                 }
               },
@@ -85,71 +119,68 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
               ),
             ),
             const SizedBox(height: 16.0),
-            Text(
-              'Select Facility Type',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8.0),
-            DropdownButtonFormField<String>(
-              value: _selectedFacilityType,
-              onChanged: (value) async {
-                setState(() {
-                  _selectedFacilityType = value;
-                  _selectedTimeSlot = null; // Clear time slot selection
-                });
+            _buildDropdownSection(
+                'Select Facility Type',
+                DropdownButtonFormField<String>(
+                  value: _selectedFacilityType,
+                  onChanged: (value) async {
+                    setState(() {
+                      _selectedFacilityType = value;
+                      _selectedTimeSlot = null;
+                    });
 
-                if (_selectedDate != null && _selectedFacilityType != null) {
-                  bookedTimeSlots = await _controller.fetchBookedTimeSlots(
-                      _selectedDate!, _selectedFacilityType!);
-                  setState(() {}); // Force rebuild to update options
-                }
-              },
-              items: _facilityTypes.map((type) {
-                return DropdownMenuItem<String>(
-                  value: type,
-                  child: Text(type),
-                );
-              }).toList(),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-            ),
+                    if (_selectedDate != null &&
+                        _selectedFacilityType != null) {
+                      bookedTimeSlots = await _controller.fetchBookedTimeSlots(
+                          _selectedDate!, _selectedFacilityType!);
+                      setState(() {});
+                    }
+                  },
+                  items: _facilityTypes.map((type) {
+                    return DropdownMenuItem<String>(
+                      value: type,
+                      child: Text(type),
+                    );
+                  }).toList(),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                )),
             const SizedBox(height: 16.0),
-
-            Text(
-              'Select Time Slot',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8.0),
-            DropdownButtonFormField<String>(
-              value: _selectedTimeSlot,
-              onChanged: (value) async {
-                setState(() => _selectedTimeSlot = value);
-
-                if (_selectedDate != null && _selectedFacilityType != null) {
-                  bookedTimeSlots = await _controller.fetchBookedTimeSlots(
-                      _selectedDate!, _selectedFacilityType!);
-                  setState(() {}); // Force rebuild to update options
-                }
-              },
-              items: _timeSlots.map((slot) {
-                return DropdownMenuItem<String>(
-                  value: slot,
-                  enabled: !bookedTimeSlots.contains(slot),
-                  child: Opacity(
-                    opacity: bookedTimeSlots.contains(slot) ? 0.5 : 1.0,
-                    child: Text(slot),
-                  ), // Disable if in bookedTimeSlots
-                );
-              }).toList(),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-            ),
-
+            _buildDropdownSection(
+                'Select Time Slot',
+                DropdownButtonFormField<String>(
+                  value: _selectedTimeSlot,
+                  onChanged: (_selectedDate != null &&
+                          _selectedFacilityType != null)
+                      ? (value) async {
+                          if (_selectedDate != null &&
+                              _selectedFacilityType != null) {
+                            bookedTimeSlots =
+                                await _controller.fetchBookedTimeSlots(
+                                    _selectedDate!, _selectedFacilityType!);
+                            setState(() {});
+                          } else {
+                            setState(() {
+                              value = null;
+                            });
+                          }
+                        }
+                      : null, // Disable 'onChanged' if date or facility type is not selected
+                  items: _timeSlots.map((slot) {
+                    return DropdownMenuItem<String>(
+                      value: slot,
+                      child: Opacity(
+                        opacity: bookedTimeSlots.contains(slot) ? 0.5 : 1.0,
+                        child: Text(slot),
+                      ),
+                    );
+                  }).toList(),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                )),
             const SizedBox(height: 16.0),
-// Inside your _FacilitiesPageState class...
-
             ElevatedButton(
               onPressed: () async {
                 if (_selectedDate != null &&
