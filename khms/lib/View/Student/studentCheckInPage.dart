@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/checkInController.dart';
 import 'package:khms/Model/CheckInApplication.dart';
-import 'package:khms/View/Common/appBar.dart';
+import 'package:khms/View/Custom_Widgets/appBar.dart';
 import 'package:file_picker/file_picker.dart';
 
 class CheckInPage extends StatefulWidget {
@@ -309,7 +309,7 @@ class _CheckInPageState extends State<CheckInPage> {
                         _lastNameController.text,
                         _passportController.text,
                         _checkInDateController.text,
-                        _phoneNoController.text,
+                         _phoneNoController.text ,
                         _nationalityController.text,
                         _matricController.text,
                         _iCController.text,

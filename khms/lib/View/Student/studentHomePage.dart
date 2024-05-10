@@ -1,20 +1,20 @@
 // ignore_for_file: library_private_types_in_public_api, file_names
 
 import 'package:flutter/material.dart';
-import 'package:khms/View/Common/appBar.dart';
+import 'package:khms/View/Custom_Widgets/appBar.dart';
 import 'package:khms/View/Student/studentAccommodationApplication.dart';
 import 'package:khms/View/Student/studentComplaintsPage.dart';
 import 'package:khms/View/Student/studentFacilitiesPage.dart';
-import 'Custom_Widgets/bottomNavStudent.dart';
+import '../Custom_Widgets/bottomNavStudent.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class StudentHomePage extends StatefulWidget {
+  const StudentHomePage({super.key});
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _StudentHomePageState createState() => _StudentHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _StudentHomePageState extends State<StudentHomePage> {
   int _currentPageIndex = 0;
 
   @override
@@ -26,7 +26,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: const [
             Center(
               child: Text(
-                "Home Page",
+                "Student Home Page",
                 style: TextStyle(fontSize: 24),
               ),
             ),

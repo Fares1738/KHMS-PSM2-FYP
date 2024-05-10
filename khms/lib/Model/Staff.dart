@@ -1,8 +1,7 @@
 // ignore_for_file: file_names
 
-import 'package:khms/Model/User.dart';
 
-class Staff extends User {
+class Staff {
   String staffEmail;
   String staffFirstName;
   String staffId;
@@ -13,7 +12,5 @@ class Staff extends User {
       required this.staffFirstName,
       required this.staffId,
       required this.staffLastName,
-      required super.userName,
-      required super.userPassword,
-      required super.userType});
+      });
 }

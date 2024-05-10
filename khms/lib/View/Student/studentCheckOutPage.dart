@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/checkOutController.dart';
-import 'package:khms/View/Common/appBar.dart';
+import 'package:khms/View/Custom_Widgets/appBar.dart';
 import 'package:khms/View/Student/studentHomePage.dart';
 
 class CheckOutPage extends StatefulWidget {
@@ -98,7 +98,7 @@ class _CheckOutPageState extends State<CheckOutPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const MyHomePage()),
+                          builder: (context) => const StudentHomePage()),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

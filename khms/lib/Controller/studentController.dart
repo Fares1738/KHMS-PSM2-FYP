@@ -5,6 +5,7 @@ import 'package:khms/Model/Student.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:khms/View/Common/loginPage.dart';
+import 'package:khms/View/Staff/staffHomePage.dart';
 import 'package:khms/View/Student/studentHomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,13 +13,11 @@ class StudentController {
   final formKey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance; // Firebase authentication instance
 
-  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
   // Getters for the text controllers
-  TextEditingController get usernameController => _usernameController;
   TextEditingController get emailController => _emailController;
   TextEditingController get passwordController => _passwordController;
   TextEditingController get confirmPasswordController =>
@@ -35,17 +34,13 @@ class StudentController {
       if (formKey.currentState!.validate()) {
         final _firestore = FirebaseFirestore.instance;
         Student newStudent = Student(DateTime.now(), _emailController.text, '',
-            '', '', '', 0, '', '', '', '', '',
-            userName: _usernameController.text,
-            userPassword: _passwordController.text,
-            userType: 'Student',
-            studentId: userCredential.user!.uid);
+            '', '', '', '', '', '', '', '', '',
+            userType: 'Student', studentId: userCredential.user!.uid);
 
         await _firestore
             .collection('Students')
             .doc(userCredential.user!.uid)
             .set(newStudent.toMap());
-            
 
         // ... (Success Handling) ...
         ScaffoldMessenger.of(context).showSnackBar(
@@ -103,15 +98,16 @@ class StudentController {
         // final prefs4 = await SharedPreferences.getInstance();
         // String? studentRoomNo = prefs4.getString('studentRoomNo');
 
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const StudentHomePage()));
+
         // Successful login - Navigate to home page (modify as needed)
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login successful!')),
         );
-
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const MyHomePage()));
       } else {
-        // Handle non-existent student data (if applicable)
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const StaffHomePage()));
       }
     } on FirebaseAuthException catch (e) {
       // Handle errors

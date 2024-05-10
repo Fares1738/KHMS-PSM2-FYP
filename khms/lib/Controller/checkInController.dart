@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:khms/Model/CheckInApplication.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:khms/Model/Student.dart';
 import 'package:khms/View/Student/studentHomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -56,14 +57,14 @@ class CheckInController {
       await docRef.update({'checkInApplicationId': docRef.id});
 
       await _firestore.collection('Students').doc(storedStudentId).update({
-        'firstName': firstName,
-        'lastName': lastName,
-        'passportNo': passportNo,
-        'phoneNo': phoneNo,
-        'nationality': nationality,
-        'dateofBirth': dateofBirth,
-        'icNumber': icNumber,
-        'matricNumber': matricNumber,
+        'studentFirstName': firstName,
+        'studentLastName': lastName,
+        'studentmyKadPassportNumber': passportNo,
+        'studentPhoneNumber': phoneNo,
+        'studentNationality': nationality,
+        'studentDoB': dateofBirth,
+        'studentIcNumber': icNumber,
+        'studentMatricNo': matricNumber,
       });
 
       if (frontMatricPic != null) {
@@ -76,7 +77,7 @@ class CheckInController {
       if (backMatricPic != null) {
         final imageURL2 = await _uploadImageToFirebase(backMatricPic);
         await _firestore.collection('Students').doc(storedStudentId).update({
-          'frontMatricCardImage': imageURL2,
+          'backMatricCardImage': imageURL2,
         });
       }
 
@@ -87,11 +88,76 @@ class CheckInController {
         });
       }
 
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const MyHomePage()));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const StudentHomePage()));
     } on FirebaseException {
     } catch (e) {
       // ... Generic errors
+    }
+  }
+
+  Future<Student?> fetchStudentData(CheckInApplication application) async {
+    try {
+      final _firestore = FirebaseFirestore.instance;
+
+      // Fetch student document based on studentId
+      DocumentSnapshot studentSnapshot = await _firestore
+          .collection('Students')
+          .doc(application.studentId)
+          .get();
+
+      // Check if student document exists
+      if (studentSnapshot.exists) {
+        return Student.fromFirestore(studentSnapshot);
+      } else {
+        return null;
+      }
+    } on FirebaseException {
+      // Handle Firestore errors
+      return null;
+    } catch (e) {
+      // Handle generic errors
+      return null;
+    }
+  }
+
+  Future<List<CheckInApplication>>
+      fetchCheckInApplicationsWithStudents() async {
+    try {
+      final _firestore = FirebaseFirestore.instance;
+
+      // 1. Fetch check-in applications
+      QuerySnapshot applicationsSnapshot =
+          await _firestore.collection('CheckInApplications').get();
+
+      List<CheckInApplication> applications = applicationsSnapshot.docs
+          .map((doc) => CheckInApplication.fromFirestore(doc))
+          .toList();
+
+      // 2. Get unique student IDs
+      Set<String> studentIds = applications.map((app) => app.studentId).toSet();
+
+      // 3. Fetch student data in bulk
+      QuerySnapshot studentsSnapshot = await _firestore
+          .collection('Students')
+          .where('studentId', whereIn: studentIds.toList())
+          .get();
+
+      var studentMap = {
+        for (var doc in studentsSnapshot.docs)
+          (doc.data() as Map<String, dynamic>)['studentId'] as String:
+              Student.fromFirestore(doc as DocumentSnapshot<Object?>)
+      };
+
+      // 4. Attach student data to applications
+      for (var application in applications) {
+        application.student = studentMap[application.studentId];
+      }
+
+      return applications;
+    } catch (e) {
+      print('Error fetching applications: $e');
+      return [];
     }
   }
 }

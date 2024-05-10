@@ -36,7 +36,7 @@ class ComplaintsController {
 
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const MyHomePage()),
+        MaterialPageRoute(builder: (context) => const StudentHomePage()),
       );
     } catch (e) {
       print('Error submitting complaint: $e');

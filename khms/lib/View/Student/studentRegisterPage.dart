@@ -16,7 +16,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    _controller.usernameController.dispose();
     _controller.emailController.dispose();
     _controller.passwordController.dispose();
     _controller.confirmPasswordController.dispose();
@@ -53,19 +52,6 @@ class _RegisterPageState extends State<RegisterPage> {
             key: _controller.formKey,
             child: Column(
               children: [
-                TextFormField(
-                  controller: _controller.usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    prefixIcon: Icon(Icons.person_3),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a username';
-                    }
-                    return null;
-                  },
-                ),
                 const SizedBox(height: 16.0),
                 TextFormField(
                   controller: _controller.emailController,

@@ -28,7 +28,7 @@ class FacilitiesController {
           const SnackBar(content: Text("Facility Booking Submitted!")));
 
       Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const MyHomePage())); //
+          MaterialPageRoute(builder: (context) => const StudentHomePage())); //
 
       return facilityData; // Return the updated facilityData for further use
     } catch (error) {
