@@ -6,23 +6,26 @@ import 'package:khms/Model/Student.dart';
 class CheckInApplication {
   DateTime checkInApplicationDate;
   String checkInApplicationId;
-  String checkInDate;
+  DateTime checkInDate;
   String studentId;
   String checkInStatus;
   int? duration;
   String? roomType;
   int? price;
   Student? student;
+  String? rejectionReason;
 
-  CheckInApplication(
-      {required this.checkInApplicationDate,
-      required this.checkInApplicationId,
-      required this.checkInDate,
-      required this.studentId,
-      required this.checkInStatus,
-      required this.duration,
-      required this.roomType,
-      required this.price});
+  CheckInApplication({
+    required this.checkInApplicationDate,
+    required this.checkInApplicationId,
+    required this.checkInDate,
+    required this.studentId,
+    required this.checkInStatus,
+    required this.duration,
+    required this.roomType,
+    required this.price,
+    this.rejectionReason = '',
+  });
 
   int calculatePrice() {
     final shortTermPrices = {
@@ -45,24 +48,25 @@ class CheckInApplication {
     return {
       'checkInApplicationDate': Timestamp.fromDate(checkInApplicationDate),
       'checkInApplicationId': checkInApplicationId,
-      'checkInDate': checkInDate,
+      'checkInDate': Timestamp.fromDate(checkInDate),
       'studentId': studentId,
       'checkInStatus': checkInStatus,
       'duration': duration,
       'roomType': roomType,
       'price': price,
+      'rejectionReason': rejectionReason,
     };
   }
 
   CheckInApplication.fromFirestore(DocumentSnapshot document)
-      : 
-      checkInApplicationDate = ((document.data()
+      : checkInApplicationDate = ((document.data()
                 as Map<String, dynamic>)['checkInApplicationDate'] as Timestamp)
             .toDate(),
         checkInApplicationId = (document.data()
             as Map<String, dynamic>)['checkInApplicationId'] as String,
-        checkInDate =
-            (document.data() as Map<String, dynamic>)['checkInDate'] as String,
+        checkInDate = ((document.data() as Map<String, dynamic>)['checkInDate']
+                as Timestamp)
+            .toDate(),
         studentId =
             (document.data() as Map<String, dynamic>)['studentId'] as String,
         checkInStatus = (document.data()
@@ -72,5 +76,8 @@ class CheckInApplication {
         roomType = (document.data() as Map<String, dynamic>)['roomType']
             as String?, // Treat roomType as optional
         price = (document.data() as Map<String, dynamic>)['price']
-            as int?; // Treat price as optional
+            as int?, // Treat price as optional
+        rejectionReason =
+            (document.data() as Map<String, dynamic>)['rejectionReason']
+                as String; // Treat rejectionReason as optional
 }

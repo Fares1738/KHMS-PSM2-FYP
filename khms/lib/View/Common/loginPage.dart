@@ -1,7 +1,7 @@
 // ignore_for_file: file_names, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
-import 'package:khms/Controller/studentController.dart';
+import 'package:khms/Controller/userController.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,8 +11,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final StudentController _controller =
-      StudentController(); // Use your controller
+  final UserController _controller = UserController(); // Use your controller
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -45,8 +44,7 @@ class _LoginPageState extends State<LoginPage> {
                 TextField(
                   controller: _emailController, // Link to controller
                   decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.person)),
+                      labelText: 'Email', prefixIcon: Icon(Icons.email)),
                 ),
                 const SizedBox(height: 10),
                 TextField(

@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:khms/Controller/checkInController.dart';
 import 'package:khms/Model/CheckInApplication.dart';
 import 'package:khms/View/Custom_Widgets/appBar.dart';
@@ -19,15 +20,15 @@ class _CheckInPageState extends State<CheckInPage> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _passportController = TextEditingController();
-  final _checkInDateController = TextEditingController();
   final _phoneNoController = TextEditingController();
   final _nationalityController = TextEditingController();
-  final _doBController = TextEditingController();
   final _iCController = TextEditingController();
   final _matricController = TextEditingController();
   int? duration;
   String? roomType;
   int? priceToDisplay;
+  DateTime? _dateOfBirth; // For the date of birth picker
+  DateTime? _checkInDate; // For the check-in date picker
 
   File? _frontMatricPic;
   File? _backMatricPic;
@@ -90,11 +91,31 @@ class _CheckInPageState extends State<CheckInPage> {
                         prefixIcon: Icon(Icons.document_scanner)),
                   ),
                   const SizedBox(height: 10),
-                  TextField(
-                    controller: _checkInDateController,
-                    decoration: const InputDecoration(
+                  GestureDetector(
+                    onTap: () async {
+                      final pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (pickedDate != null && pickedDate != _checkInDate) {
+                        setState(() {
+                          _checkInDate = pickedDate;
+                        });
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
                         labelText: "Check In Date",
-                        prefixIcon: Icon(Icons.calendar_today)),
+                        prefixIcon: Icon(Icons.calendar_today),
+                      ),
+                      child: Text(
+                        _checkInDate != null
+                            ? DateFormat('dd/MM/yyyy').format(_checkInDate!)
+                            : 'Select Check In Date',
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
@@ -109,11 +130,31 @@ class _CheckInPageState extends State<CheckInPage> {
                         labelText: "Nationality", prefixIcon: Icon(Icons.flag)),
                   ),
                   const SizedBox(height: 10),
-                  TextField(
-                    controller: _doBController,
-                    decoration: const InputDecoration(
+                  GestureDetector(
+                    onTap: () async {
+                      final pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime.now(),
+                      );
+                      if (pickedDate != null && pickedDate != _dateOfBirth) {
+                        setState(() {
+                          _dateOfBirth = pickedDate;
+                        });
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
                         labelText: "Date of Birth",
-                        prefixIcon: Icon(Icons.calendar_today)),
+                        prefixIcon: Icon(Icons.calendar_today),
+                      ),
+                      child: Text(
+                        _dateOfBirth != null
+                            ? DateFormat('dd/MM/yyyy').format(_dateOfBirth!)
+                            : 'Select Date of Birth',
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
@@ -308,15 +349,16 @@ class _CheckInPageState extends State<CheckInPage> {
                         _firstNameController.text,
                         _lastNameController.text,
                         _passportController.text,
-                        _checkInDateController.text,
-                         _phoneNoController.text ,
+                        _checkInDate!,
+                        _phoneNoController.text,
                         _nationalityController.text,
                         _matricController.text,
                         _iCController.text,
-                        _doBController.text,
+                        _dateOfBirth!,
                         roomType!,
                         duration!,
                         priceToDisplay!,
+                        '',
                         _frontMatricPic,
                         _backMatricPic,
                         _passportMyKadPic,
@@ -339,7 +381,7 @@ class _CheckInPageState extends State<CheckInPage> {
         roomType: roomType,
         checkInApplicationDate: DateTime.now(),
         checkInApplicationId: '',
-        checkInDate: '',
+        checkInDate: DateTime.now(),
         studentId: '',
         checkInStatus: '',
         price: priceToDisplay // Placeholder
@@ -378,10 +420,8 @@ class _CheckInPageState extends State<CheckInPage> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _passportController.dispose();
-    _checkInDateController.dispose();
     _phoneNoController.dispose();
     _nationalityController.dispose();
-    _doBController.dispose();
     _iCController.dispose();
     _matricController.dispose();
     super.dispose();

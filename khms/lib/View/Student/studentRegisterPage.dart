@@ -1,7 +1,7 @@
 // ignore_for_file: file_names, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
-import 'package:khms/Controller/studentController.dart';
+import 'package:khms/Controller/userController.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -11,7 +11,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final StudentController _controller = StudentController();
+  final UserController _controller = UserController();
   bool isChecked = false;
 
   @override

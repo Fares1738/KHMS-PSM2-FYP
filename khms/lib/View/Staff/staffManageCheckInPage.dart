@@ -1,6 +1,10 @@
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:khms/Controller/checkInController.dart';
 import 'package:khms/Model/CheckInApplication.dart';
+import 'package:khms/View/Staff/staffCheckInDetailsPage.dart';
 
 class CheckInApplicationsListPage extends StatefulWidget {
   const CheckInApplicationsListPage({super.key});
@@ -29,22 +33,47 @@ class _CheckInApplicationsListPageState
               itemBuilder: (context, index) {
                 final application = snapshot.data![index];
                 return ListTile(
-                  title: Text(application.checkInDate),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(application.checkInStatus.toString(),
+                          style: TextStyle(
+                            color: application.checkInStatus == "Approved"
+                                ? Colors.green
+                                : application.checkInStatus == "Rejected"
+                                    ? Colors.red
+                                    : Colors.orange,
+                          )),
+                      const SizedBox(width: 20),
+                      const Icon(Icons.arrow_forward_ios_rounded),
+                    ],
+                  ),
+                  title: Text(
+                    "${application.student!.studentFirstName} ${application.student!.studentLastName}",
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Date: ${application.checkInApplicationDate}'),
-                      Text('ID: ${application.checkInApplicationId}'),
+                      Text(
+                        'Date: ${DateFormat('dd MMM yyyy | hh:mm a').format(application.checkInApplicationDate)}',
+                      ),
                       if (application.student != null) ...[
                         // Check if student is available
-                        Text(
-                            'Name: ${application.student!.studentFirstName} ${application.student!.studentLastName}'),
+
                         // Add other student details as needed
                       ],
                     ],
                   ),
                   onTap: () {
-                    // Navigate to application details page (likely passing 'application')
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            CheckInDetailsPage(application: application),
+                      ),
+                    );
                   },
                 );
               },

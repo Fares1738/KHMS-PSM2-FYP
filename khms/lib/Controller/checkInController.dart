@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, no_leading_underscores_for_local_identifiers, use_build_context_synchronously, empty_catches
+// ignore_for_file: file_names, no_leading_underscores_for_local_identifiers, use_build_context_synchronously, empty_catches, avoid_print
 
 import 'dart:io';
 
@@ -16,15 +16,16 @@ class CheckInController {
     String firstName,
     String lastName,
     String passportNo,
-    String checkInDate,
+    DateTime checkInDate,
     String phoneNo,
     String nationality,
     String matricNumber,
     String icNumber,
-    String dateofBirth,
+    DateTime dateofBirth,
     String roomType,
     int duration,
     int price,
+    String? rejectionReason,
     File? frontMatricPic,
     File? backMatricPic,
     File? passportMyKadPic,
@@ -37,14 +38,14 @@ class CheckInController {
       // Create CheckInApplication with placeholder
       CheckInApplication newApplication = CheckInApplication(
           checkInApplicationDate: DateTime.now(),
-          checkInApplicationId: '', // Placeholder
+          checkInApplicationId: '',
           checkInDate: checkInDate,
-          studentId: storedStudentId, // Link to the student
+          studentId: storedStudentId,
           checkInStatus: 'Pending',
-          duration: duration, // 1 month for short term, 3 month for long term
-          roomType: roomType, // Default to single room
-          price: price // Placeholder
-          );
+          duration: duration,
+          roomType: roomType,
+          price: price,
+          rejectionReason: '');
 
       //int calculatedPrice = newApplication.calculatePrice();
 
@@ -62,7 +63,7 @@ class CheckInController {
         'studentmyKadPassportNumber': passportNo,
         'studentPhoneNumber': phoneNo,
         'studentNationality': nationality,
-        'studentDoB': dateofBirth,
+        'studentDoB': Timestamp.fromDate(dateofBirth),
         'studentIcNumber': icNumber,
         'studentMatricNo': matricNumber,
       });
@@ -96,31 +97,6 @@ class CheckInController {
     }
   }
 
-  Future<Student?> fetchStudentData(CheckInApplication application) async {
-    try {
-      final _firestore = FirebaseFirestore.instance;
-
-      // Fetch student document based on studentId
-      DocumentSnapshot studentSnapshot = await _firestore
-          .collection('Students')
-          .doc(application.studentId)
-          .get();
-
-      // Check if student document exists
-      if (studentSnapshot.exists) {
-        return Student.fromFirestore(studentSnapshot);
-      } else {
-        return null;
-      }
-    } on FirebaseException {
-      // Handle Firestore errors
-      return null;
-    } catch (e) {
-      // Handle generic errors
-      return null;
-    }
-  }
-
   Future<List<CheckInApplication>>
       fetchCheckInApplicationsWithStudents() async {
     try {
@@ -134,22 +110,17 @@ class CheckInController {
           .map((doc) => CheckInApplication.fromFirestore(doc))
           .toList();
 
-      // 2. Get unique student IDs
-      Set<String> studentIds = applications.map((app) => app.studentId).toSet();
+      // 2. Fetch ALL student data in one go
+      QuerySnapshot studentsSnapshot =
+          await _firestore.collection('Students').get(); // Get all students
 
-      // 3. Fetch student data in bulk
-      QuerySnapshot studentsSnapshot = await _firestore
-          .collection('Students')
-          .where('studentId', whereIn: studentIds.toList())
-          .get();
+      final studentMap = Map.fromEntries(
+        studentsSnapshot.docs.map(
+          (doc) => MapEntry(doc.id, Student.fromFirestore(doc)),
+        ),
+      );
 
-      var studentMap = {
-        for (var doc in studentsSnapshot.docs)
-          (doc.data() as Map<String, dynamic>)['studentId'] as String:
-              Student.fromFirestore(doc as DocumentSnapshot<Object?>)
-      };
-
-      // 4. Attach student data to applications
+      // 3. Attach student data to applications
       for (var application in applications) {
         application.student = studentMap[application.studentId];
       }
@@ -158,6 +129,30 @@ class CheckInController {
     } catch (e) {
       print('Error fetching applications: $e');
       return [];
+    }
+  }
+
+  Future<void> updateCheckInApplicationStatus(CheckInApplication application,
+      String newStatus, String? rejectionReason) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+
+      // Create a map to update the document
+      Map<String, dynamic> updateData = {'checkInStatus': newStatus};
+
+      // Add rejection reason if applicable
+      if (rejectionReason != null && rejectionReason.isNotEmpty) {
+        updateData['rejectionReason'] = rejectionReason;
+      }
+
+      // Update the document in Firestore
+      await firestore
+          .collection('CheckInApplications')
+          .doc(application.checkInApplicationId)
+          .update(updateData);
+    } catch (e) {
+      // Handle errors appropriately (e.g., display a snackbar)
+      print('Error updating check-in application status: $e');
     }
   }
 }

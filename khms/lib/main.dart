@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:khms/Controller/userController.dart';
 import 'package:khms/View/Common/welcomePage.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,5 +15,9 @@ Future<void> main() async {
         databaseURL: 'https://khms-d556a-default-rtdb.firebaseio.com',
         storageBucket: 'gs://khms-d556a.appspot.com'),
   );
-  runApp(const WelcomePage());
-}
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => UserController(),
+      child: const WelcomePage(),
+    ),
+  );}

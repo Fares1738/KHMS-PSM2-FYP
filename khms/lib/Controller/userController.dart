@@ -5,11 +5,12 @@ import 'package:khms/Model/Student.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:khms/View/Common/loginPage.dart';
+import 'package:khms/View/Common/welcomePage.dart';
 import 'package:khms/View/Staff/staffHomePage.dart';
 import 'package:khms/View/Student/studentHomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class StudentController {
+class UserController with ChangeNotifier {
   final formKey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance; // Firebase authentication instance
 
@@ -34,7 +35,7 @@ class StudentController {
       if (formKey.currentState!.validate()) {
         final _firestore = FirebaseFirestore.instance;
         Student newStudent = Student(DateTime.now(), _emailController.text, '',
-            '', '', '', '', '', '', '', '', '',
+            '', '', '', '', '', '', '', '', '','','', '',
             userType: 'Student', studentId: userCredential.user!.uid);
 
         await _firestore
@@ -64,6 +65,8 @@ class StudentController {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Registration failed. Please try again.')));
     }
+
+    notifyListeners(); // Add this to rebuild widgets
   }
 
   Future<void> signInWithEmailAndPassword(
@@ -117,6 +120,36 @@ class StudentController {
       }
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(errorMessage)));
+    }
+    notifyListeners(); // Add this to rebuild widgets
+  }
+
+  Future<void> signOutUser(BuildContext context) async {
+    try {
+      // Sign out from Firebase Authentication
+      await FirebaseAuth.instance.signOut();
+
+      // Clear Shared Preferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('studentID'); // Remove stored studentID
+      await prefs.remove('studentRoomNo'); // Remove stored studentRoomNo
+
+      // Navigate to the Welcome Page
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const WelcomePage()),
+        (Route<dynamic> route) => false, // Remove all previous routes
+      );
+
+      // Optional: Show a logout success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Logout successful!')),
+      );
+    } catch (e) {
+      // Handle errors during sign-out
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Logout failed. Please try again.')),
+      );
     }
   }
 }

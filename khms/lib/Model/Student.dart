@@ -16,22 +16,29 @@ class Student {
   String studentMatricNo;
   late String studentMatricPhoto;
   late String studentRoomNo;
+  String backMatricPic;
+  String frontMatricPic;
+  String passportMyKadPic;
 
   Student(
-      this.studentDoB,
-      this.studentEmail,
-      this.studentFirstName,
-      this.studentLastName,
-      this.studentNationality,
-      this.studentmyKadPassportNumber,
-      this.studentPhoneNumber,
-      this.studentIcNumber,
-      this.studentPhoto,
-      this.studentMatricNo,
-      this.studentMatricPhoto,
-      this.studentRoomNo,
-      {required this.studentId,
-      required userType});
+    this.studentDoB,
+    this.studentEmail,
+    this.studentFirstName,
+    this.studentLastName,
+    this.studentNationality,
+    this.studentmyKadPassportNumber,
+    this.studentPhoneNumber,
+    this.studentIcNumber,
+    this.studentPhoto,
+    this.studentMatricNo,
+    this.studentMatricPhoto,
+    this.studentRoomNo,
+    this.backMatricPic,
+    this.frontMatricPic,
+    this.passportMyKadPic, {
+    required this.studentId,
+    required userType,
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -48,6 +55,9 @@ class Student {
       'studentMatricNo': studentMatricNo,
       'studentMatricPhoto': studentMatricPhoto,
       'studentRoomNo': studentRoomNo,
+      'backMatricPic': backMatricPic,
+      'frontMatricPic': frontMatricPic,
+      'passportMyKadPic': passportMyKadPic
     };
   }
 
@@ -78,5 +88,14 @@ class Student {
         // studentRoomNo = (document.data()
         //     as Map<String, dynamic>)['studentRoomNo'] as String,
         studentId =
-            (document.data() as Map<String, dynamic>)['studentId'] as String;
+            (document.data() as Map<String, dynamic>)['studentId'] as String,
+        backMatricPic =
+            (document.data() as Map<String, dynamic>)['backMatricCardImage']
+                as String, // Treat backMatricPic as optional
+        frontMatricPic =
+            (document.data() as Map<String, dynamic>)['frontMatricCardImage']
+                as String, // Treat frontMatricPic as optional
+        passportMyKadPic =
+            (document.data() as Map<String, dynamic>)['passportMyKadImage']
+                as String; // Treat passportMyKadPic as optional
 }
