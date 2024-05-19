@@ -3,12 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:khms/Model/Complaint.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:khms/View/Student/studentHomePage.dart';
+import 'package:khms/View/Student/studentMainPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class ComplaintsController {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   Future<void> submitComplaint(
       BuildContext context, Complaint complaint, File? imageFile) async {
     try {
@@ -36,13 +38,29 @@ class ComplaintsController {
 
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const StudentHomePage()),
+        MaterialPageRoute(builder: (context) => StudentMainPage()),
       );
     } catch (e) {
       print('Error submitting complaint: $e');
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Error submitting complaint.")));
     }
+  }
+
+  Future<List<Complaint>> fetchAllComplaints() async {
+    final collection = _firestore.collection('Complaints');
+    final querySnapshot = await collection.get();
+
+    return querySnapshot.docs.map((doc) {
+      return Complaint.fromMap(doc.data(), doc.id);
+    }).toList();
+  }
+
+  Future<void> updateComplaintStatus(
+      String complaintId, ComplaintStatus status) async {
+    await _firestore.collection('Complaints').doc(complaintId).update({
+      'complaintStatus': status.name,
+    });
   }
 
   // The image upload function

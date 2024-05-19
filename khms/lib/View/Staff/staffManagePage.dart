@@ -1,7 +1,9 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:khms/View/Staff/staffComplaintsPage.dart';
 import 'package:khms/View/Staff/staffManageCheckInPage.dart';
+import 'package:khms/View/Staff/staffManageCheckOutPage.dart';
 
 class ManageApplications extends StatelessWidget {
   const ManageApplications({super.key});
@@ -32,7 +34,22 @@ class ManageApplications extends StatelessWidget {
                 ),
               );
             },
-            child: const Text("View Check In Applications"),
+            child: const Text("Check In Applications"),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(250, 50),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CheckOutApplicationsListPage(),
+                ),
+              );
+            },
+            child: const Text("Check Out Applications"),
           ),
           const SizedBox(height: 20),
           ElevatedButton(
@@ -43,11 +60,11 @@ class ManageApplications extends StatelessWidget {
               // Navigator.push(
               //   context,
               //   MaterialPageRoute(
-              //     builder: (context) => const CheckOutPage(),
+              //     builder: (context) => ,
               //   ),
               // );
             },
-            child: const Text("View Check Out Applications"),
+            child: const Text("Facility Bookings"),
           ),
           const SizedBox(height: 20),
           ElevatedButton(
@@ -55,29 +72,14 @@ class ManageApplications extends StatelessWidget {
               minimumSize: const Size(250, 50),
             ),
             onPressed: () {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //     builder: (context) => const CheckOutPage(),
-              //   ),
-              // );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StaffComplaintsPage(),
+                ),
+              );
             },
-            child: const Text("View Facility Booking Applications"),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(250, 50),
-            ),
-            onPressed: () {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //     builder: (context) => const CheckOutPage(),
-              //   ),
-              // );
-            },
-            child: const Text("View Complaints and Maintenance Requests"),
+            child: const Text("Complaints and Maintenance Requests"),
           ),
         ],
       ),

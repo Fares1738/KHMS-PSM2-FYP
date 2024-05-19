@@ -3,10 +3,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:khms/Model/Block.dart';
 import 'package:khms/Model/CheckInApplication.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:khms/Model/Room.dart';
 import 'package:khms/Model/Student.dart';
-import 'package:khms/View/Student/studentHomePage.dart';
+import 'package:khms/View/Student/studentMainPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -23,8 +25,8 @@ class CheckInController {
     String icNumber,
     DateTime dateofBirth,
     String roomType,
-    int duration,
     int price,
+    String? checkInApplicationId,
     String? rejectionReason,
     File? frontMatricPic,
     File? backMatricPic,
@@ -38,24 +40,37 @@ class CheckInController {
       // Create CheckInApplication with placeholder
       CheckInApplication newApplication = CheckInApplication(
           checkInApplicationDate: DateTime.now(),
-          checkInApplicationId: '',
+          checkInApplicationId: checkInApplicationId ?? '',
           checkInDate: checkInDate,
           studentId: storedStudentId,
           checkInStatus: 'Pending',
-          duration: duration,
           roomType: roomType,
           price: price,
           rejectionReason: '');
 
-      //int calculatedPrice = newApplication.calculatePrice();
-
       // Add to Firestore; gets auto-generated ID
-      DocumentReference docRef = await _firestore
-          .collection('CheckInApplications')
-          .add(newApplication.toMap());
 
-      // Update the checkInApplicationId
-      await docRef.update({'checkInApplicationId': docRef.id});
+      if (checkInApplicationId == null) {
+        DocumentReference docRef = await _firestore
+            .collection('CheckInApplications')
+            .add(newApplication.toMap());
+
+        await docRef.update({'checkInApplicationId': docRef.id});
+      } else {
+        await _firestore
+            .collection('CheckInApplications')
+            .doc(checkInApplicationId)
+            .update({
+          'checkInApplicationDate':
+              Timestamp.fromDate(newApplication.checkInApplicationDate),
+          'checkInDate': Timestamp.fromDate(newApplication.checkInDate),
+          'studentId': newApplication.studentId,
+          'checkInStatus': newApplication.checkInStatus,
+          'roomType': newApplication.roomType,
+          'price': newApplication.price,
+          'rejectionReason': '',
+        });
+      }
 
       await _firestore.collection('Students').doc(storedStudentId).update({
         'studentFirstName': firstName,
@@ -89,93 +104,227 @@ class CheckInController {
         });
       }
 
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const StudentHomePage()));
+      String studentName = '$firstName $lastName';
+
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => StudentMainPage(studentName: studentName)));
     } on FirebaseException {
     } catch (e) {
       // ... Generic errors
     }
   }
 
-  Future<List<CheckInApplication>>
-      fetchCheckInApplicationsWithStudents() async {
-    try {
-      final _firestore = FirebaseFirestore.instance;
+  Stream<List<Room>> getAvailableRoomsStream(
+      String roomType, String blockName, int floorNumber) {
+    // floorNumber is optional
+    Query<Map<String, dynamic>> query = _firestore
+        .collection('Blocks')
+        .doc('Block $blockName')
+        .collection('Rooms')
+        .where('roomAvailability', isEqualTo: true)
+        .where('roomType', isEqualTo: roomType)
+        .where('floorNumber', isEqualTo: floorNumber);
 
-      // 1. Fetch check-in applications
-      QuerySnapshot applicationsSnapshot =
-          await _firestore.collection('CheckInApplications').get();
+    return query.snapshots().map((querySnapshot) =>
+        querySnapshot.docs.map((doc) => Room.fromFirestore(doc)).toList());
+  }
 
-      List<CheckInApplication> applications = applicationsSnapshot.docs
+  Stream<List<CheckInApplication>> fetchCheckInApplicationsStream() {
+    final _firestore = FirebaseFirestore.instance;
+
+    return _firestore
+        .collection('CheckInApplications')
+        .snapshots() // Listen for changes in the CheckInApplications collection
+        .asyncMap((applicationsSnapshot) async {
+      // Use asyncMap to handle async operations within the stream
+
+      final applications = applicationsSnapshot.docs
           .map((doc) => CheckInApplication.fromFirestore(doc))
           .toList();
 
-      // 2. Fetch ALL student data in one go
-      QuerySnapshot studentsSnapshot =
-          await _firestore.collection('Students').get(); // Get all students
+      // Fetch student data in parallel using a map
+      final studentIds = applications
+          .map((app) => app.studentId)
+          .toSet(); // Unique student IDs
+      final studentsFutureMap = {
+        for (var studentId in studentIds)
+          studentId: _firestore.collection('Students').doc(studentId).get()
+      };
+      final studentsSnapshot = await Future.wait(studentsFutureMap.values);
 
       final studentMap = Map.fromEntries(
-        studentsSnapshot.docs.map(
-          (doc) => MapEntry(doc.id, Student.fromFirestore(doc)),
-        ),
+        studentsSnapshot
+            .map((doc) => MapEntry(doc.id, Student.fromFirestore(doc))),
       );
 
-      // 3. Attach student data to applications
+      // Attach student data to applications
       for (var application in applications) {
         application.student = studentMap[application.studentId];
       }
 
       return applications;
+    });
+  }
+
+  Future<int> getAssignedTenantsCount(String roomNo) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('CheckInApplications')
+          .where('roomNo', isEqualTo: roomNo)
+          .where('checkInStatus', isEqualTo: 'Approved')
+          .get();
+      return querySnapshot.docs.length;
     } catch (e) {
-      print('Error fetching applications: $e');
-      return [];
+      // Handle errors (e.g., log, show error message)
+      print('Error getting assigned tenants: $e');
+      return 0;
     }
   }
 
-  Future<void> updateCheckInApplicationStatus(CheckInApplication application,
-      String newStatus, String? rejectionReason) async {
+  Future<void> updateCheckInApplication(CheckInApplication application,
+      String newStatus, String? roomNo, String? rejectionReason) async {
     try {
       final firestore = FirebaseFirestore.instance;
 
-      // Create a map to update the document
-      Map<String, dynamic> updateData = {'checkInStatus': newStatus};
+      WriteBatch batch = firestore.batch(); // Use a batch for atomic updates
 
-      // Add rejection reason if applicable
+      // Update the check-in application document
+      Map<String, dynamic> updateData = {
+        'checkInStatus': newStatus,
+      };
+      if (roomNo != null) {
+        updateData['roomNo'] = roomNo;
+      }
       if (rejectionReason != null && rejectionReason.isNotEmpty) {
         updateData['rejectionReason'] = rejectionReason;
       }
+      batch.update(
+          firestore
+              .collection('CheckInApplications')
+              .doc(application.checkInApplicationId),
+          updateData);
 
-      // Update the document in Firestore
-      await firestore
-          .collection('CheckInApplications')
-          .doc(application.checkInApplicationId)
-          .update(updateData);
+      batch.update(
+        firestore.collection('Students').doc(application.studentId),
+        {'studentRoomNo': roomNo},
+      );
+
+      // Update room availability if a room is assigned and approved
+      if (newStatus == 'Approved' && roomNo != null) {
+        // Find the corresponding block document
+        String blockName = roomNo.substring(0, 1);
+        batch.update(
+          firestore
+              .collection('Blocks')
+              .doc('Block $blockName')
+              .collection('Rooms')
+              .doc(roomNo),
+          {'roomAvailability': false},
+        );
+      }
+
+      await batch.commit(); // Commit both updates as a single transaction
+    } on FirebaseException catch (e) {
+      print('Firebase Error updating check-in application: $e');
     } catch (e) {
-      // Handle errors appropriately (e.g., display a snackbar)
-      print('Error updating check-in application status: $e');
+      print('Error updating check-in application: $e');
     }
   }
-}
 
-Future<String> _uploadImageToFirebase(File image) async {
-  // Create a unique file name (you might integrate timestamps, user IDs, etc.)
-  String fileName = DateTime.now().toString();
+  Future<CheckInApplication?> getCheckInApplication(String studentId) async {
+    try {
+      QuerySnapshot query = await _firestore
+          .collection('CheckInApplications')
+          .where('studentId', isEqualTo: studentId)
+          .get();
+      if (query.docs.isNotEmpty) {
+        return CheckInApplication.fromFirestore(
+            query.docs.first as DocumentSnapshot<Object?>);
+      }
+    } catch (e) {
+      print(e);
+    }
+    return null;
+  }
 
-  // Define storage reference (adjust the path as needed)
-  final storageRef =
-      FirebaseStorage.instance.ref().child('checkInImages/$fileName');
+  Future<void> resubmitApplication(CheckInApplication application) async {
+    try {
+      await _firestore
+          .collection('CheckInApplications')
+          .doc(application.checkInApplicationId)
+          .update({'checkInStatus': 'Pending'});
+    } catch (e) {
+      print('Error resubmitting application: $e');
+    }
+  }
 
-  // Upload task
-  final UploadTask uploadTask = storageRef.putFile(image);
+  Future<String> _uploadImageToFirebase(File image) async {
+    // Create a unique file name (you might integrate timestamps, user IDs, etc.)
+    String fileName = DateTime.now().toString();
 
-  // Handle progress if desired
+    // Define storage reference (adjust the path as needed)
+    final storageRef =
+        FirebaseStorage.instance.ref().child('checkInImages/$fileName');
 
-  // Wait for upload completion
-  final TaskSnapshot downloadSnapshot =
-      await uploadTask.whenComplete(() => null);
+    // Upload task
+    final UploadTask uploadTask = storageRef.putFile(image);
 
-  // Retrieve the download URL
-  final String downloadUrl = await downloadSnapshot.ref.getDownloadURL();
+    // Handle progress if desired
 
-  return downloadUrl;
+    // Wait for upload completion
+    final TaskSnapshot downloadSnapshot =
+        await uploadTask.whenComplete(() => null);
+
+    // Retrieve the download URL
+    final String downloadUrl = await downloadSnapshot.ref.getDownloadURL();
+
+    return downloadUrl;
+  }
+
+  final _firestore = FirebaseFirestore.instance;
+
+  Future<Room?> assignRoom(String roomType, List<Block> blocks) async {
+    for (var floor = 8; floor >= 1; floor--) {
+      // Iterate floors in descending order
+      for (var block in blocks) {
+        for (var room in block.rooms.where((r) => r.floorNumber == floor)) {
+          if (room.roomType == roomType) {
+            if (roomType == 'Single' && room.roomAvailability) {
+              room.roomAvailability = false;
+              await updateRoomAvailability(block, room);
+              return room;
+            } else if (roomType != 'Single') {
+              if (room.roomAvailability) {
+                final assignedStudents = await _firestore
+                    .collection('CheckInApplications')
+                    .where('roomNo', isEqualTo: room.roomNo)
+                    .where('checkinStatus', isEqualTo: 'Approved')
+                    .get();
+                final numAssigned = assignedStudents.docs.length;
+                if (numAssigned < int.parse(roomType[0])) {
+                  if (numAssigned + 1 == int.parse(roomType[0])) {
+                    room.roomAvailability = false;
+                    await updateRoomAvailability(block, room);
+                  }
+                  return room;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  Future<void> updateRoomAvailability(Block block, Room room) async {
+    await _firestore
+        .collection('Blocks')
+        .doc(block.blockName) // Assuming you store blocks by name
+        .update({
+      'rooms': block.rooms.map((r) => r.toMap()).toList(),
+    });
+  }
 }

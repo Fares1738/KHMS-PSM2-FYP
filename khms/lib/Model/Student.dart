@@ -12,10 +12,9 @@ class Student {
   String studentmyKadPassportNumber;
   String studentPhoneNumber;
   String studentIcNumber;
-  late String studentPhoto;
+  String studentPhoto;
   String studentMatricNo;
-  late String studentMatricPhoto;
-  late String studentRoomNo;
+  String studentRoomNo;
   String backMatricPic;
   String frontMatricPic;
   String passportMyKadPic;
@@ -31,13 +30,12 @@ class Student {
     this.studentIcNumber,
     this.studentPhoto,
     this.studentMatricNo,
-    this.studentMatricPhoto,
     this.studentRoomNo,
     this.backMatricPic,
     this.frontMatricPic,
     this.passportMyKadPic, {
-    required this.studentId,
-    required userType,
+    this.studentId,
+    userType,
   });
 
   Map<String, dynamic> toMap() {
@@ -53,49 +51,53 @@ class Student {
       'studentIcNumber': studentIcNumber,
       'studentPhoto': studentPhoto,
       'studentMatricNo': studentMatricNo,
-      'studentMatricPhoto': studentMatricPhoto,
       'studentRoomNo': studentRoomNo,
-      'backMatricPic': backMatricPic,
-      'frontMatricPic': frontMatricPic,
-      'passportMyKadPic': passportMyKadPic
+      'backMatricCardImage': backMatricPic,
+      'frontMatricCardImage': frontMatricPic,
+      'passportMyKadImage': passportMyKadPic
     };
   }
 
   Student.fromFirestore(DocumentSnapshot document)
-      : studentDoB = ((document.data() as Map<String, dynamic>)['studentDoB']
-                as Timestamp)
-            .toDate(),
+      : studentDoB = (document.data() as Map<String, dynamic>)['studentDoB'] !=
+                null
+            ? ((document.data() as Map<String, dynamic>)['studentDoB']
+                    as Timestamp)
+                .toDate()
+            : DateTime.now(), // Provide a default value or handle accordingly
         studentEmail =
-            (document.data() as Map<String, dynamic>)['studentEmail'] as String,
-        studentFirstName = (document.data()
-            as Map<String, dynamic>)['studentFirstName'] as String,
-        studentLastName = (document.data()
-            as Map<String, dynamic>)['studentLastName'] as String,
-        studentNationality = (document.data()
-            as Map<String, dynamic>)['studentNationality'] as String,
+            (document.data() as Map<String, dynamic>)['studentEmail'] ?? '',
+        studentFirstName =
+            (document.data() as Map<String, dynamic>)['studentFirstName'] ?? '',
+        studentLastName =
+            (document.data() as Map<String, dynamic>)['studentLastName'] ?? '',
+        studentNationality =
+            (document.data() as Map<String, dynamic>)['studentNationality'] ??
+                '',
         studentmyKadPassportNumber = (document.data()
-            as Map<String, dynamic>)['studentmyKadPassportNumber'] as String,
-        studentPhoneNumber = (document.data()
-            as Map<String, dynamic>)['studentPhoneNumber'] as String,
-        studentIcNumber = (document.data()
-            as Map<String, dynamic>)['studentIcNumber'] as String,
-        // studentPhoto = (document.data()
-        //     as Map<String, dynamic>)['passportMyKadImage'] as String,
-        studentMatricNo = (document.data()
-            as Map<String, dynamic>)['studentMatricNo'] as String,
-        // studentMatricPhoto = (document.data()
-        //     as Map<String, dynamic>)['frontMatricCardImage'] as String,
-        // studentRoomNo = (document.data()
-        //     as Map<String, dynamic>)['studentRoomNo'] as String,
+                as Map<String, dynamic>)['studentmyKadPassportNumber'] ??
+            '',
+        studentPhoneNumber =
+            (document.data() as Map<String, dynamic>)['studentPhoneNumber'] ??
+                '',
+        studentIcNumber =
+            (document.data() as Map<String, dynamic>)['studentIcNumber'] ?? '',
+        studentPhoto =
+            (document.data() as Map<String, dynamic>)['passportMyKadImage'] ??
+                '',
+        studentMatricNo =
+            (document.data() as Map<String, dynamic>)['studentMatricNo'] ?? '',
+        studentRoomNo =
+            (document.data() as Map<String, dynamic>)['studentRoomNo'] ?? '',
         studentId =
-            (document.data() as Map<String, dynamic>)['studentId'] as String,
+            (document.data() as Map<String, dynamic>)['studentId'] ?? '',
         backMatricPic =
-            (document.data() as Map<String, dynamic>)['backMatricCardImage']
-                as String, // Treat backMatricPic as optional
+            (document.data() as Map<String, dynamic>)['backMatricCardImage'] ??
+                '',
         frontMatricPic =
-            (document.data() as Map<String, dynamic>)['frontMatricCardImage']
-                as String, // Treat frontMatricPic as optional
+            (document.data() as Map<String, dynamic>)['frontMatricCardImage'] ??
+                '',
         passportMyKadPic =
-            (document.data() as Map<String, dynamic>)['passportMyKadImage']
-                as String; // Treat passportMyKadPic as optional
+            (document.data() as Map<String, dynamic>)['passportMyKadImage'] ??
+                '';
 }

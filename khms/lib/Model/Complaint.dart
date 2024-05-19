@@ -2,7 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum ComplaintStatus { Pending, Resolved }
+enum ComplaintStatus { Pending, Unresolved, Resolved }
 
 class Complaint {
   DateTime complaintDate;

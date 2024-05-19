@@ -9,11 +9,11 @@ class CheckInApplication {
   DateTime checkInDate;
   String studentId;
   String checkInStatus;
-  int? duration;
   String? roomType;
   int? price;
   Student? student;
   String? rejectionReason;
+  String? applicationData;
 
   CheckInApplication({
     required this.checkInApplicationDate,
@@ -21,26 +21,14 @@ class CheckInApplication {
     required this.checkInDate,
     required this.studentId,
     required this.checkInStatus,
-    required this.duration,
     required this.roomType,
     required this.price,
     this.rejectionReason = '',
+    this.applicationData = '',
   });
 
   int calculatePrice() {
-    final shortTermPrices = {
-      'Single Room': 760,
-      'Double Room': 630,
-      'Triple Room': 520
-    };
-
-    final longTermPrices = {
-      'Single Room': 650,
-      'Double Room': 460,
-      'Triple Room': 395
-    };
-
-    var prices = duration == 3 ? longTermPrices : shortTermPrices;
+    final prices = {'Single': 760, 'Double': 630, 'Triple': 520};
     return prices[roomType] ?? 0;
   }
 
@@ -51,10 +39,10 @@ class CheckInApplication {
       'checkInDate': Timestamp.fromDate(checkInDate),
       'studentId': studentId,
       'checkInStatus': checkInStatus,
-      'duration': duration,
       'roomType': roomType,
       'price': price,
       'rejectionReason': rejectionReason,
+      'applicationData': applicationData,
     };
   }
 
@@ -71,13 +59,14 @@ class CheckInApplication {
             (document.data() as Map<String, dynamic>)['studentId'] as String,
         checkInStatus = (document.data()
             as Map<String, dynamic>)['checkInStatus'] as String,
-        duration = (document.data() as Map<String, dynamic>)['duration']
-            as int?, // Treat duration as optional
         roomType = (document.data() as Map<String, dynamic>)['roomType']
             as String?, // Treat roomType as optional
         price = (document.data() as Map<String, dynamic>)['price']
             as int?, // Treat price as optional
         rejectionReason =
             (document.data() as Map<String, dynamic>)['rejectionReason']
-                as String; // Treat rejectionReason as optional
+                as String, // Treat rejectionReason as optional
+        applicationData =
+            (document.data() as Map<String, dynamic>)['applicationData']
+                as String?; // Treat applicationData as optional
 }

@@ -18,7 +18,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: const CustomAppBar(),
+        appBar: const HomeCustomAppBar(),
         body: IndexedStack(
           index: _currentPageIndex,
           children: const [

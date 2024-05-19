@@ -50,6 +50,7 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
       child: SingleChildScrollView(
         child: Column(
           children: [
+            const SizedBox(height: 20),
             const Text(
               "Complaints",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),

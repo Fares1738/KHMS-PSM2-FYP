@@ -1,10 +1,9 @@
-
 // ignore_for_file: file_names
 
 class Facilities {
   String facilityApplicationId; 
   DateTime facilityApplicationDate;
-  String facilitySlot; 
+  String? facilitySlot; 
   String facilityType;
   bool facilityAvailability;
   String studentId;

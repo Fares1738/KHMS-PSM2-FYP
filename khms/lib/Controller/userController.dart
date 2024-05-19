@@ -1,4 +1,4 @@
-// ignore_for_file: no_leading_underscores_for_local_identifiers, unused_element, file_names, use_build_context_synchronously, avoid_print, unused_catch_clause, unused_local_variable
+// ignore_for_file: no_leading_underscores_for_local_identifiers, file_names, use_build_context_synchronously, avoid_print, unused_catch_clause
 
 import 'package:flutter/material.dart';
 import 'package:khms/Model/Student.dart';
@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:khms/View/Common/loginPage.dart';
 import 'package:khms/View/Common/welcomePage.dart';
 import 'package:khms/View/Staff/staffHomePage.dart';
-import 'package:khms/View/Student/studentHomePage.dart';
+import 'package:khms/View/Student/studentMainPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserController with ChangeNotifier {
@@ -27,53 +27,68 @@ class UserController with ChangeNotifier {
   Future<void> registerUser(BuildContext context) async {
     try {
       UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          await _auth.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
 
       if (formKey.currentState!.validate()) {
         final _firestore = FirebaseFirestore.instance;
-        Student newStudent = Student(DateTime.now(), _emailController.text, '',
-            '', '', '', '', '', '', '', '', '','','', '',
-            userType: 'Student', studentId: userCredential.user!.uid);
+        Student newStudent = Student(
+          DateTime.now(),
+          _emailController.text,
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          userType: 'Student',
+          studentId: userCredential.user!.uid,
+        );
 
         await _firestore
             .collection('Students')
             .doc(userCredential.user!.uid)
             .set(newStudent.toMap());
 
-        // ... (Success Handling) ...
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registration successful!')),
         );
 
         // Navigate to the login page
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const LoginPage()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
       }
     } on FirebaseAuthException catch (e) {
-      // Handle Firebase Authentication errors (improved)
-      String errorMessage =
-          'Registration failed. Please try again.'; // Default message
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(errorMessage)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration failed. Please try again.')),
+      );
     } catch (e) {
-      // Generic error handling
       print('Registration Error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Registration failed. Please try again.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration failed. Please try again.')),
+      );
     }
 
-    notifyListeners(); // Add this to rebuild widgets
+    notifyListeners();
   }
 
   Future<void> signInWithEmailAndPassword(
       BuildContext context, String email, String password) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
+        email: email,
+        password: password,
+      );
 
       // Fetch student data
       var studentDoc = await FirebaseFirestore.instance
@@ -82,71 +97,76 @@ class UserController with ChangeNotifier {
           .get();
 
       if (studentDoc.exists) {
-        // Set the global variable
-        String globalStudentId =
-            studentDoc.data()!['studentId']; // Adapt if field name differs
+        String globalStudentId = studentDoc.data()!['studentId'];
+        String globalStudentRoomNo = studentDoc.data()!['studentRoomNo'] ?? '';
 
-        String globalStudentRoomNo =
-            studentDoc.data()!['studentRoomNo']; // Adapt if field name differs
+        String firstName = studentDoc.data()!['studentFirstName'];
+        String lastName = studentDoc.data()!['studentLastName'];
+        String studentName;
+
+        if (firstName.isNotEmpty && lastName.isNotEmpty) {
+          studentName = '$firstName $lastName';
+        } else {
+          studentName = 'Student';
+        }
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('studentID', globalStudentId);
+        await prefs.setString('studentRoomNo', globalStudentRoomNo);
 
-        final prefs2 = await SharedPreferences.getInstance();
-        await prefs2.setString('studentRoomNo', globalStudentRoomNo);
+        print('Student ID: $globalStudentId');
+        print('Student Room No: $globalStudentRoomNo');
+        print('Student Name: $studentName');
 
-        // final prefs3 = await SharedPreferences.getInstance();
-        // String? storedStudentId = prefs3.getString('studentID');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => StudentMainPage(
+                    studentName: studentName,
+                  )),
+        );
 
-        // final prefs4 = await SharedPreferences.getInstance();
-        // String? studentRoomNo = prefs4.getString('studentRoomNo');
-
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const StudentHomePage()));
-
-        // Successful login - Navigate to home page (modify as needed)
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login successful!')),
         );
       } else {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const StaffHomePage()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const StaffHomePage()),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login successful!')),
+        );
       }
     } on FirebaseAuthException catch (e) {
-      // Handle errors
       String errorMessage = 'Authentication failed. Please try again.';
       if (e.code == 'user-not-found' || e.code == 'wrong-password') {
         errorMessage = 'Invalid email or password.';
       }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(errorMessage)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
-    notifyListeners(); // Add this to rebuild widgets
+    notifyListeners();
   }
 
   Future<void> signOutUser(BuildContext context) async {
     try {
-      // Sign out from Firebase Authentication
-      await FirebaseAuth.instance.signOut();
+      await _auth.signOut();
 
-      // Clear Shared Preferences
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('studentID'); // Remove stored studentID
-      await prefs.remove('studentRoomNo'); // Remove stored studentRoomNo
+      await prefs.clear();
 
-      // Navigate to the Welcome Page
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const WelcomePage()),
-        (Route<dynamic> route) => false, // Remove all previous routes
+        (Route<dynamic> route) => false,
       );
 
-      // Optional: Show a logout success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Logout successful!')),
       );
     } catch (e) {
-      // Handle errors during sign-out
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Logout failed. Please try again.')),
       );

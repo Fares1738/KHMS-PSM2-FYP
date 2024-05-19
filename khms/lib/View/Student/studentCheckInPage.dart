@@ -1,6 +1,7 @@
-// ignore_for_file: file_names, library_private_types_in_public_api, avoid_print
+// ignore_for_file: file_names, library_private_types_in_public_api, avoid_print, must_be_immutable
 
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:khms/Controller/checkInController.dart';
@@ -9,7 +10,15 @@ import 'package:khms/View/Custom_Widgets/appBar.dart';
 import 'package:file_picker/file_picker.dart';
 
 class CheckInPage extends StatefulWidget {
-  const CheckInPage({super.key});
+  String studentId;
+  Map<String, dynamic> studentData;
+  Map<String, dynamic> applicationData;
+  CheckInPage({
+    super.key,
+    this.studentId = '',
+    this.studentData = const {},
+    this.applicationData = const {},
+  });
 
   @override
   _CheckInPageState createState() => _CheckInPageState();
@@ -17,16 +26,17 @@ class CheckInPage extends StatefulWidget {
 
 class _CheckInPageState extends State<CheckInPage> {
   final CheckInController _controller = CheckInController();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _passportController = TextEditingController();
-  final _phoneNoController = TextEditingController();
-  final _nationalityController = TextEditingController();
-  final _iCController = TextEditingController();
-  final _matricController = TextEditingController();
-  int? duration;
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
+  late TextEditingController _passportController;
+  late TextEditingController _phoneNoController;
+  late TextEditingController _nationalityController;
+  late TextEditingController _iCController;
+  late TextEditingController _matricController;
+  String? rejectReason;
   String? roomType;
   int? priceToDisplay;
+  String? checkInApplicationId;
   DateTime? _dateOfBirth; // For the date of birth picker
   DateTime? _checkInDate; // For the check-in date picker
 
@@ -53,9 +63,40 @@ class _CheckInPageState extends State<CheckInPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    _firstNameController =
+        TextEditingController(text: widget.studentData['studentFirstName']);
+    _lastNameController =
+        TextEditingController(text: widget.studentData['studentLastName']);
+    _passportController = TextEditingController(
+        text: widget.studentData['studentmyKadPassportNumber']);
+    _phoneNoController =
+        TextEditingController(text: widget.studentData['studentPhoneNumber']);
+    _nationalityController =
+        TextEditingController(text: widget.studentData['studentNationality']);
+    _iCController =
+        TextEditingController(text: widget.studentData['studentIcNumber']);
+    _matricController =
+        TextEditingController(text: widget.studentData['studentMatricNo']);
+    roomType = widget.applicationData['roomType'];
+    priceToDisplay = widget.applicationData['price'];
+    _dateOfBirth = (widget.studentData['studentDoB'] as Timestamp?)?.toDate();
+    _checkInDate =
+        (widget.applicationData['checkInDate'] as Timestamp?)?.toDate();
+    rejectReason = widget.applicationData['rejectionReason'];
+    checkInApplicationId = widget.applicationData['checkInApplicationId'] ?? '';
+
+    if (roomType != null) {
+      _calculatePrice();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(),
+      appBar: const GeneralCustomAppBar(),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -71,6 +112,16 @@ class _CheckInPageState extends State<CheckInPage> {
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
+
+                  if (rejectReason != null)
+                    Text(
+                      'Reject Reason: $rejectReason',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.red),
+                    ),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: _firstNameController,
                     decoration: const InputDecoration(
@@ -170,57 +221,7 @@ class _CheckInPageState extends State<CheckInPage> {
                         labelText: "Matric Number",
                         prefixIcon: Icon(Icons.numbers)),
                   ),
-                  const SizedBox(height: 10),
 
-                  const Text(
-                    "Duration of Stay",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
-                  const SizedBox(height: 5),
-                  Column(
-                    children: [
-                      Row(
-                        children: [
-                          Radio<int>(
-                            value: 1,
-                            groupValue: duration,
-                            onChanged: (int? value) {
-                              setState(() {
-                                duration = value;
-                                if (duration != null && roomType != null) {
-                                  _calculatePrice();
-                                } else {
-                                  priceToDisplay =
-                                      null; // Reset price display if selections are incomplete
-                                }
-                              });
-                            },
-                          ),
-                          const Text("Short-Term - 1 Month"),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Radio<int>(
-                            value: 3,
-                            groupValue: duration,
-                            onChanged: (int? value) {
-                              setState(() {
-                                duration = value;
-                                if (duration != null && roomType != null) {
-                                  _calculatePrice();
-                                } else {
-                                  priceToDisplay =
-                                      null; // Reset price display if selections are incomplete
-                                }
-                              });
-                            },
-                          ),
-                          const Text("Long-Term - 3 Months"),
-                        ],
-                      ),
-                    ],
-                  ),
                   const SizedBox(height: 10),
                   const Text(
                     "Type of Room",
@@ -233,12 +234,12 @@ class _CheckInPageState extends State<CheckInPage> {
                       Row(
                         children: [
                           Radio<String>(
-                            value: 'Single Room',
+                            value: 'Single',
                             groupValue: roomType,
                             onChanged: (String? value) {
                               setState(() {
                                 roomType = value;
-                                if (duration != null && roomType != null) {
+                                if (roomType != null) {
                                   _calculatePrice();
                                 } else {
                                   priceToDisplay = null;
@@ -252,12 +253,12 @@ class _CheckInPageState extends State<CheckInPage> {
                       Row(
                         children: [
                           Radio<String>(
-                            value: 'Double Room',
+                            value: 'Double',
                             groupValue: roomType,
                             onChanged: (String? value) {
                               setState(() {
                                 roomType = value;
-                                if (duration != null && roomType != null) {
+                                if (roomType != null) {
                                   _calculatePrice();
                                 } else {
                                   priceToDisplay = null;
@@ -271,12 +272,12 @@ class _CheckInPageState extends State<CheckInPage> {
                       Row(
                         children: [
                           Radio<String>(
-                            value: 'Triple Room',
+                            value: 'Triple',
                             groupValue: roomType,
                             onChanged: (String? value) {
                               setState(() {
                                 roomType = value;
-                                if (duration != null && roomType != null) {
+                                if (roomType != null) {
                                   _calculatePrice();
                                 } else {
                                   priceToDisplay = null;
@@ -293,9 +294,7 @@ class _CheckInPageState extends State<CheckInPage> {
 
                   const SizedBox(height: 10),
 
-                  if (duration != null &&
-                      roomType != null &&
-                      priceToDisplay != null)
+                  if (roomType != null && priceToDisplay != null)
                     Text(
                       'Price: $priceToDisplay RM',
                       style: const TextStyle(
@@ -356,8 +355,8 @@ class _CheckInPageState extends State<CheckInPage> {
                         _iCController.text,
                         _dateOfBirth!,
                         roomType!,
-                        duration!,
                         priceToDisplay!,
+                        checkInApplicationId,
                         '',
                         _frontMatricPic,
                         _backMatricPic,
@@ -377,7 +376,6 @@ class _CheckInPageState extends State<CheckInPage> {
 
   void _calculatePrice() {
     CheckInApplication application = CheckInApplication(
-        duration: duration,
         roomType: roomType,
         checkInApplicationDate: DateTime.now(),
         checkInApplicationId: '',
