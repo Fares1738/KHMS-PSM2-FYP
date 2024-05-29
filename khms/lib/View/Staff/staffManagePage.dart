@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:khms/View/Staff/staffComplaintsPage.dart';
 import 'package:khms/View/Staff/staffManageCheckInPage.dart';
 import 'package:khms/View/Staff/staffManageCheckOutPage.dart';
+import 'package:khms/View/Staff/staffManageFacilities.dart';
 
 class ManageApplications extends StatelessWidget {
   const ManageApplications({super.key});
@@ -57,14 +58,14 @@ class ManageApplications extends StatelessWidget {
               minimumSize: const Size(250, 50),
             ),
             onPressed: () {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //     builder: (context) => ,
-              //   ),
-              // );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FacilityManagementPage(),
+                ),
+              );
             },
-            child: const Text("Facility Bookings"),
+            child: const Text("Manage Facilities and Bookings"),
           ),
           const SizedBox(height: 20),
           ElevatedButton(

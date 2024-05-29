@@ -14,24 +14,24 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 class CheckInController {
   Future<void> submitCheckInApplication(
-    BuildContext context,
-    String firstName,
-    String lastName,
-    String passportNo,
-    DateTime checkInDate,
-    String phoneNo,
-    String nationality,
-    String matricNumber,
-    String icNumber,
-    DateTime dateofBirth,
-    String roomType,
-    int price,
-    String? checkInApplicationId,
-    String? rejectionReason,
-    File? frontMatricPic,
-    File? backMatricPic,
-    File? passportMyKadPic,
-  ) async {
+      BuildContext context,
+      String firstName,
+      String lastName,
+      String passportNo,
+      DateTime checkInDate,
+      String phoneNo,
+      String nationality,
+      String matricNumber,
+      String icNumber,
+      DateTime dateofBirth,
+      String roomType,
+      int price,
+      String? checkInApplicationId,
+      String? rejectionReason,
+      File? frontMatricPic,
+      File? backMatricPic,
+      File? passportMyKadPic,
+      File? studentPhoto) async {
     try {
       final _firestore = FirebaseFirestore.instance;
       final prefs2 = await SharedPreferences.getInstance();
@@ -45,8 +45,7 @@ class CheckInController {
           studentId: storedStudentId,
           checkInStatus: 'Pending',
           roomType: roomType,
-          price: price,
-          rejectionReason: '');
+          price: price);
 
       // Add to Firestore; gets auto-generated ID
 
@@ -101,6 +100,13 @@ class CheckInController {
         final imageURL3 = await _uploadImageToFirebase(passportMyKadPic);
         await _firestore.collection('Students').doc(storedStudentId).update({
           'passportMyKadImage': imageURL3,
+        });
+      }
+
+      if (studentPhoto != null) {
+        final imageURL4 = await _uploadImageToFirebase(studentPhoto);
+        await _firestore.collection('Students').doc(storedStudentId).update({
+          'studentPhoto': imageURL4,
         });
       }
 

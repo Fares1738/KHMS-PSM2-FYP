@@ -37,7 +37,7 @@ class _CheckInStatusWidgetState extends State<CheckInStatusWidget> {
   }
 
   Future<void> _resubmitApplication() async {
-    final _firestore = FirebaseFirestore.instance;
+    final firestore = FirebaseFirestore.instance;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String studentId = prefs.getString('studentID')!;
 
@@ -46,7 +46,7 @@ class _CheckInStatusWidgetState extends State<CheckInStatusWidget> {
           .collection('Students')
           .doc(widget.studentId)
           .get();
-      QuerySnapshot query = await _firestore
+      QuerySnapshot query = await firestore
           .collection('CheckInApplications')
           .where('studentId', isEqualTo: studentId)
           .get();
@@ -95,7 +95,7 @@ class _CheckInStatusWidgetState extends State<CheckInStatusWidget> {
     }
 
     if (_application == null) {
-      return const Center(child: Text('No application found.'));
+      return const Center(child: Text('Please Check In First'));
     }
 
     return Padding(

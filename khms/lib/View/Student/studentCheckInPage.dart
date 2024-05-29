@@ -43,6 +43,7 @@ class _CheckInPageState extends State<CheckInPage> {
   File? _frontMatricPic;
   File? _backMatricPic;
   File? _passportMyKadPic;
+  File? _studentPhoto;
 
   Future<void> _pickFile(int buttonIndex) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -57,6 +58,8 @@ class _CheckInPageState extends State<CheckInPage> {
           _backMatricPic = file;
         } else if (buttonIndex == 3) {
           _passportMyKadPic = file;
+        } else if (buttonIndex == 4) {
+          _studentPhoto = file;
         }
       });
     }
@@ -328,6 +331,7 @@ class _CheckInPageState extends State<CheckInPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildUploadButton("Upload Passport/MyKad", 3),
+                      _buildUploadButton("Upload Personal Photo", 4),
                     ],
                   ),
 
@@ -335,7 +339,10 @@ class _CheckInPageState extends State<CheckInPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (_passportMyKadPic != null)
-                        Image.file(_passportMyKadPic!, height: 300),
+                        Image.file(_passportMyKadPic!, height: 250),
+                      const SizedBox(width: 10),
+                      if (_studentPhoto != null)
+                        Image.file(_studentPhoto!, height: 250),
                     ],
                   ),
                   const SizedBox(height: 30),
@@ -344,24 +351,24 @@ class _CheckInPageState extends State<CheckInPage> {
                   ElevatedButton(
                     onPressed: () {
                       _controller.submitCheckInApplication(
-                        context,
-                        _firstNameController.text,
-                        _lastNameController.text,
-                        _passportController.text,
-                        _checkInDate!,
-                        _phoneNoController.text,
-                        _nationalityController.text,
-                        _matricController.text,
-                        _iCController.text,
-                        _dateOfBirth!,
-                        roomType!,
-                        priceToDisplay!,
-                        checkInApplicationId,
-                        '',
-                        _frontMatricPic,
-                        _backMatricPic,
-                        _passportMyKadPic,
-                      );
+                          context,
+                          _firstNameController.text,
+                          _lastNameController.text,
+                          _passportController.text,
+                          _checkInDate!,
+                          _phoneNoController.text,
+                          _nationalityController.text,
+                          _matricController.text,
+                          _iCController.text,
+                          _dateOfBirth!,
+                          roomType!,
+                          priceToDisplay!,
+                          checkInApplicationId,
+                          '',
+                          _frontMatricPic,
+                          _backMatricPic,
+                          _passportMyKadPic,
+                          _studentPhoto);
                     },
                     child: const Text("Submit"),
                   ),

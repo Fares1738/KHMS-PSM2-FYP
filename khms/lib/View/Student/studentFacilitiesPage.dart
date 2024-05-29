@@ -16,7 +16,7 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
   List<String> bookedTimeSlots = [];
   DateTime? _selectedDate;
   String? _selectedTimeSlot, _selectedFacilityType;
-
+  Map<String, bool> _facilityAvailability = {};
   final List<String> _timeSlots = [
     '10:00 AM - 11:00 AM',
     '11:00 AM - 12:00 PM',
@@ -31,12 +31,27 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
     '08:00 PM - 09:00 PM',
     '09:00 PM - 10:00 PM',
   ];
+
   final _facilityTypes = [
-    'Futsal Court',
+    'Futsal',
     'BBQ',
     'Pool Table',
-    'Ping-pong Table'
+    'Ping Pong Table',
+    'Gym'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFacilityAvailability();
+  }
+
+  Future<void> _fetchFacilityAvailability() async {
+    final availability = await _controller.fetchFacilityAvailability();
+    setState(() {
+      _facilityAvailability = availability;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,27 +66,48 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           OutlinedButton(
-            onPressed: () async =>
-                setState(() async => _selectedDate = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 3)),
-                    )),
+            onPressed: () async {
+              final selectedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 3)),
+              );
+              if (selectedDate != null) {
+                setState(() {
+                  _selectedDate = selectedDate;
+                });
+              }
+            },
             child:
                 Text(_selectedDate?.toString().split(' ')[0] ?? 'Select Date'),
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField(
+          DropdownButtonFormField<String>(
             value: _selectedFacilityType,
-            items: _facilityTypes
-                .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-                .toList(),
+            items: _facilityTypes.map((type) {
+              final isEnabled = _facilityAvailability[type] ?? false;
+              return DropdownMenuItem<String>(
+                value: type,
+                enabled:
+                    isEnabled, // Disable the item if the facility is not available
+                child: Text(
+                  type,
+                  style: TextStyle(
+                    color: isEnabled
+                        ? null
+                        : Colors.grey, // Show disabled items in grey
+                  ),
+                ),
+              );
+            }).toList(),
             onChanged: (value) async {
-              setState(() => _selectedFacilityType = value);
-              if (_selectedDate != null) {
-                bookedTimeSlots = await _controller.fetchBookedTimeSlots(
-                    _selectedDate!, _selectedFacilityType!);
+              if (value != null && (_facilityAvailability[value] ?? false)) {
+                setState(() => _selectedFacilityType = value);
+                if (_selectedDate != null) {
+                  bookedTimeSlots = await _controller.fetchBookedTimeSlots(
+                      _selectedDate!, _selectedFacilityType!);
+                }
               }
             },
             decoration: const InputDecoration(
@@ -79,46 +115,58 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                 border: OutlineInputBorder()),
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField(
+          DropdownButtonFormField<String>(
             value: _selectedTimeSlot,
-            items: _timeSlots
-                .map((slot) => DropdownMenuItem(
-                    value: slot,
-                    child: Text(slot,
-                        style: TextStyle(
-                            color: bookedTimeSlots.contains(slot)
-                                ? Colors.grey
-                                : null))))
-                .toList(),
+            items: _timeSlots.map((slot) {
+              final isBooked = bookedTimeSlots.contains(slot);
+              return DropdownMenuItem<String>(
+                value: slot,
+                enabled:
+                    !isBooked, // Disable the item if the slot is already booked
+                child: Text(
+                  slot,
+                  style: TextStyle(
+                    color: isBooked
+                        ? Colors.grey
+                        : null, // Show booked slots in grey
+                  ),
+                ),
+              );
+            }).toList(),
             onChanged: _selectedDate != null && _selectedFacilityType != null
-                ? (value) =>
-                    setState(() => _selectedTimeSlot = value as String?)
+                ? (value) => setState(() => _selectedTimeSlot = value)
                 : null,
             decoration: const InputDecoration(
                 labelText: 'Select Time Slot', border: OutlineInputBorder()),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () async {
-              try {
-                await _controller.submitFacilityBooking(
-                    context,
-                    Facilities(
-                      facilityApplicationId: '',
-                      facilityApplicationDate: _selectedDate!,
-                      facilitySlot: _selectedTimeSlot!,
-                      facilityType: _selectedFacilityType!,
-                      facilityAvailability: true,
-                      studentId: '',
-                      studentRoomNo: '',
-                    ));
-              } catch (e) {
-                print(
-                    'Error: $e'); // Consider handling errors better in a production app
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Error submitting booking')));
-              }
-            },
+            onPressed: _selectedDate != null &&
+                    _selectedTimeSlot != null &&
+                    _selectedFacilityType != null &&
+                    (_facilityAvailability[_selectedFacilityType!] ?? false)
+                ? () async {
+                    try {
+                      await _controller.submitFacilityBooking(
+                        context,
+                        Facilities(
+                          facilityApplicationId: '',
+                          facilityApplicationDate: _selectedDate!,
+                          facilitySlot: _selectedTimeSlot!,
+                          facilityType: _selectedFacilityType!,
+                          studentId: '',
+                          studentRoomNo: '',
+                        ),
+                      );
+                    } catch (e) {
+                      print('Error: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Error submitting booking')),
+                      );
+                    }
+                  }
+                : null,
             child: const Text('Submit'),
           ),
         ],

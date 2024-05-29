@@ -1,10 +1,8 @@
-// ignore_for_file: file_names, use_build_context_synchronously, avoid_print
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:khms/View/Student/studentMainPage.dart';
-import 'package:khms/Model/Facilities.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:khms/Model/Facilities.dart';
+import 'package:khms/View/Student/studentMainPage.dart';
 
 class FacilitiesController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -18,8 +16,23 @@ class FacilitiesController {
       print(storedStudentId);
 
       facilityData.studentId = storedStudentId;
-      final docRef =
-          await _firestore.collection('Facilities').add(facilityData.toMap());
+
+      // Check if the facility is enabled
+      final isEnabled = await isFacilityEnabled(facilityData.facilityType);
+      if (!isEnabled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  "This facility is currently disabled and cannot be booked.")),
+        );
+        return facilityData;
+      }
+
+      final docRef = await _firestore
+          .collection('Facilities')
+          .doc(facilityData.facilityType)
+          .collection('Applications')
+          .add(facilityData.toMap());
 
       facilityData.facilityApplicationId = docRef.id;
       await docRef.update({'facilityApplicationId': docRef.id});
@@ -31,8 +44,6 @@ class FacilitiesController {
         context,
         MaterialPageRoute(builder: (context) => StudentMainPage()),
       );
-
-      //return facilityData;
     } on FirebaseException catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error submitting booking: ${error.message}')),
@@ -42,6 +53,17 @@ class FacilitiesController {
           .showSnackBar(SnackBar(content: Text("Error: $error")));
     }
     return facilityData;
+  }
+
+  Future<Map<String, bool>> fetchFacilityAvailability() async {
+    final Map<String, bool> facilityAvailability = {};
+    final querySnapshot = await _firestore.collection('Facilities').get();
+
+    for (final doc in querySnapshot.docs) {
+      facilityAvailability[doc.id] = doc.data()['isEnabled'] as bool? ?? false;
+    }
+
+    return facilityAvailability;
   }
 
   Future<List<String>> fetchBookedTimeSlots(
@@ -55,9 +77,10 @@ class FacilitiesController {
 
     final querySnapshot = await _firestore
         .collection('Facilities')
+        .doc(facilityType)
+        .collection('Applications')
         .where('facilityApplicationDate',
             isGreaterThanOrEqualTo: dayStart, isLessThanOrEqualTo: dayEnd)
-        .where('facilityType', isEqualTo: facilityType)
         .get();
 
     for (final doc in querySnapshot.docs) {
@@ -65,5 +88,49 @@ class FacilitiesController {
     }
 
     return bookedSlots;
+  }
+
+  Future<void> toggleFacilityAvailability(
+      String facilityType, bool isEnabled) async {
+    await _firestore
+        .collection('Facilities')
+        .doc(facilityType)
+        .update({'isEnabled': isEnabled});
+  }
+
+  Future<bool> isFacilityEnabled(String facilityType) async {
+    final doc =
+        await _firestore.collection('Facilities').doc(facilityType).get();
+    return doc.data()?['isEnabled'] ?? false;
+  }
+
+  Future<List<Facilities>> fetchFacilityApplications() async {
+    final List<Facilities> facilityApplications = [];
+
+    final facilitiesSnapshot = await _firestore.collection('Facilities').get();
+
+    for (final facilityDoc in facilitiesSnapshot.docs) {
+      final applicationsSnapshot = await _firestore
+          .collection('Facilities')
+          .doc(facilityDoc.id)
+          .collection('Applications')
+          .get();
+
+      for (final applicationDoc in applicationsSnapshot.docs) {
+        facilityApplications.add(Facilities.fromMap(applicationDoc.data()));
+      }
+    }
+
+    return facilityApplications;
+  }
+
+  Future<void> updateFacilityApplicationStatus(
+      String applicationId, String status, String facilityType) async {
+    await _firestore
+        .collection('Facilities')
+        .doc(facilityType)
+        .collection('Applications')
+        .doc(applicationId)
+        .update({'status': status});
   }
 }

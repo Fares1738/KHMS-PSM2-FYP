@@ -64,7 +64,7 @@ class Student {
             ? ((document.data() as Map<String, dynamic>)['studentDoB']
                     as Timestamp)
                 .toDate()
-            : DateTime.now(), // Provide a default value or handle accordingly
+            : DateTime.now(),
         studentEmail =
             (document.data() as Map<String, dynamic>)['studentEmail'] ?? '',
         studentFirstName =
@@ -83,7 +83,7 @@ class Student {
         studentIcNumber =
             (document.data() as Map<String, dynamic>)['studentIcNumber'] ?? '',
         studentPhoto =
-            (document.data() as Map<String, dynamic>)['passportMyKadImage'] ??
+            (document.data() as Map<String, dynamic>)['studentPhoto'] ??
                 '',
         studentMatricNo =
             (document.data() as Map<String, dynamic>)['studentMatricNo'] ?? '',
