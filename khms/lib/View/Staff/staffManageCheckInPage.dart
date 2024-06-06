@@ -132,7 +132,7 @@ class _CheckInApplicationsListPageState
         children: [
           const Text("Status: "),
           _buildStatusFilterDropdown(),
-          const Text("Room Type: "),
+          const Text("Room: "),
           _buildRoomTypeFilterDropdown(),
           const Text("Sort By: "),
           _buildDateFilterDropdown(),

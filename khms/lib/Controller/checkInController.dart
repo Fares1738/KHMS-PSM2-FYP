@@ -3,7 +3,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:khms/Model/Block.dart';
 import 'package:khms/Model/CheckInApplication.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/Model/Room.dart';
@@ -37,7 +36,6 @@ class CheckInController {
       final prefs2 = await SharedPreferences.getInstance();
       String? storedStudentId = prefs2.getString('studentID') as String;
 
-      // Create CheckInApplication with placeholder
       CheckInApplication newApplication = CheckInApplication(
           checkInApplicationDate: DateTime.now(),
           checkInApplicationId: checkInApplicationId ?? '',
@@ -46,8 +44,6 @@ class CheckInController {
           checkInStatus: 'Pending',
           roomType: roomType,
           price: price);
-
-      // Add to Firestore; gets auto-generated ID
 
       if (checkInApplicationId == null) {
         DocumentReference docRef = await _firestore
@@ -142,18 +138,13 @@ class CheckInController {
 
     return _firestore
         .collection('CheckInApplications')
-        .snapshots() // Listen for changes in the CheckInApplications collection
+        .snapshots()
         .asyncMap((applicationsSnapshot) async {
-      // Use asyncMap to handle async operations within the stream
-
       final applications = applicationsSnapshot.docs
           .map((doc) => CheckInApplication.fromFirestore(doc))
           .toList();
 
-      // Fetch student data in parallel using a map
-      final studentIds = applications
-          .map((app) => app.studentId)
-          .toSet(); // Unique student IDs
+      final studentIds = applications.map((app) => app.studentId).toSet();
       final studentsFutureMap = {
         for (var studentId in studentIds)
           studentId: _firestore.collection('Students').doc(studentId).get()
@@ -165,7 +156,6 @@ class CheckInController {
             .map((doc) => MapEntry(doc.id, Student.fromFirestore(doc))),
       );
 
-      // Attach student data to applications
       for (var application in applications) {
         application.student = studentMap[application.studentId];
       }
@@ -194,9 +184,8 @@ class CheckInController {
     try {
       final firestore = FirebaseFirestore.instance;
 
-      WriteBatch batch = firestore.batch(); // Use a batch for atomic updates
+      WriteBatch batch = firestore.batch(); 
 
-      // Update the check-in application document
       Map<String, dynamic> updateData = {
         'checkInStatus': newStatus,
       };
@@ -217,9 +206,7 @@ class CheckInController {
         {'studentRoomNo': roomNo},
       );
 
-      // Update room availability if a room is assigned and approved
       if (newStatus == 'Approved' && roomNo != null) {
-        // Find the corresponding block document
         String blockName = roomNo.substring(0, 1);
         batch.update(
           firestore
@@ -231,7 +218,7 @@ class CheckInController {
         );
       }
 
-      await batch.commit(); // Commit both updates as a single transaction
+      await batch.commit();
     } on FirebaseException catch (e) {
       print('Firebase Error updating check-in application: $e');
     } catch (e) {
@@ -290,47 +277,4 @@ class CheckInController {
   }
 
   final _firestore = FirebaseFirestore.instance;
-
-  Future<Room?> assignRoom(String roomType, List<Block> blocks) async {
-    for (var floor = 8; floor >= 1; floor--) {
-      // Iterate floors in descending order
-      for (var block in blocks) {
-        for (var room in block.rooms.where((r) => r.floorNumber == floor)) {
-          if (room.roomType == roomType) {
-            if (roomType == 'Single' && room.roomAvailability) {
-              room.roomAvailability = false;
-              await updateRoomAvailability(block, room);
-              return room;
-            } else if (roomType != 'Single') {
-              if (room.roomAvailability) {
-                final assignedStudents = await _firestore
-                    .collection('CheckInApplications')
-                    .where('roomNo', isEqualTo: room.roomNo)
-                    .where('checkinStatus', isEqualTo: 'Approved')
-                    .get();
-                final numAssigned = assignedStudents.docs.length;
-                if (numAssigned < int.parse(roomType[0])) {
-                  if (numAssigned + 1 == int.parse(roomType[0])) {
-                    room.roomAvailability = false;
-                    await updateRoomAvailability(block, room);
-                  }
-                  return room;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  Future<void> updateRoomAvailability(Block block, Room room) async {
-    await _firestore
-        .collection('Blocks')
-        .doc(block.blockName) // Assuming you store blocks by name
-        .update({
-      'rooms': block.rooms.map((r) => r.toMap()).toList(),
-    });
-  }
 }

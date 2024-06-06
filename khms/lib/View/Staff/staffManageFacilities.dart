@@ -66,7 +66,7 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
                 _toggleFacility(entry.key, value);
               },
             );
-          }).toList(),
+          }),
           ..._facilityApplications.map((facility) {
             return Card(
               child: ExpansionTile(
