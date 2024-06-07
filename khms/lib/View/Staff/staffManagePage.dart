@@ -1,7 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:khms/View/Staff/staffComplaintsPage.dart';
+import 'package:khms/View/Staff/staffManageComplaintsPage.dart';
 import 'package:khms/View/Staff/staffManageCheckInPage.dart';
 import 'package:khms/View/Staff/staffManageCheckOutPage.dart';
 import 'package:khms/View/Staff/staffManageFacilities.dart';

@@ -1,5 +1,8 @@
+// ignore_for_file: use_build_context_synchronously, avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:khms/Model/Student.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:khms/Model/Facilities.dart';
 import 'package:khms/View/Student/studentMainPage.dart';
@@ -13,11 +16,8 @@ class FacilitiesController {
       final prefs = await SharedPreferences.getInstance();
       final String storedStudentId = prefs.getString('studentID') ?? '';
 
-      print(storedStudentId);
-
       facilityData.studentId = storedStudentId;
 
-      // Check if the facility is enabled
       final isEnabled = await isFacilityEnabled(facilityData.facilityType);
       if (!isEnabled) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -104,24 +104,47 @@ class FacilitiesController {
     return doc.data()?['isEnabled'] ?? false;
   }
 
-  Future<List<Facilities>> fetchFacilityApplications() async {
-    final List<Facilities> facilityApplications = [];
+  
+  Stream<List<Facilities>> fetchFacilityApplicationsStream() {
+    return _firestore
+        .collectionGroup('Applications')
+        .snapshots()
+        .asyncMap((applicationsSnapshot) async {
+      final List<Facilities> facilities = [];
 
-    final facilitiesSnapshot = await _firestore.collection('Facilities').get();
+      // Fetch all student data in one go
+      QuerySnapshot studentsSnapshot =
+          await _firestore.collection('Students').get();
 
-    for (final facilityDoc in facilitiesSnapshot.docs) {
-      final applicationsSnapshot = await _firestore
-          .collection('Facilities')
-          .doc(facilityDoc.id)
-          .collection('Applications')
-          .get();
+      // Create a map for efficient student lookups
+      final studentMap = Map.fromEntries(
+        studentsSnapshot.docs.map(
+          (doc) => MapEntry(doc.id, Student.fromFirestore(doc)),
+        ),
+      );
 
-      for (final applicationDoc in applicationsSnapshot.docs) {
-        facilityApplications.add(Facilities.fromMap(applicationDoc.data()));
+      for (var doc in applicationsSnapshot.docs) {
+        final facilityData = doc.data();
+        final studentId = facilityData['studentId'] as String;
+        final facilityType = doc.reference.parent.parent!
+            .id; // Get facility type from the parent document's ID
+
+        // Add the Facility object to the list directly
+        facilities.add(Facilities(
+          facilityApplicationId: doc.id,
+          facilityApplicationDate:
+              (facilityData['facilityApplicationDate'] as Timestamp).toDate(),
+          facilitySlot: facilityData['facilitySlot'] as String,
+          facilityType: facilityType,
+          studentId: studentId,
+          studentRoomNo: studentMap[studentId]?.studentRoomNo ?? '',
+          facilityApplicationStatus: facilityData['facilityStatus'] as String,
+          student: studentMap[studentId],
+        ));
       }
-    }
 
-    return facilityApplications;
+      return facilities; // Return the list of Facilities
+    });
   }
 
   Future<void> updateFacilityApplicationStatus(
@@ -131,6 +154,63 @@ class FacilitiesController {
         .doc(facilityType)
         .collection('Applications')
         .doc(applicationId)
-        .update({'status': status});
+        .update({'facilityStatus': status});
+  }
+
+  List<Facilities> sortFacilityApplicationsByDate(
+      List<Facilities> facilities, String sortByDate) {
+    if (sortByDate == 'Newest') {
+      facilities.sort((a, b) =>
+          b.facilityApplicationDate.compareTo(a.facilityApplicationDate));
+    } else {
+      facilities.sort((a, b) =>
+          a.facilityApplicationDate.compareTo(b.facilityApplicationDate));
+    }
+    return facilities;
+  }
+
+  List<Facilities> sortFacilityApplicationsByStatus(
+      List<Facilities> facilities, String sortByStatus) {
+    if (sortByStatus == 'All') {
+      return facilities;
+    } else {
+      facilities.sort((a, b) {
+        final statusOrder = {
+          'Pending': 0,
+          'Approved': 1,
+          'Rejected': 2,
+        };
+        return statusOrder[a.facilityApplicationStatus]!
+            .compareTo(statusOrder[b.facilityApplicationStatus]!);
+      });
+      return facilities
+          .where(
+              (facility) => facility.facilityApplicationStatus == sortByStatus)
+          .toList();
+    }
+  }
+
+  Color getStatusColor(String status) {
+    switch (status) {
+      case 'Approved':
+        return Colors.green;
+      case 'Rejected':
+        return Colors.red;
+      default:
+        return Colors.orange;
+    }
+  }
+
+  IconData getStatusIcon(String status) {
+    switch (status) {
+      case 'Pending':
+        return Icons.warning_amber_rounded;
+      case 'Approved':
+        return Icons.check_circle_outline;
+      case 'Rejected':
+        return Icons.cancel;
+      default:
+        return Icons.question_mark;
+    }
   }
 }

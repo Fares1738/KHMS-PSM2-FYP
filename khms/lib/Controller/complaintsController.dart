@@ -19,20 +19,16 @@ class ComplaintsController {
       final String storedStudentId = prefs.getString('studentID') as String;
 
       complaint.studentId = storedStudentId;
-      //complaint.studentRoomNo = '';
 
-      // Image Upload (If an image is provided)
       if (imageFile != null) {
         final imageUrl = await _uploadImageToFirebase(imageFile);
         complaint.complaintImageUrl = imageUrl;
       }
 
-      // Add to Firestore
       DocumentReference docRef =
           await firestore.collection('Complaints').add(complaint.toMap());
       await docRef.update({'complaintId': docRef.id});
 
-      // Success Handling
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Complaint Submitted!")));
 
@@ -63,23 +59,17 @@ class ComplaintsController {
     });
   }
 
-  // The image upload function
   Future<String> _uploadImageToFirebase(File image) async {
-    // Create a unique file name
     String fileName = DateTime.now().toString();
 
-    // Storage reference
     final storageRef =
         FirebaseStorage.instance.ref().child('complaints/$fileName');
 
-    // Upload task
     final UploadTask uploadTask = storageRef.putFile(image);
 
-    // Wait for upload completion
     final TaskSnapshot downloadSnapshot =
         await uploadTask.whenComplete(() => null);
 
-    // Get download URL
     final String downloadUrl = await downloadSnapshot.ref.getDownloadURL();
     return downloadUrl;
   }

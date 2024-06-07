@@ -170,6 +170,7 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                               facilityType: _selectedFacilityType!,
                               studentId: '',
                               studentRoomNo: '',
+                              facilityApplicationStatus: 'Pending',
                             ),
                           );
                         } catch (e) {

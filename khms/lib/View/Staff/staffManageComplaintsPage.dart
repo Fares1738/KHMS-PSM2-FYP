@@ -100,7 +100,7 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
       child: Column(
         children: [
           Row(
-            // mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               const Text('Status: '),
               _buildStatusFilterDropdown(),
@@ -108,17 +108,23 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
               _buildDateSortDropdown(),
             ],
           ),
-          Row(
-            children: [
-              const Text("Type: "),
-              _buildTypeFilterDropdown(),
-            ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 0.0),
+            child: Row(
+              children: [
+                const Text("Type: "),
+                _buildTypeFilterDropdown(),
+              ],
+            ),
           ),
-          Row(
-            children: [
-              const Text("Sub-Type: "),
-              _buildSubTypeFilterDropdown(),
-            ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 0.0),
+            child: Row(
+              children: [
+                const Text("Sub-Type: "),
+                _buildSubTypeFilterDropdown(),
+              ],
+            ),
           )
         ],
       ),
