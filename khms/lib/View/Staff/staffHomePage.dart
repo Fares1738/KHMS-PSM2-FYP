@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:khms/View/Custom_Widgets/appBar.dart';
 import 'package:khms/View/Custom_Widgets/bottomNavStaff.dart';
+import 'package:khms/View/Staff/staffDashboardPage.dart';
 import 'package:khms/View/Staff/staffManagePage.dart';
 
 class StaffHomePage extends StatefulWidget {
@@ -21,26 +22,21 @@ class _StaffHomePageState extends State<StaffHomePage> {
         appBar: const HomeCustomAppBar(),
         body: IndexedStack(
           index: _currentPageIndex,
-          children: const [
-            Center(
+          children:  [
+            const Center(
               child: Text(
                 "Staff Home Page",
                 style: TextStyle(fontSize: 24),
               ),
             ),
-            ManageApplications(),
-            Center(
+            const ManageApplications(),
+            const Center(
               child: Text(
                 "Reports Page",
                 style: TextStyle(fontSize: 24),
               ),
             ),
-            Center(
-              child: Text(
-                "Dashboard Page",
-                style: TextStyle(fontSize: 24),
-              ),
-            ),
+            DashboardPage(),
           ],
         ),
         bottomNavigationBar: StaffBottomNavigationBar(
