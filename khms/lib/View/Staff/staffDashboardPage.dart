@@ -1,8 +1,12 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/dashboardController.dart';
 
 class DashboardPage extends StatefulWidget {
+  const DashboardPage({super.key});
+
   @override
   _DashboardPageState createState() => _DashboardPageState();
 }
@@ -13,7 +17,13 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
+      appBar: AppBar(
+          title: const Center(
+        child: Text(
+          'Dashboard',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      )),
       body: FutureBuilder(
         future: _controller.fetchDashboardData(),
         builder: (context, snapshot) {
@@ -48,7 +58,6 @@ class _DashboardPageState extends State<DashboardPage> {
                       data['availableRoomsByType']['Double']),
                   _buildSummaryCard('Triple Rooms Available',
                       data['availableRoomsByType']['Triple']),
-
                   _buildBarChart('Check-In Applications by Room Type',
                       data['checkInApplicationsByRoomType']),
                   _buildBarChart('Facility Bookings by Type',
