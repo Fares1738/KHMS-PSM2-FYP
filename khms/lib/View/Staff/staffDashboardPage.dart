@@ -1,5 +1,3 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/dashboardController.dart';
@@ -13,88 +11,230 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final DashboardController _controller = DashboardController();
+  String? _selectedBlock;
+  Future<Map<String, dynamic>>? _blockDataFuture;
+  Future<Map<String, dynamic>>? _generalDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _generalDataFuture = _controller.fetchDashboardData();
+  }
+
+  Future<void> _showBlockSelectionDialog() async {
+    final selectedBlock = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: const Text('Select Block'),
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context, 'Block A');
+              },
+              child: const Text('Block A'),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context, 'Block B');
+              },
+              child: const Text('Block B'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedBlock != null) {
+      setState(() {
+        _selectedBlock = selectedBlock;
+        _blockDataFuture = _controller.fetchBlockData(selectedBlock);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return DefaultTabController(
+      length: 5, // Number of tabs
+      child: Scaffold(
+        appBar: AppBar(
           title: const Center(
-        child: Text(
-          'Dashboard',
-          style: TextStyle(fontWeight: FontWeight.bold),
+            child: Text(
+              'Dashboard',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          bottom: TabBar(
+            isScrollable: true,
+            tabs: [
+              for (final tab in [
+                'Check-Ins',
+                'Check-Outs',
+                'Facilities',
+                'Complaints',
+                'Blocks'
+              ])
+                Tab(
+                  text: tab,
+                ),
+            ],
+          ),
         ),
-      )),
-      body: FutureBuilder(
-        future: _controller.fetchDashboardData(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            final data = snapshot.data!;
-            return SingleChildScrollView(
-              // Make the dashboard scrollable
+        body: TabBarView(
+          children: [
+            // Check-Ins Tab
+            SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildSummaryCard(
-                      'Total Check-Outs', data['totalCheckOutApplications']),
-                  _buildSummaryCard('Pending Check-Outs',
-                      data['pendingCheckOutApplications']),
-                  _buildSummaryCard(
-                      'Total Facility Bookings', data['totalFacilityBookings']),
-                  _buildSummaryCard('Pending Facility Bookings',
-                      data['pendingFacilityBookings']),
-                  _buildSummaryCard(
-                      'Total Complaints', data['totalComplaints']),
-                  _buildSummaryCard(
-                      'Pending Complaints', data['pendingComplaints']),
-                  _buildSummaryCard('Total Rooms', data['totalRooms']),
-                  _buildSummaryCard('Occupied Rooms', data['occupiedRooms']),
-                  _buildSummaryCard('Available Rooms', data['availableRooms']),
-                  _buildSummaryCard('Single Rooms Available',
-                      data['availableRoomsByType']['Single']),
-                  _buildSummaryCard('Double Rooms Available',
-                      data['availableRoomsByType']['Double']),
-                  _buildSummaryCard('Triple Rooms Available',
-                      data['availableRoomsByType']['Triple']),
-                  _buildBarChart('Check-In Applications by Room Type',
-                      data['checkInApplicationsByRoomType']),
-                  _buildBarChart('Facility Bookings by Type',
-                      data['facilityBookingsByType']),
-                  _buildBarChart(
-                      'Complaints by Type', data['complaintsByType']),
+                  FutureBuilder(
+                    future: _generalDataFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (snapshot.hasData) {
+                        final data = snapshot.data!;
+                        return Column(
+                          children: [
+                            _buildSummaryCard('Total Check-In Applications',
+                                data['totalCheckInApplications']),
+                            _buildSummaryCard('Pending Check-In Applications',
+                                data['pendingCheckInApplications']),
+                            _buildBarChart('Check-In Applications by Room Type',
+                                data['checkInApplicationsByRoomType']),
+                          ],
+                        );
+                      } else {
+                        return const Center(child: Text('No data available'));
+                      }
+                    },
+                  ),
                 ],
               ),
-            );
-          } else {
-            return const Center(child: Text('No data available'));
-          }
-        },
-      ),
-    );
-  }
+            ),
 
-  Widget _buildBlockDetails(Map<String, dynamic> data, String blockName) {
-    return ListView(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        _buildSummaryCard(
-            'Total Rooms in Block $blockName',
-            data['totalRoomsByType'][blockName]!
-                .values
-                .reduce((a, b) => a + b)),
-        _buildSummaryCard('Occupied Rooms in Block $blockName',
-            data['totalOccupiedRooms'][blockName]!),
-        _buildSummaryCard('Available Single Rooms in Block $blockName',
-            data['availableRoomsByType'][blockName]!['Single'] ?? 0),
-        _buildSummaryCard('Available Double Rooms in Block $blockName',
-            data['availableRoomsByType'][blockName]!['Double'] ?? 0),
-        _buildSummaryCard('Available Triple Rooms in Block $blockName',
-            data['availableRoomsByType'][blockName]!['Triple'] ?? 0),
-        // ... (Other relevant stats for the block)
-      ],
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  FutureBuilder(
+                    future: _generalDataFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (snapshot.hasData) {
+                        final data = snapshot.data!;
+                        return Column(
+                          children: [
+                            _buildSummaryCard('Total Check-Out Applications',
+                                data['totalCheckOutApplications']),
+                            _buildSummaryCard('Pending Check-Out Applications',
+                                data['pendingCheckOutApplications']),
+                          ],
+                        );
+                      } else {
+                        return const Center(child: Text('No data available'));
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            // Facilities Tab
+            SingleChildScrollView(
+              child: FutureBuilder(
+                future: _generalDataFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (snapshot.hasData) {
+                    final data = snapshot.data!;
+                    return Column(
+                      children: [
+                        _buildSummaryCard('Total Facility Bookings',
+                            data['totalFacilityBookings']),
+                        _buildSummaryCard('Pending Facility Bookings',
+                            data['pendingFacilityBookings']),
+                        _buildBarChart('Facility Bookings by Type',
+                            data['facilityBookingsByType']),
+                      ],
+                    );
+                  } else {
+                    return const Center(child: Text('No data available'));
+                  }
+                },
+              ),
+            ),
+
+            // Complaints Tab
+            SingleChildScrollView(
+              child: FutureBuilder(
+                future: _generalDataFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (snapshot.hasData) {
+                    final data = snapshot.data!;
+                    return Column(
+                      children: [
+                        _buildSummaryCard(
+                            'Total Complaints', data['totalComplaints']),
+                        _buildSummaryCard(
+                            'Pending Complaints', data['pendingComplaints']),
+                        _buildBarChart(
+                            'Complaints by Type', data['complaintsByType']),
+                      ],
+                    );
+                  } else {
+                    return const Center(child: Text('No data available'));
+                  }
+                },
+              ),
+            ),
+
+            // Blocks Tab
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: _showBlockSelectionDialog,
+                    child: Text(_selectedBlock ?? 'Select Block'),
+                  ),
+                  const SizedBox(height: 10),
+                  if (_selectedBlock != null)
+                    FutureBuilder(
+                      future: _blockDataFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(
+                              child: Text('Error: ${snapshot.error}'));
+                        } else if (snapshot.hasData) {
+                          final data = snapshot.data!;
+                          return _buildBlockDetails(data, _selectedBlock!);
+                        } else {
+                          return const Center(child: Text('No data available'));
+                        }
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -114,6 +254,23 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBlockDetails(Map<String, dynamic> data, String blockName) {
+    return ListView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        _buildSummaryCard('Total Rooms', (data['totalRooms'])),
+        _buildSummaryCard('Occupied Rooms', data['occupiedRooms']),
+        _buildSummaryCard('Available Single Rooms',
+            data['availableRoomsByType']['Single'] ?? 0),
+        _buildSummaryCard('Available Double Rooms',
+            data['availableRoomsByType']['Double'] ?? 0),
+        _buildSummaryCard('Available Triple Rooms',
+            data['availableRoomsByType']['Triple'] ?? 0),
+      ],
     );
   }
 
@@ -175,6 +332,12 @@ class _DashboardPageState extends State<DashboardPage> {
                           );
                         },
                       ),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
                     ),
                   ),
                 ),
