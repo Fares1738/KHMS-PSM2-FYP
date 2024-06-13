@@ -1,5 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api, file_names, use_build_context_synchronously, avoid_print
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/facilitiesController.dart';
 import 'package:khms/Model/Facilities.dart';
@@ -32,18 +33,26 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
     '09:00 PM - 10:00 PM',
   ];
 
-  final _facilityTypes = [
-    'Futsal',
-    'BBQ',
-    'Pool Table',
-    'Ping Pong Table',
-    'Gym'
-  ];
+  List<String> _facilityTypes = [];
+
+  Future<void> _fetchFacilityTypes() async {
+    try {
+      final facilitiesSnapshot =
+          await FirebaseFirestore.instance.collection('Facilities').get();
+      setState(() {
+        _facilityTypes = facilitiesSnapshot.docs.map((doc) => doc.id).toList();
+      });
+    } catch (e) {
+      print('Error fetching facility types: $e');
+      // Handle the error (e.g., show a Snackbar or alert dialog)
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _fetchFacilityAvailability();
+    _fetchFacilityTypes();
   }
 
   Future<void> _fetchFacilityAvailability() async {

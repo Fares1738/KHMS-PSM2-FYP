@@ -24,10 +24,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
           index: _currentPageIndex,
           children: const [
             Center(
-              child: Text(
-                "Staff Home Page",
-                style: TextStyle(fontSize: 24),
-              ),
+              child: Text('Staff Home Page'),
             ),
             ManageApplications(),
             DashboardPage(),

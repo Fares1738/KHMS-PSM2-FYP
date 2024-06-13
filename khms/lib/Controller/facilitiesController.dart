@@ -104,7 +104,44 @@ class FacilitiesController {
     return doc.data()?['isEnabled'] ?? false;
   }
 
-  
+  Future<void> addFacility(String facilityType) async {
+    final facilitiesCollection =
+        FirebaseFirestore.instance.collection('Facilities');
+
+    final Map<String, dynamic> facilityData = {
+      'isEnabled': true,
+    };
+
+    // Create an empty Map<String, dynamic> for the subcollection document
+    final Map<String, dynamic> emptySubcollectionDoc = {};
+
+    // Generate a unique document ID for the subcollection document
+    final documentId = facilitiesCollection
+        .doc(facilityType)
+        .collection('Applications')
+        .doc()
+        .id; // Get the unique ID before the transaction
+
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      // Add the new facility as a document
+      transaction.set(facilitiesCollection.doc(facilityType), facilityData);
+
+      // Create the document within the subcollection
+      transaction.set(
+          facilitiesCollection
+              .doc(facilityType)
+              .collection('Applications')
+              .doc(documentId), // Use the generated ID
+          emptySubcollectionDoc);
+
+      // Delete the document within the subcollection using the generated ID
+      transaction.delete(facilitiesCollection
+          .doc(facilityType)
+          .collection('Applications')
+          .doc(documentId)); // Use the generated ID
+    });
+  }
+
   Stream<List<Facilities>> fetchFacilityApplicationsStream() {
     return _firestore
         .collectionGroup('Applications')

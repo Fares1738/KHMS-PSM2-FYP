@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/facilitiesController.dart';
 import 'package:khms/Model/Facilities.dart';
+import 'package:khms/View/Staff/staffAddFacilityPage.dart';
 
 class FacilityManagementPage extends StatefulWidget {
   const FacilityManagementPage({super.key});
@@ -177,9 +178,29 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
               ],
             ),
           ),
+
+          // Add facility button
+
           Expanded(
             child: ListView(
               children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AddFacilityPage(),
+                          ),
+                        );
+                      },
+                      child: const Text('Add Facility'),
+                    ),
+                  ),
+                ),
                 ..._facilityAvailability.entries.map((entry) {
                   return SwitchListTile(
                     title: Text('${entry.key} (Disable/Enable)'),
