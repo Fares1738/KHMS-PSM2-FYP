@@ -1,5 +1,9 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers, file_names, use_build_context_synchronously, avoid_print, unused_catch_clause
 
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:khms/Model/Student.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class UserController with ChangeNotifier {
   final formKey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance; // Firebase authentication instance
-
+  Student? student;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -170,6 +174,68 @@ class UserController with ChangeNotifier {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Logout failed. Please try again.')),
       );
+    }
+  }
+
+  Future<void> fetchStudentData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? studentId = prefs.getString('studentID');
+
+    if (studentId != null) {
+      // Try to load data from cache first
+      String? cachedStudentData = prefs.getString('cachedStudentData');
+      if (cachedStudentData != null) {
+        Map<String, dynamic> studentMap = jsonDecode(cachedStudentData);
+        student = Student.fromJson(studentMap);
+        notifyListeners();
+      }
+
+      // Fetch data from Firestore
+      try {
+        DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+            .collection('Students')
+            .doc(studentId)
+            .get();
+
+        student = Student.fromFirestore(snapshot);
+
+        // Cache the fetched data
+        await prefs.setString('cachedStudentData', jsonEncode(student!.toJson()));
+        notifyListeners();
+      } catch (e) {
+        print('Error fetching student data: $e');
+        // Handle the error (e.g., show a SnackBar)
+      }
+    }
+  }
+
+  Future<void> updateStudentData(File? _imageFile) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? studentId = prefs.getString('studentID');
+    print('Student ID: $studentId');
+    if (studentId != null && _imageFile != null) {
+      print('Updating student data...');
+      print(studentId);
+      print(_imageFile);
+      try {
+        // Upload the image to Firebase Storage
+        Reference ref = FirebaseStorage.instance
+            .ref()
+            .child('student_profiles/$studentId.jpg');
+        await ref.putFile(_imageFile);
+
+        // Get the download URL of the uploaded image
+        String downloadURL = await ref.getDownloadURL();
+        print("DownloadURL: $downloadURL");
+        // Update the student's photo URL in Firestore and in the local Student object
+        await FirebaseFirestore.instance
+            .collection('Students')
+            .doc(studentId)
+            .update({'studentPhoto': downloadURL});
+      } catch (e) {
+        print('Error updating student data: $e');
+        // Handle the error (e.g., show a SnackBar)
+      }
     }
   }
 }

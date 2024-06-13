@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/userController.dart';
+import 'package:khms/View/Common/profilePage.dart';
 import 'package:provider/provider.dart';
 
 class GeneralCustomAppBar extends StatelessWidget
@@ -39,8 +40,7 @@ class HomeCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Provider.of<UserController>(
-        context); // Use the context to get the controller. If you are not using Provider, you will need to pass the controller manually through the tree
+    final controller = Provider.of<UserController>(context);
 
     return AppBar(
       title: const Text(
@@ -49,6 +49,15 @@ class HomeCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       automaticallyImplyLeading: false,
       centerTitle: true,
+      leading: IconButton(
+        icon: const Icon(Icons.person_2_outlined),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const StudentProfilePage()),
+          );
+        },
+      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.logout),

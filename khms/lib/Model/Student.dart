@@ -38,6 +38,43 @@ class Student {
     userType,
   });
 
+  Map<String, dynamic> toJson() {
+    return {
+      'studentDoB': studentDoB.toIso8601String(),
+      'studentEmail': studentEmail,
+      'studentFirstName': studentFirstName,
+      'studentLastName': studentLastName,
+      'studentNationality': studentNationality,
+      'studentmyKadPassportNumber': studentmyKadPassportNumber,
+      'studentPhoneNumber': studentPhoneNumber,
+      'studentIcNumber': studentIcNumber,
+      'studentPhoto': studentPhoto,
+      'studentMatricNo': studentMatricNo,
+      'studentRoomNo': studentRoomNo,
+      'backMatricPic': backMatricPic,
+      'frontMatricPic': frontMatricPic,
+      'passportMyKadPic': passportMyKadPic,
+      'studentId': studentId,
+    };
+  }
+
+  Student.fromJson(Map<String, dynamic> json)
+      : studentDoB = DateTime.parse(json['studentDoB']),
+        studentEmail = json['studentEmail'],
+        studentFirstName = json['studentFirstName'],
+        studentLastName = json['studentLastName'],
+        studentNationality = json['studentNationality'],
+        studentmyKadPassportNumber = json['studentmyKadPassportNumber'],
+        studentPhoneNumber = json['studentPhoneNumber'],
+        studentIcNumber = json['studentIcNumber'],
+        studentPhoto = json['studentPhoto'],
+        studentMatricNo = json['studentMatricNo'],
+        studentRoomNo = json['studentRoomNo'],
+        backMatricPic = json['backMatricPic'],
+        frontMatricPic = json['frontMatricPic'],
+        passportMyKadPic = json['passportMyKadPic'],
+        studentId = json['studentId'];
+
   Map<String, dynamic> toMap() {
     return {
       'studentEmail': studentEmail,
@@ -59,12 +96,12 @@ class Student {
   }
 
   Student.fromFirestore(DocumentSnapshot document)
-      : studentDoB = (document.data() as Map<String, dynamic>)['studentDoB'] !=
-                null
-            ? ((document.data() as Map<String, dynamic>)['studentDoB']
-                    as Timestamp)
-                .toDate()
-            : DateTime.now(),
+      : studentDoB =
+            (document.data() as Map<String, dynamic>)['studentDoB'] != null
+                ? ((document.data() as Map<String, dynamic>)['studentDoB']
+                        as Timestamp)
+                    .toDate()
+                : DateTime.now(),
         studentEmail =
             (document.data() as Map<String, dynamic>)['studentEmail'] ?? '',
         studentFirstName =
@@ -83,8 +120,7 @@ class Student {
         studentIcNumber =
             (document.data() as Map<String, dynamic>)['studentIcNumber'] ?? '',
         studentPhoto =
-            (document.data() as Map<String, dynamic>)['studentPhoto'] ??
-                '',
+            (document.data() as Map<String, dynamic>)['studentPhoto'] ?? '',
         studentMatricNo =
             (document.data() as Map<String, dynamic>)['studentMatricNo'] ?? '',
         studentRoomNo =
