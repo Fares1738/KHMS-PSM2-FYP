@@ -131,12 +131,11 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
                               ? 2
                               : (room.roomType == 'Triple'
                                   ? 3
-                                  : 0); // Determine capacity
+                                  : 0);
 
                           return DropdownMenuItem<Room>(
                             value: room,
                             child: FutureBuilder<int>(
-                              // Get tenant count only for double/triple rooms
                               future: room.roomType == 'Single'
                                   ? Future.value(0)
                                   : _controller
@@ -145,12 +144,12 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
                                 if (tenantCountSnapshot.connectionState ==
                                     ConnectionState.waiting) {
                                   return Text(
-                                      '${room.roomNo} (${room.roomType})'); // Loading
+                                      '${room.roomNo} (${room.roomType})'); 
                                 } else {
                                   final tenantCount =
                                       tenantCountSnapshot.data ?? 0;
                                   return Text(
-                                    '${room.roomNo} (${room.roomType})${room.roomType == 'Single' ? '' : ' - $tenantCount/$capacity'}', // Conditionally add tenant count
+                                    '${room.roomNo} (${room.roomType})${room.roomType == 'Single' ? '' : ' - $tenantCount/$capacity'}', 
                                   );
                                 }
                               },
@@ -333,7 +332,7 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
                         _controller.updateCheckInApplication(
                           widget.application,
                           'Rejected',
-                          '', // Empty room number for rejected applications
+                          '', 
                           _rejectionReasonController.text,
                         );
                         Navigator.pop(context);
@@ -350,12 +349,12 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                showRoomAssignment = true; // Show room assignment section
+                showRoomAssignment = true; 
               });
             },
             child: const Text("Approve"),
           ),
-        ], // Removed the Approve button
+        ], 
       );
     } else {
       return const SizedBox.shrink();

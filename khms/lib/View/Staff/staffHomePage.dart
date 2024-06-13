@@ -22,20 +22,14 @@ class _StaffHomePageState extends State<StaffHomePage> {
         appBar: const HomeCustomAppBar(),
         body: IndexedStack(
           index: _currentPageIndex,
-          children:  [
-            const Center(
+          children: const [
+            Center(
               child: Text(
                 "Staff Home Page",
                 style: TextStyle(fontSize: 24),
               ),
             ),
-            const ManageApplications(),
-            const Center(
-              child: Text(
-                "Reports Page",
-                style: TextStyle(fontSize: 24),
-              ),
-            ),
+            ManageApplications(),
             DashboardPage(),
           ],
         ),

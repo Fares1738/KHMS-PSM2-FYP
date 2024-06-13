@@ -26,10 +26,7 @@ class _StaffBottomNavigationBar extends State<StaffBottomNavigationBar> {
             icon: Icon(Icons.manage_accounts),
             label: 'Manage',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.document_scanner),
-            label: 'Reports',
-          ),
+
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
             label: 'Dashboard',

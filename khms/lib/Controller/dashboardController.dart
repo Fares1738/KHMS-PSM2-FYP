@@ -28,29 +28,27 @@ class DashboardController {
           case 'Triple':
             return 3;
           default:
-            return 0; // Or throw an exception for invalid room types
+            return 0; 
         }
       }
 
-      // Create a map to store tenant counts for each room
       Map<String, int> roomTenantCounts = {};
 
-      // Fetch assigned tenant counts concurrently, in batches
       List<Future<QuerySnapshot<Map<String, dynamic>>>>
           tenantCountBatchFutures = [];
-      int batchSize = 10; // Adjust the batch size as needed
+      int batchSize = 10; 
       for (int i = 0; i < roomsSnapshot.docs.length; i += batchSize) {
         final batchEnd = (i + batchSize) < roomsSnapshot.docs.length
             ? (i + batchSize)
             : roomsSnapshot.docs.length;
         final batchDocs = roomsSnapshot.docs
-            .sublist(i, batchEnd); // Get the batch of documents
+            .sublist(i, batchEnd); 
         tenantCountBatchFutures.add(_firestore
             .collection('CheckInApplications')
             .where('roomNo',
                 whereIn: batchDocs
                     .map((doc) => doc.id)
-                    .toList()) // Query for rooms in the batch
+                    .toList()) 
             .where('checkInStatus', isEqualTo: 'Approved')
             .get());
       }

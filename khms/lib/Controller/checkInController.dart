@@ -173,7 +173,6 @@ class CheckInController {
           .get();
       return querySnapshot.docs.length;
     } catch (e) {
-      // Handle errors (e.g., log, show error message)
       print('Error getting assigned tenants: $e');
       return 0;
     }
