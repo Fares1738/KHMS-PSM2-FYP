@@ -31,7 +31,7 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final studentId = prefs.getString('studentID') as String;
+      final studentId = prefs.getString('userId') as String;
 
       final complaints = await _controller.fetchComplaints(studentId);
       setState(() {

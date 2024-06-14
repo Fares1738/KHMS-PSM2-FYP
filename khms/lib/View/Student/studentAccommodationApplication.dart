@@ -9,7 +9,7 @@ class AccommodationApplicationPage extends StatelessWidget {
 
   Future<String?> _getStudentId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('studentID');
+    return prefs.getString('userId');
   }
 
   @override
@@ -44,7 +44,7 @@ class AccommodationApplicationPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>  CheckInPage(),
+                      builder: (context) => CheckInPage(),
                     ),
                   );
                 },

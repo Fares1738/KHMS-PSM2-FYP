@@ -27,7 +27,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
 
   Future<void> _fetchData() async {
     try {
-      await _userController.fetchStudentData();
+      await _userController.fetchUserData();
     } catch (e) {
       print('Error fetching student data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -49,7 +49,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
           _imageFile = File(pickedFile.path);
         });
 
-        await _userController.updateStudentData(_imageFile);
+        await _userController.updateUserData(_imageFile);
         _fetchData(); // Refresh data after updating the image
       }
     } catch (e) {
@@ -78,14 +78,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                           radius: 80,
                           backgroundImage: _imageFile != null
                               ? FileImage(_imageFile!)
-                              : (_userController
-                                              .student?.studentPhoto.isNotEmpty ==
-                                          true
-                                      ? NetworkImage(
-                                          _userController.student!.studentPhoto)
-                                      : const AssetImage(
-                                          'assets/images/default_profile_image.png'))
-                                  as ImageProvider,
+                              : _determineProfileImage(),
                           backgroundColor: Colors.grey[200],
                         ),
                         GestureDetector(
@@ -134,8 +127,26 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                               .format(_userController.student!.studentDoB)),
                       _buildProfileCard('MyKad/Passport',
                           _userController.student!.studentmyKadPassportNumber),
+                    ] else if (_userController.staff != null) ...[
+                      // Display staff data
+                      _buildProfileCard('Name',
+                          '${_userController.staff!.staffFirstName} ${_userController.staff!.staffLastName}'),
+                      _buildProfileCard(
+                          'Email', _userController.staff!.staffEmail),
+                      _buildProfileCard(
+                          'Phone No', _userController.staff!.staffPhoneNumber),
+                      _buildProfileCard(
+                          'Role',
+                          _userController.staff!.userType
+                              .toString()
+                              .split('.')
+                              .last),
+                      _buildProfileCard(
+                          'Staff ID', _userController.staff!.staffId),
+
+                      // ... other staff-specific details
                     ] else ...[
-                      const Text('No student data available'),
+                      const Text('No user data available'),
                     ],
                   ],
                 ),
@@ -156,5 +167,15 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
         subtitle: Text(value, style: const TextStyle(fontSize: 16)),
       ),
     );
+  }
+
+  ImageProvider _determineProfileImage() {
+    if (_userController.student?.studentPhoto.isNotEmpty == true) {
+      return NetworkImage(_userController.student!.studentPhoto);
+    } else if (_userController.staff?.staffPhoto?.isNotEmpty == true) {
+      return NetworkImage(_userController.staff!.staffPhoto!);
+    } else {
+      return const AssetImage('assets/images/default_profile_image.png');
+    }
   }
 }

@@ -20,11 +20,12 @@ class _StaffHomePageState extends State<StaffHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: const HomeCustomAppBar(),
+        drawer: const CustomDrawer(),
         body: IndexedStack(
           index: _currentPageIndex,
           children: const [
             Center(
-              child: Text('Staff Home Page'),
+              child: Text("Staff Home Page"),
             ),
             ManageApplications(),
             DashboardPage(),

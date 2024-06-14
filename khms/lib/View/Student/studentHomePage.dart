@@ -16,7 +16,7 @@ class StudentHomePage extends StatefulWidget {
 class _StudentHomePageState extends State<StudentHomePage> {
   Future<String?> _getStudentId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('studentID');
+    return prefs.getString('userId');
   }
 
   @override

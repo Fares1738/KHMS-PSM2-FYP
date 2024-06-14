@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:khms/Model/Staff.dart';
 import 'package:khms/Model/Student.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,6 +19,7 @@ class UserController with ChangeNotifier {
   final formKey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance; // Firebase authentication instance
   Student? student;
+  Staff? staff;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -27,6 +29,9 @@ class UserController with ChangeNotifier {
   TextEditingController get passwordController => _passwordController;
   TextEditingController get confirmPasswordController =>
       _confirmPasswordController;
+  bool get isAdmin {
+    return staff != null && staff!.userType == UserType.Manager;
+  }
 
   Future<void> registerUser(BuildContext context) async {
     try {
@@ -94,64 +99,66 @@ class UserController with ChangeNotifier {
         password: password,
       );
 
-      // Fetch student data
-      var studentDoc = await FirebaseFirestore.instance
+      String uid = userCredential.user!.uid;
+
+      // Check if user exists in Students collection
+      DocumentSnapshot studentDoc = await FirebaseFirestore.instance
           .collection('Students')
-          .doc(userCredential.user!.uid)
+          .doc(uid)
           .get();
 
+      // Check if user exists in Staff collection
+      DocumentSnapshot staffDoc =
+          await FirebaseFirestore.instance.collection('Staff').doc(uid).get();
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
       if (studentDoc.exists) {
-        String globalStudentId = studentDoc.data()!['studentId'];
-        String globalStudentRoomNo = studentDoc.data()!['studentRoomNo'] ?? '';
+        // Student login
+        await prefs.setString('userId', uid);
+        await prefs.setString('userType', 'Students');
+        await prefs.setString(
+            'studentRoomNo', studentDoc.get('studentRoomNo') ?? '');
 
-        String firstName = studentDoc.data()!['studentFirstName'];
-        String lastName = studentDoc.data()!['studentLastName'];
-        String studentName;
+        // ... your existing navigation to StudentMainPage ...
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => StudentMainPage()),
+        );
 
-        if (firstName.isNotEmpty && lastName.isNotEmpty) {
-          studentName = '$firstName $lastName';
-        } else {
-          studentName = 'Student';
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login successful!')),
+        );
+      } else if (staffDoc.exists) {
+        // Staff login
+        await prefs.setString('userId', uid);
 
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('studentID', globalStudentId);
-        await prefs.setString('studentRoomNo', globalStudentRoomNo);
-
-        print('Student ID: $globalStudentId');
-        print('Student Room No: $globalStudentRoomNo');
-        print('Student Name: $studentName');
+        // Get userType directly from Firestore
+        String userType = staffDoc.get('userType');
+        await prefs.setString('userType', userType);
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-              builder: (context) => StudentMainPage(
-                    studentName: studentName,
-                  )),
+          MaterialPageRoute(builder: (context) => const StaffHomePage()),
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login successful!')),
         );
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const StaffHomePage()),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful!')),
-        );
+        // User not found in either collection
+        throw FirebaseAuthException(code: 'user-not-found');
       }
+
+      // Fetch user data based on userType
+      await fetchUserData();
     } on FirebaseAuthException catch (e) {
-      String errorMessage = 'Authentication failed. Please try again.';
-      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
-        errorMessage = 'Invalid email or password.';
-      }
+      // ... your existing error handling ...
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+        const SnackBar(content: Text('Login failed. Please try again.')),
       );
     }
-    notifyListeners();
   }
 
   Future<void> signOutUser(BuildContext context) async {
@@ -177,63 +184,125 @@ class UserController with ChangeNotifier {
     }
   }
 
-  Future<void> fetchStudentData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? studentId = prefs.getString('studentID');
+  Future<void> addStaff(
+    String firstName,
+    String lastName,
+    String email,
+    String phoneNumber,
+    UserType role,
+  ) async {
+    try {
+      // Create user in Firebase Authentication (use a temporary password)
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: 'temporaryPassword123', // Or generate a random password
+      );
 
-    if (studentId != null) {
+      // Get the user's UID
+      String uid = userCredential.user!.uid;
+
+      // Create a Staff object and store in Firestore
+      final newStaff = Staff(
+        staffFirstName: firstName,
+        staffLastName: lastName,
+        staffEmail: email,
+        staffPhoneNumber: phoneNumber,
+        userType: role,
+        staffId: uid, // Use the UID as the staffId
+      );
+
+      // Update the student's photo URL in Firestore and in the local Student object
+      await FirebaseFirestore.instance
+          .collection('Staff') // Create or use an existing 'Staff' collection
+          .doc(uid) // Use UID as document ID
+          .set(newStaff.toMap());
+
+      // (Optional) Send an email to the new staff member with instructions to reset their password
+    } catch (e) {
+      // Handle errors (e.g., email already in use)
+    }
+  }
+
+  Future<void> fetchUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId');
+    String? userType = prefs.getString('userType');
+
+    if (userId != null && userType != null) {
       // Try to load data from cache first
-      String? cachedStudentData = prefs.getString('cachedStudentData');
-      if (cachedStudentData != null) {
-        Map<String, dynamic> studentMap = jsonDecode(cachedStudentData);
-        student = Student.fromJson(studentMap);
+      String? cachedUserData = prefs.getString('cachedUserData');
+      if (cachedUserData != null) {
+        Map<String, dynamic> userMap = jsonDecode(cachedUserData);
+        if (userType == 'Students') {
+          student = Student.fromJson(userMap);
+        } else {
+          staff = Staff.fromJson(userMap);
+        }
         notifyListeners();
+        return; // If loaded from cache, no need to fetch from Firestore
       }
 
       // Fetch data from Firestore
       try {
-        DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
-            .collection('Students')
-            .doc(studentId)
-            .get();
+        DocumentSnapshot<Map<String, dynamic>> snapshot =
+            await FirebaseFirestore.instance
+                .collection(userType == 'Students' ? 'Students' : 'Staff')
+                .doc(userId)
+                .get();
 
-        student = Student.fromFirestore(snapshot);
+        if (userType == 'Students') {
+          student = Student.fromFirestore(snapshot);
+        } else {
+          staff = Staff.fromFirestore(snapshot);
+        }
 
         // Cache the fetched data
-        await prefs.setString('cachedStudentData', jsonEncode(student!.toJson()));
+        await prefs.setString(
+            'cachedUserData',
+            jsonEncode(
+                userType == 'Students' ? student!.toJson() : staff!.toJson()));
         notifyListeners();
       } catch (e) {
-        print('Error fetching student data: $e');
+        print('Error fetching user data: $e');
         // Handle the error (e.g., show a SnackBar)
       }
     }
   }
 
-  Future<void> updateStudentData(File? _imageFile) async {
+  Future<void> updateUserData(File? imageFile) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? studentId = prefs.getString('studentID');
-    print('Student ID: $studentId');
-    if (studentId != null && _imageFile != null) {
-      print('Updating student data...');
-      print(studentId);
-      print(_imageFile);
+    String? userId = prefs.getString('userId');
+    String? userType = prefs.getString('userType');
+
+    if (userId != null && imageFile != null) {
       try {
-        // Upload the image to Firebase Storage
-        Reference ref = FirebaseStorage.instance
-            .ref()
-            .child('student_profiles/$studentId.jpg');
-        await ref.putFile(_imageFile);
+        Reference ref =
+            FirebaseStorage.instance.ref().child('profiles/$userId.jpg');
+        await ref.putFile(imageFile);
 
         // Get the download URL of the uploaded image
         String downloadURL = await ref.getDownloadURL();
         print("DownloadURL: $downloadURL");
-        // Update the student's photo URL in Firestore and in the local Student object
+        // Update the user's photo URL in the correct Firestore collection based on userType
         await FirebaseFirestore.instance
-            .collection('Students')
-            .doc(studentId)
-            .update({'studentPhoto': downloadURL});
+            .collection(userType == 'Students' ? 'Students' : 'Staff')
+            .doc(userId)
+            .update({
+          userType == 'Students' ? 'studentPhoto' : 'staffPhoto': downloadURL,
+        });
+
+        // Update the local student or staff object
+        if (userType == 'Students') {
+          // Updated user type check
+          student!.studentPhoto = downloadURL;
+        } else {
+          staff!.staffPhoto = downloadURL;
+        }
+
+        notifyListeners();
       } catch (e) {
-        print('Error updating student data: $e');
+        print('Error updating user data: $e');
         // Handle the error (e.g., show a SnackBar)
       }
     }

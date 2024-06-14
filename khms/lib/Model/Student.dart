@@ -78,7 +78,7 @@ class Student {
   Map<String, dynamic> toMap() {
     return {
       'studentEmail': studentEmail,
-      'userType': "Student",
+      'userType': "Students",
       'studentId': studentId,
       'studentFirstName': studentFirstName,
       'studentLastName': studentLastName,

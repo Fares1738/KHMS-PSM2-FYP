@@ -34,7 +34,7 @@ class CheckInController {
     try {
       final _firestore = FirebaseFirestore.instance;
       final prefs2 = await SharedPreferences.getInstance();
-      String? storedStudentId = prefs2.getString('studentID') as String;
+      String? storedStudentId = prefs2.getString('userId') as String;
 
       CheckInApplication newApplication = CheckInApplication(
           checkInApplicationDate: DateTime.now(),
@@ -183,7 +183,7 @@ class CheckInController {
     try {
       final firestore = FirebaseFirestore.instance;
 
-      WriteBatch batch = firestore.batch(); 
+      WriteBatch batch = firestore.batch();
 
       Map<String, dynamic> updateData = {
         'checkInStatus': newStatus,

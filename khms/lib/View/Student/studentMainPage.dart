@@ -24,12 +24,12 @@ class _StudentMainPageState extends State<StudentMainPage> {
   Widget build(BuildContext context) {
     dynamic displayName =
         widget.studentName.isNotEmpty ? widget.studentName : 'Student';
-        
 
     print(displayName);
 
     return Scaffold(
         appBar: const HomeCustomAppBar(),
+        drawer: const CustomDrawer(),
         body: IndexedStack(
           index: _currentPageIndex,
           children: [

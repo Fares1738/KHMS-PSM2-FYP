@@ -13,7 +13,7 @@ class CheckOutController {
     try {
       final firestore = FirebaseFirestore.instance;
       final prefs = await SharedPreferences.getInstance();
-      final String? storedStudentId = prefs.getString('studentID');
+      final String? storedStudentId = prefs.getString('userId');
 
       if (storedStudentId == null) {
         print('Student ID not found in SharedPreferences');

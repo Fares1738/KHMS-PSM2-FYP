@@ -14,7 +14,7 @@ class FacilitiesController {
       BuildContext context, Facilities facilityData) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String storedStudentId = prefs.getString('studentID') ?? '';
+      final String storedStudentId = prefs.getString('userId') ?? '';
 
       facilityData.studentId = storedStudentId;
 

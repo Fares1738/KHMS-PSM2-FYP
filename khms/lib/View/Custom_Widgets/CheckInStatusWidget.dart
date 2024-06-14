@@ -39,7 +39,7 @@ class _CheckInStatusWidgetState extends State<CheckInStatusWidget> {
   Future<void> _resubmitApplication() async {
     final firestore = FirebaseFirestore.instance;
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String studentId = prefs.getString('studentID')!;
+    String studentId = prefs.getString('userId')!;
 
     try {
       DocumentSnapshot studentDoc = await FirebaseFirestore.instance

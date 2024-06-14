@@ -16,7 +16,7 @@ class ComplaintsController {
     try {
       final firestore = FirebaseFirestore.instance;
       final prefs = await SharedPreferences.getInstance();
-      final String storedStudentId = prefs.getString('studentID') as String;
+      final String storedStudentId = prefs.getString('userId') as String;
 
       complaint.studentId = storedStudentId;
 
@@ -90,7 +90,7 @@ class ComplaintsController {
 
     if (studentRoomNo == null) {
       final prefs = await SharedPreferences.getInstance();
-      final String storedStudentId = prefs.getString('studentID') as String;
+      final String storedStudentId = prefs.getString('userId') as String;
 
       final studentDoc = await FirebaseFirestore.instance
           .collection('Students')
