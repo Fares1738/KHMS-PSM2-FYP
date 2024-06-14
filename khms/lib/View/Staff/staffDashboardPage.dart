@@ -58,161 +58,98 @@ class _DashboardPageState extends State<DashboardPage> {
     return DefaultTabController(
       length: 5, // Number of tabs
       child: Scaffold(
-        appBar: AppBar(
-          title: const Center(
-            child: Text(
-              'Dashboard',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          bottom: TabBar(
-            isScrollable: true,
-            tabs: [
-              for (final tab in [
-                'Check-Ins',
-                'Check-Outs',
-                'Facilities',
-                'Complaints',
-                'Blocks'
-              ])
-                Tab(
-                  text: tab,
-                ),
-            ],
-          ),
-        ),
-        body: TabBarView(
+        body: Column(
           children: [
-            // Check-Ins Tab
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  FutureBuilder(
-                    future: _generalDataFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (snapshot.hasData) {
-                        final data = snapshot.data!;
-                        return Column(
-                          children: [
-                            _buildSummaryCard('Total Check-In Applications',
-                                data['totalCheckInApplications']),
-                            _buildSummaryCard('Pending Check-In Applications',
-                                data['pendingCheckInApplications']),
-                            _buildBarChart('Check-In Applications by Room Type',
-                                data['checkInApplicationsByRoomType']),
-                          ],
-                        );
-                      } else {
-                        return const Center(child: Text('No data available'));
-                      }
-                    },
-                  ),
-                ],
-              ),
+            const TabBar(
+              isScrollable: true,
+              tabs: [
+                Tab(text: 'Check-Ins'),
+                Tab(text: 'Check-Outs'),
+                Tab(text: 'Facilities'),
+                Tab(text: 'Complaints'),
+                Tab(text: 'Blocks'),
+              ],
             ),
-
-            SingleChildScrollView(
-              child: Column(
+            Expanded(
+              child: TabBarView(
                 children: [
-                  FutureBuilder(
-                    future: _generalDataFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (snapshot.hasData) {
-                        final data = snapshot.data!;
-                        return Column(
-                          children: [
-                            _buildSummaryCard('Total Check-Out Applications',
-                                data['totalCheckOutApplications']),
-                            _buildSummaryCard('Pending Check-Out Applications',
-                                data['pendingCheckOutApplications']),
-                          ],
-                        );
-                      } else {
-                        return const Center(child: Text('No data available'));
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // Facilities Tab
-            SingleChildScrollView(
-              child: FutureBuilder(
-                future: _generalDataFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (snapshot.hasData) {
-                    final data = snapshot.data!;
-                    return Column(
+                  // Check-Ins Tab
+                  SingleChildScrollView(
+                    child: Column(
                       children: [
-                        _buildSummaryCard('Total Facility Bookings',
-                            data['totalFacilityBookings']),
-                        _buildSummaryCard('Pending Facility Bookings',
-                            data['pendingFacilityBookings']),
-                        _buildBarChart('Facility Bookings by Type',
-                            data['facilityBookingsByType']),
+                        FutureBuilder(
+                          future: _generalDataFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${snapshot.error}'));
+                            } else if (snapshot.hasData) {
+                              final data = snapshot.data!;
+                              return Column(
+                                children: [
+                                  _buildSummaryCard(
+                                      'Total Check-In Applications',
+                                      data['totalCheckInApplications']),
+                                  _buildSummaryCard(
+                                      'Pending Check-In Applications',
+                                      data['pendingCheckInApplications']),
+                                  _buildBarChart(
+                                      'Check-In Applications by Room Type',
+                                      data['checkInApplicationsByRoomType']),
+                                ],
+                              );
+                            } else {
+                              return const Center(
+                                  child: Text('No data available'));
+                            }
+                          },
+                        ),
                       ],
-                    );
-                  } else {
-                    return const Center(child: Text('No data available'));
-                  }
-                },
-              ),
-            ),
-
-            // Complaints Tab
-            SingleChildScrollView(
-              child: FutureBuilder(
-                future: _generalDataFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (snapshot.hasData) {
-                    final data = snapshot.data!;
-                    return Column(
-                      children: [
-                        _buildSummaryCard(
-                            'Total Complaints', data['totalComplaints']),
-                        _buildSummaryCard(
-                            'Pending Complaints', data['pendingComplaints']),
-                        _buildBarChart(
-                            'Complaints by Type', data['complaintsByType']),
-                      ],
-                    );
-                  } else {
-                    return const Center(child: Text('No data available'));
-                  }
-                },
-              ),
-            ),
-
-            // Blocks Tab
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: _showBlockSelectionDialog,
-                    child: Text(_selectedBlock ?? 'Select Block'),
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  if (_selectedBlock != null)
-                    FutureBuilder(
-                      future: _blockDataFuture,
+                  // Check-Outs Tab
+                  SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        FutureBuilder(
+                          future: _generalDataFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${snapshot.error}'));
+                            } else if (snapshot.hasData) {
+                              final data = snapshot.data!;
+                              return Column(
+                                children: [
+                                  _buildSummaryCard(
+                                      'Total Check-Out Applications',
+                                      data['totalCheckOutApplications']),
+                                  _buildSummaryCard(
+                                      'Pending Check-Out Applications',
+                                      data['pendingCheckOutApplications']),
+                                ],
+                              );
+                            } else {
+                              return const Center(
+                                  child: Text('No data available'));
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Facilities Tab
+                  SingleChildScrollView(
+                    child: FutureBuilder(
+                      future: _generalDataFuture,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -223,12 +160,86 @@ class _DashboardPageState extends State<DashboardPage> {
                               child: Text('Error: ${snapshot.error}'));
                         } else if (snapshot.hasData) {
                           final data = snapshot.data!;
-                          return _buildBlockDetails(data, _selectedBlock!);
+                          return Column(
+                            children: [
+                              _buildSummaryCard('Total Facility Bookings',
+                                  data['totalFacilityBookings']),
+                              _buildSummaryCard('Pending Facility Bookings',
+                                  data['pendingFacilityBookings']),
+                              _buildBarChart('Facility Bookings by Type',
+                                  data['facilityBookingsByType']),
+                            ],
+                          );
                         } else {
                           return const Center(child: Text('No data available'));
                         }
                       },
                     ),
+                  ),
+                  // Complaints Tab
+                  SingleChildScrollView(
+                    child: FutureBuilder(
+                      future: _generalDataFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(
+                              child: Text('Error: ${snapshot.error}'));
+                        } else if (snapshot.hasData) {
+                          final data = snapshot.data!;
+                          return Column(
+                            children: [
+                              _buildSummaryCard(
+                                  'Total Complaints', data['totalComplaints']),
+                              _buildSummaryCard('Pending Complaints',
+                                  data['pendingComplaints']),
+                              _buildBarChart('Complaints by Type',
+                                  data['complaintsByType']),
+                            ],
+                          );
+                        } else {
+                          return const Center(child: Text('No data available'));
+                        }
+                      },
+                    ),
+                  ),
+                  // Blocks Tab
+                  SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: _showBlockSelectionDialog,
+                          child: Text(_selectedBlock ?? 'Select Block'),
+                        ),
+                        const SizedBox(height: 10),
+                        if (_selectedBlock != null)
+                          FutureBuilder(
+                            future: _blockDataFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              } else if (snapshot.hasError) {
+                                return Center(
+                                    child: Text('Error: ${snapshot.error}'));
+                              } else if (snapshot.hasData) {
+                                final data = snapshot.data!;
+                                return _buildBlockDetails(
+                                    data, _selectedBlock!);
+                              } else {
+                                return const Center(
+                                    child: Text('No data available'));
+                              }
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
