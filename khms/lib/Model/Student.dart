@@ -18,6 +18,7 @@ class Student {
   String backMatricPic;
   String frontMatricPic;
   String passportMyKadPic;
+  bool facilitySubscription;
 
   Student(
     this.studentDoB,
@@ -33,6 +34,7 @@ class Student {
     this.studentRoomNo,
     this.backMatricPic,
     this.frontMatricPic,
+    this.facilitySubscription,
     this.passportMyKadPic, {
     this.studentId,
     userType,
@@ -55,6 +57,7 @@ class Student {
       'frontMatricPic': frontMatricPic,
       'passportMyKadPic': passportMyKadPic,
       'studentId': studentId,
+      'facilitySubscription': facilitySubscription,
     };
   }
 
@@ -73,7 +76,8 @@ class Student {
         backMatricPic = json['backMatricPic'],
         frontMatricPic = json['frontMatricPic'],
         passportMyKadPic = json['passportMyKadPic'],
-        studentId = json['studentId'];
+        studentId = json['studentId'],
+        facilitySubscription = json['facilitySubscription'];
 
   Map<String, dynamic> toMap() {
     return {
@@ -91,7 +95,9 @@ class Student {
       'studentRoomNo': studentRoomNo,
       'backMatricCardImage': backMatricPic,
       'frontMatricCardImage': frontMatricPic,
-      'passportMyKadImage': passportMyKadPic
+      'passportMyKadImage': passportMyKadPic,
+      'studentDoB': studentDoB,
+      'facilitySubscription': facilitySubscription,
     };
   }
 
@@ -135,5 +141,7 @@ class Student {
                 '',
         passportMyKadPic =
             (document.data() as Map<String, dynamic>)['passportMyKadImage'] ??
-                '';
+                '',
+        facilitySubscription =
+            (document.data() as Map<String, dynamic>)['facilitySubscription'];
 }

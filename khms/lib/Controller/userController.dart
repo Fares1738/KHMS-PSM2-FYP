@@ -1,6 +1,5 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers, file_names, use_build_context_synchronously, avoid_print, unused_catch_clause
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
@@ -57,6 +56,7 @@ class UserController with ChangeNotifier {
           '',
           '',
           '',
+          false,
           '',
           userType: 'Student',
           studentId: userCredential.user!.uid,
@@ -230,19 +230,6 @@ class UserController with ChangeNotifier {
     String? userType = prefs.getString('userType');
 
     if (userId != null && userType != null) {
-      // Try to load data from cache first
-      String? cachedUserData = prefs.getString('cachedUserData');
-      if (cachedUserData != null) {
-        Map<String, dynamic> userMap = jsonDecode(cachedUserData);
-        if (userType == 'Students') {
-          student = Student.fromJson(userMap);
-        } else {
-          staff = Staff.fromJson(userMap);
-        }
-        notifyListeners();
-        return; // If loaded from cache, no need to fetch from Firestore
-      }
-
       // Fetch data from Firestore
       try {
         DocumentSnapshot<Map<String, dynamic>> snapshot =
@@ -256,12 +243,6 @@ class UserController with ChangeNotifier {
         } else {
           staff = Staff.fromFirestore(snapshot);
         }
-
-        // Cache the fetched data
-        await prefs.setString(
-            'cachedUserData',
-            jsonEncode(
-                userType == 'Students' ? student!.toJson() : staff!.toJson()));
         notifyListeners();
       } catch (e) {
         print('Error fetching user data: $e');

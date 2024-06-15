@@ -7,7 +7,7 @@ import 'package:khms/Model/Student.dart';
 class Payment {
   Double paymentAmount;
   DateTime paymentDate;
-  int paymentId;
+  String paymentId;
   String paymentType;
   Student studentId;
 
