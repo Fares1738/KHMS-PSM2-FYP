@@ -1,8 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:khms/Controller/userController.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 
 class StudentProfilePage extends StatefulWidget {
   const StudentProfilePage({super.key});
@@ -127,6 +128,10 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                               .format(_userController.student!.studentDoB)),
                       _buildProfileCard('MyKad/Passport',
                           _userController.student!.studentmyKadPassportNumber),
+                      ElevatedButton(
+                        onPressed: _showChangePasswordDialog,
+                        child: const Text('Change Password'),
+                      ),
                     ] else if (_userController.staff != null) ...[
                       // Display staff data
                       _buildProfileCard('Name',
@@ -143,7 +148,10 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                               .last),
                       _buildProfileCard(
                           'Staff ID', _userController.staff!.staffId),
-
+                      ElevatedButton(
+                        onPressed: _showChangePasswordDialog,
+                        child: const Text('Change Password'),
+                      ),
                       // ... other staff-specific details
                     ] else ...[
                       const Text('No user data available'),
@@ -152,6 +160,100 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                 ),
               ),
             ),
+    );
+  }
+
+  void _showChangePasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController oldPasswordController = TextEditingController();
+        TextEditingController newPasswordController = TextEditingController();
+        bool _obscureOldPassword = true;
+        bool _obscureNewPassword = true;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Change Password'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: oldPasswordController,
+                    obscureText: _obscureOldPassword,
+                    decoration: InputDecoration(
+                      labelText: 'Old Password',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureOldPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureOldPassword = !_obscureOldPassword;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  TextField(
+                    controller: newPasswordController,
+                    obscureText: _obscureNewPassword,
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureNewPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureNewPassword = !_obscureNewPassword;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      await _userController.changePassword(
+                        _userController.student?.studentEmail ??
+                            _userController.staff!.staffEmail,
+                        oldPasswordController.text,
+                        newPasswordController.text,
+                      );
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Password changed successfully!'),
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Error changing password!'),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Change Password'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

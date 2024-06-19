@@ -91,6 +91,33 @@ class UserController with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> changePassword(
+      String email, String oldPassword, String newPassword) async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        await user.updatePassword(newPassword);
+        
+      }
+    } catch (e) {
+      print('Error changing password: $e');
+      // Handle error (e.g., show a snackbar or alert dialog)
+      throw e; // Rethrow the error if you want to handle it further up the call chain
+    }
+  }
+
+    // Method to send a password reset email
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      print('Error sending password reset email: $e');
+      // Handle error (e.g., show a snackbar or alert dialog)
+      throw e; // Rethrow the error if you want to handle it further up the call chain
+    }
+  }
+
   Future<void> signInWithEmailAndPassword(
       BuildContext context, String email, String password) async {
     try {

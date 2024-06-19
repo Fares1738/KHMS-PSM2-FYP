@@ -1,7 +1,6 @@
-// ignore_for_file: file_names, library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/userController.dart';
+import 'package:khms/View/Common/resetPasswordPage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,14 +10,27 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final UserController _controller = UserController(); // Use your controller
+  final UserController _controller = UserController();
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter an email';
+    }
+    if (!value.contains('@') || !value.contains('.')) {
+      return 'Please enter a valid email';
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(useMaterial3: true),
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Login'),
@@ -35,42 +47,92 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(30.0),
-          child: Center(
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 30),
+          child: Form(
+            key: _formKey,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                TextField(
-                  controller: _emailController, // Link to controller
-                  decoration: const InputDecoration(
-                      labelText: 'Email', prefixIcon: Icon(Icons.email)),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _passwordController, // Link to controller
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock),
-                      suffixIcon: Icon(Icons.visibility)),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        // Call the login function from your controller
-                        _controller.signInWithEmailAndPassword(
-                          context,
-                          _emailController.text,
-                          _passwordController.text,
-                        );
-                      },
-                      child: const Text('Login'),
+                // Remove mainAxisAlignment
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email_rounded),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
                     ),
-                  ],
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: const BorderSide(color: Colors.red),
+                    ),
+                  ),
+                  validator: _validateEmail,
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_rounded),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: const BorderSide(color: Colors.red),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a password';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 25), // Increase space here
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    minimumSize:
+                        const Size.fromHeight(50), // Adjust button height
+                  ),
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _controller.signInWithEmailAndPassword(
+                        context,
+                        _emailController.text,
+                        _passwordController.text,
+                      );
+                    }
+                  },
+                  child: const Text('Login'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ResetPasswordPage()),
+                    );
+                  },
+                  child: const Text(
+                    'Forgot your password? Reset Password',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -82,7 +144,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    // Dispose of your controllers
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();

@@ -12,6 +12,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final UserController _controller = UserController();
+  bool _obscurePassword = true;
   bool isChecked = false;
 
   @override
@@ -22,102 +23,177 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter an email';
+    }
+    // Basic email format validation
+    if (!value.contains('@') || !value.contains('.')) {
+      return 'Please enter a valid email';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: Colors.white,
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Registration'),
-          backgroundColor: Colors.white,
-          elevation: 0.0,
-          titleSpacing: 10.0,
-          leading: InkWell(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: const Icon(
-              Icons.arrow_back_rounded,
-              color: Colors.black54,
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Registration'),
+        backgroundColor: Colors.white,
+        elevation: 0.0,
+        titleSpacing: 10.0,
+        leading: InkWell(
+          onTap: () => Navigator.pop(context),
+          child: const Icon(
+            Icons.arrow_back_rounded,
+            color: Colors.black54,
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.fromLTRB(25, 100, 25, 10),
-          child: Form(
-            key: _controller.formKey,
-            child: Column(
-              children: [
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _controller.emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_rounded),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 30),
+        child: Form(
+          key: _controller.formKey,
+          child: Column(
+            children: [
+              const SizedBox(height: 20.0),
+              TextFormField(
+                controller: _controller.emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: const Icon(Icons.email_rounded),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter an email';
-                    }
-                    return null;
-                    // Add more robust email validation if needed
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _controller.passwordController,
-                  decoration: const InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock_rounded),
-                      suffixIcon: Icon(Icons.visibility)),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _controller.confirmPasswordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm Password',
-                    prefixIcon: Icon(Icons.lock_rounded),
-                    suffixIcon: Icon(Icons.visibility),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(color: Colors.red),
                   ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
+                ),
+                validator: _validateEmail, // Use the email validation function
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                controller: _controller.passwordController,
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: const Icon(Icons.lock_rounded),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword
+                        ? Icons.visibility_off
+                        : Icons.visibility),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(color: Colors.red),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a password';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                controller: _controller.confirmPasswordController,
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
+                  labelText: 'Confirm Password',
+                  prefixIcon: const Icon(Icons.lock_rounded),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword
+                        ? Icons.visibility_off
+                        : Icons.visibility),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(color: Colors.red),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please confirm your password';
+                  } else if (value != _controller.passwordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                  crossAxisAlignment:
+                      WrapCrossAlignment.center, // Align items vertically
+
+                  children: [
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: isChecked,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              isChecked = value!;
+                            });
+                          },
+                        ),
+                        const Text(
+                          'I agree to the terms and conditions of K Hotel',
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+                      ],
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(52.0, 0, 0, 0),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Sdn Bhd",
+                            style: TextStyle(fontSize: 16.0),
+                          ),
+                        ],
+                      ),
+                    )
+                  ]),
+              const SizedBox(height: 10),
+              FilledButton(
+                onPressed: () {
+                  if (_controller.formKey.currentState!.validate()) {
+                    if (isChecked == false) {
+                      _controller.registerUser(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        // Show error snackbar
+                        const SnackBar(
+                          content:
+                              Text('Please agree to the terms and conditions.'),
+                          backgroundColor:
+                              Colors.red, // Optional: red background for error
+                        ),
+                      );
                     }
-                    return null;
-                  },
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 40),
                 ),
-                CheckboxListTile(
-                  title: const Text(
-                      'I agree to the terms and conditions of K Hotel Sdn Bhd'),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  value: isChecked,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      isChecked = value!;
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    _controller.registerUser(context);
-                  },
-                  child: const Text('Register'),
-                ),
-              ],
-            ),
+                child: const Text('Register'),
+              ),
+            ],
           ),
         ),
       ),
