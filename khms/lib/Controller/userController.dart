@@ -98,7 +98,6 @@ class UserController with ChangeNotifier {
 
       if (user != null) {
         await user.updatePassword(newPassword);
-        
       }
     } catch (e) {
       print('Error changing password: $e');
@@ -107,7 +106,7 @@ class UserController with ChangeNotifier {
     }
   }
 
-    // Method to send a password reset email
+  // Method to send a password reset email
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
@@ -313,6 +312,30 @@ class UserController with ChangeNotifier {
         print('Error updating user data: $e');
         // Handle the error (e.g., show a SnackBar)
       }
+    }
+  }
+
+  // Method to fetch all students
+  Future<List<Student>> fetchAllStudents() async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot =
+          await FirebaseFirestore.instance.collection('Students').get();
+      return snapshot.docs.map((doc) => Student.fromFirestore(doc)).toList();
+    } catch (e) {
+      print('Error fetching students: $e');
+      throw e; // Rethrow the error if you want to handle it further up the call chain
+    }
+  }
+
+  // Method to fetch all staff
+  Future<List<Staff>> fetchAllStaff() async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot =
+          await FirebaseFirestore.instance.collection('Staff').get();
+      return snapshot.docs.map((doc) => Staff.fromFirestore(doc)).toList();
+    } catch (e) {
+      print('Error fetching staff: $e');
+      throw e; // Rethrow the error if you want to handle it further up the call chain
     }
   }
 }

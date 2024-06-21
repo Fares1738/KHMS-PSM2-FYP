@@ -1,9 +1,8 @@
-// ignore_for_file: file_names
-
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/userController.dart';
 import 'package:khms/View/Common/profilePage.dart';
 import 'package:khms/View/Staff/staffAddUserPage.dart';
+import 'package:khms/View/Staff/staffViewAllUsers.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,7 +40,7 @@ class HomeCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Provider.of<UserController>(context);
+    Provider.of<UserController>(context);
 
     return AppBar(
       title: const Text(
@@ -50,19 +49,13 @@ class HomeCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       automaticallyImplyLeading: false, // Disable the default back button
       centerTitle: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.logout),
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu),
           onPressed: () {
-            controller.signOutUser(context);
+            Scaffold.of(context).openDrawer();
           },
         ),
-      ],
-      leading: IconButton(
-        icon: const Icon(Icons.menu),
-        onPressed: () {
-          Scaffold.of(context).openDrawer();
-        },
       ),
     );
   }
@@ -93,10 +86,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   Future<void> _fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    userType = prefs.getString('userType');
+    setState(() {
+      userType = prefs.getString('userType');
+    });
     print(userType);
     await _userController.fetchUserData();
-    setState(() {}); // Ensure the state is updated after fetching data
   }
 
   ImageProvider _determineProfileImage() {
@@ -125,7 +119,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
             accountEmail: Text(
               userType == 'Students'
                   ? _userController.student?.studentEmail ?? ''
-                  : _userController.staff?.staffEmail ?? '',
+                  : _userController.staff?.userType
+                          .toString()
+                          .split('.')
+                          .last ??
+                      '',
             ),
             currentAccountPicture: CircleAvatar(
               radius: 80,
@@ -157,6 +155,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const AddUserPage(),
+                  ),
+                );
+              },
+            ),
+          if (userType == 'Manager') // Only show for Manager
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text('View All Users'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ViewAllUsers(),
                   ),
                 );
               },

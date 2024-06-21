@@ -37,7 +37,7 @@ class _ManageApplicationsState extends State<ManageApplications> {
         children: [
           const SizedBox(height: 20),
           const Text(
-            "Manage Hostel",
+            "Manage",
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
