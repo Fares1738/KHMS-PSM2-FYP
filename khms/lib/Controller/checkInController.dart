@@ -7,7 +7,7 @@ import 'package:khms/Model/CheckInApplication.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/Model/Room.dart';
 import 'package:khms/Model/Student.dart';
-import 'package:khms/View/Student/studentMainPage.dart';
+import 'package:khms/View/Student/stripePaymentPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -43,7 +43,8 @@ class CheckInController {
           studentId: storedStudentId,
           checkInStatus: 'Pending',
           roomType: roomType,
-          price: price);
+          price: price,
+          isPaid: false);
 
       if (checkInApplicationId == null) {
         DocumentReference docRef = await _firestore
@@ -106,12 +107,15 @@ class CheckInController {
         });
       }
 
-      String studentName = '$firstName $lastName';
+      //String studentName = '$firstName $lastName';
 
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => StudentMainPage(studentName: studentName)));
+              builder: (context) => StripePaymentPage(
+                    priceToDisplay: price,
+                    checkInApplicationId: checkInApplicationId ?? '',
+                  )));
     } on FirebaseException {
     } catch (e) {
       // ... Generic errors
@@ -276,4 +280,19 @@ class CheckInController {
   }
 
   final _firestore = FirebaseFirestore.instance;
+
+  Future<void> updateCheckInApplicationWithPayment(
+      String checkInApplicationId) async {
+    try {
+      // Update the CheckInApplication document in Firestore
+      await _firestore
+          .collection('CheckInApplications')
+          .doc(checkInApplicationId)
+          .update({
+        'isPaid': true,
+      });
+    } catch (e) {
+      throw Exception('Error updating check-in application: $e');
+    }
+  }
 }

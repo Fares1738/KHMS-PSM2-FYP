@@ -14,6 +14,7 @@ class CheckInApplication {
   Student? student;
   String? rejectionReason;
   String? applicationData;
+  bool? isPaid;
 
   CheckInApplication({
     required this.checkInApplicationDate,
@@ -23,6 +24,7 @@ class CheckInApplication {
     required this.checkInStatus,
     required this.roomType,
     required this.price,
+    required this.isPaid,
     this.rejectionReason = '',
     this.applicationData = '',
   });
@@ -43,6 +45,7 @@ class CheckInApplication {
       'price': price,
       'rejectionReason': rejectionReason,
       'applicationData': applicationData,
+      'isPaid': isPaid,
     };
   }
 
@@ -68,5 +71,6 @@ class CheckInApplication {
                 as String, // Treat rejectionReason as optional
         applicationData =
             (document.data() as Map<String, dynamic>)['applicationData']
-                as String?; // Treat applicationData as optional
+                as String?, // Treat applicationData as optional
+        isPaid = (document.data() as Map<String, dynamic>)['isPaid'] as bool;
 }

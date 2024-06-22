@@ -389,7 +389,8 @@ class _CheckInPageState extends State<CheckInPage> {
         checkInDate: DateTime.now(),
         studentId: '',
         checkInStatus: '',
-        price: priceToDisplay // Placeholder
+        price: priceToDisplay, // Placeholder
+        isPaid: null,
         );
 
     int calculatedPrice = application.calculatePrice();
