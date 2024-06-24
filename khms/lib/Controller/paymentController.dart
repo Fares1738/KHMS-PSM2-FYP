@@ -49,19 +49,43 @@ class PaymentController {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error initializing payment sheet: $e')),
       );
+      throw e; // Re-throw the error to be caught in the calling function
     }
   }
 
-  Future<void> displayPaymentSheet(BuildContext context) async {
+  Future<bool> displayPaymentSheet(BuildContext context) async {
     try {
       await Stripe.instance.presentPaymentSheet();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment successful!')),
-      );
-    } catch (e) {
+      return true; // Payment was successful
+    } on Exception catch (e) {
+      if (e is StripeException) {
+        if (e.error.code == FailureCode.Canceled) {
+          // Payment was canceled by the user
+          return false;
+        }
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error processing payment: $e')),
       );
+      return false; // Payment failed
+    }
+  }
+
+  Future<bool> checkPaymentStatus(String paymentIntentId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.stripe.com/v1/payment_intents/$paymentIntentId'),
+        headers: {
+          'Authorization': 'Bearer $_secretKey',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+      );
+
+      final paymentIntent = jsonDecode(response.body);
+      return paymentIntent['status'] == 'succeeded';
+    } catch (e) {
+      print('Error checking payment status: $e');
+      return false;
     }
   }
 }

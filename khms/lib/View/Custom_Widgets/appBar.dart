@@ -12,7 +12,7 @@ class GeneralCustomAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    final controller = Provider.of<UserController>(context);
+    Provider.of<UserController>(context);
 
     return AppBar(
       title: const Text(
@@ -20,14 +20,6 @@ class GeneralCustomAppBar extends StatelessWidget
         style: TextStyle(fontSize: 28),
       ),
       centerTitle: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () {
-            controller.signOutUser(context);
-          },
-        ),
-      ],
     );
   }
 

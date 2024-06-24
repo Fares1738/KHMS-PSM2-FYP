@@ -66,28 +66,29 @@ class FacilitiesController {
     return facilityAvailability;
   }
 
-  Future<List<String>> fetchBookedTimeSlots(
-      DateTime? selectedDate, String? facilityType) async {
-    final bookedSlots = <String>[];
+  Stream<List<String>> streamBookedTimeSlots(
+      DateTime? selectedDate, String? facilityType) {
+    if (selectedDate == null || facilityType == null) {
+      return Stream.value([]);
+    }
 
-    final dayStart =
-        DateTime(selectedDate!.year, selectedDate.month, selectedDate.day);
+    final dayStart = DateTime(
+        selectedDate.year, selectedDate.month, selectedDate.day, 0, 0);
     final dayEnd = DateTime(
         selectedDate.year, selectedDate.month, selectedDate.day, 23, 59);
 
-    final querySnapshot = await _firestore
+    return _firestore
         .collection('Facilities')
         .doc(facilityType)
         .collection('Applications')
         .where('facilityApplicationDate',
             isGreaterThanOrEqualTo: dayStart, isLessThanOrEqualTo: dayEnd)
-        .get();
-
-    for (final doc in querySnapshot.docs) {
-      bookedSlots.add(doc.data()['facilitySlot'] as String);
-    }
-
-    return bookedSlots;
+        .snapshots()
+        .map((querySnapshot) {
+      return querySnapshot.docs
+          .map((doc) => doc.data()['facilitySlot'] as String)
+          .toList();
+    });
   }
 
   Future<void> toggleFacilityAvailability(

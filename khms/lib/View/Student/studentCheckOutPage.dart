@@ -16,11 +16,20 @@ class _CheckOutPageState extends State<CheckOutPage> {
   final _controller = CheckOutController();
 
   void _showDatePicker() async {
+    final today = DateTime.now();
+    final firstDate = today.add(const Duration(days: 30));
+    final lastDate = today.add(const Duration(days: 365));
+
     final newDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 30)),
+      initialDate: firstDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      selectableDayPredicate: (DateTime date) {
+        // Ensure the date is between 30 and 365 days from today
+        return date.isAfter(firstDate.subtract(const Duration(days: 1))) &&
+            date.isBefore(lastDate.add(const Duration(days: 1)));
+      },
     );
 
     if (newDate != null) {

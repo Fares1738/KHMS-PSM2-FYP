@@ -142,6 +142,8 @@ class CheckInController {
 
     return _firestore
         .collection('CheckInApplications')
+        .where('isPaid',
+            isEqualTo: true)
         .snapshots()
         .asyncMap((applicationsSnapshot) async {
       final applications = applicationsSnapshot.docs

@@ -1,7 +1,5 @@
-// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously, avoid_print
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/Controller/facilitiesController.dart';
 import 'package:khms/Controller/userController.dart';
 import 'package:khms/Model/Facilities.dart';
@@ -9,7 +7,7 @@ import 'package:khms/Model/Student.dart';
 
 class FacilitiesPage extends StatefulWidget {
   final Student? student;
-  const FacilitiesPage({super.key, this.student});
+  const FacilitiesPage({Key? key, this.student}) : super(key: key);
 
   @override
   _FacilitiesPageState createState() => _FacilitiesPageState();
@@ -19,7 +17,7 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
   final FacilitiesController _controller = FacilitiesController();
   final UserController _userController = UserController();
   bool? facilitySubscription;
-  List<String> bookedTimeSlots = [];
+  Stream<List<String>>? _bookedTimeSlotsStream;
   DateTime? _selectedDate;
   String? _selectedTimeSlot, _selectedFacilityType;
   Map<String, bool> _facilityAvailability = {};
@@ -40,18 +38,6 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
 
   List<String> _facilityTypes = [];
 
-  Future<void> _fetchFacilityTypes() async {
-    try {
-      final facilitiesSnapshot =
-          await FirebaseFirestore.instance.collection('Facilities').get();
-      setState(() {
-        _facilityTypes = facilitiesSnapshot.docs.map((doc) => doc.id).toList();
-      });
-    } catch (e) {
-      print('Error fetching facility types: $e');
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -69,11 +55,8 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
       setState(() {
         facilitySubscription = _userController.student?.facilitySubscription;
       });
-      print(
-          'Facility Subscription: ${_userController.student?.facilitySubscription}');
     } catch (e) {
       print('Error fetching student data: $e');
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error fetching student data!')),
       );
@@ -85,6 +68,27 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
     setState(() {
       _facilityAvailability = availability;
     });
+  }
+
+  Future<void> _fetchFacilityTypes() async {
+    try {
+      final facilitiesSnapshot =
+          await FirebaseFirestore.instance.collection('Facilities').get();
+      setState(() {
+        _facilityTypes = facilitiesSnapshot.docs.map((doc) => doc.id).toList();
+      });
+    } catch (e) {
+      print('Error fetching facility types: $e');
+    }
+  }
+
+  void _updateBookedTimeSlotsStream() {
+    if (_selectedDate != null && _selectedFacilityType != null) {
+      setState(() {
+        _bookedTimeSlotsStream = _controller.streamBookedTimeSlots(
+            _selectedDate, _selectedFacilityType);
+      });
+    }
   }
 
   @override
@@ -114,7 +118,9 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                         if (selectedDate != null) {
                           setState(() {
                             _selectedDate = selectedDate;
+                            _selectedTimeSlot = null;
                           });
+                          _updateBookedTimeSlotsStream();
                         }
                       },
                       child: Text(_selectedDate?.toString().split(' ')[0] ??
@@ -136,15 +142,14 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                           ),
                         );
                       }).toList(),
-                      onChanged: (value) async {
+                      onChanged: (value) {
                         if (value != null &&
                             (_facilityAvailability[value] ?? false)) {
-                          setState(() => _selectedFacilityType = value);
-                          if (_selectedDate != null) {
-                            bookedTimeSlots =
-                                await _controller.fetchBookedTimeSlots(
-                                    _selectedDate!, _selectedFacilityType!);
-                          }
+                          setState(() {
+                            _selectedFacilityType = value;
+                            _selectedTimeSlot = null;
+                          });
+                          _updateBookedTimeSlotsStream();
                         }
                       },
                       decoration: const InputDecoration(
@@ -152,28 +157,39 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                           border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _selectedTimeSlot,
-                      items: _timeSlots.map((slot) {
-                        final isBooked = bookedTimeSlots.contains(slot);
-                        return DropdownMenuItem<String>(
-                          value: slot,
-                          enabled: !isBooked,
-                          child: Text(
-                            slot,
-                            style: TextStyle(
-                              color: isBooked ? Colors.grey : null,
-                            ),
-                          ),
+                    StreamBuilder<List<String>>(
+                      stream: _bookedTimeSlotsStream,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        }
+                        final bookedTimeSlots = snapshot.data ?? [];
+                        return DropdownButtonFormField<String>(
+                          value: _selectedTimeSlot,
+                          items: _timeSlots.map((slot) {
+                            final isBooked = bookedTimeSlots.contains(slot);
+                            return DropdownMenuItem<String>(
+                              value: slot,
+                              enabled: !isBooked,
+                              child: Text(
+                                slot,
+                                style: TextStyle(
+                                  color: isBooked ? Colors.grey : null,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: _selectedDate != null &&
+                                  _selectedFacilityType != null
+                              ? (value) =>
+                                  setState(() => _selectedTimeSlot = value)
+                              : null,
+                          decoration: const InputDecoration(
+                              labelText: 'Select Time Slot',
+                              border: OutlineInputBorder()),
                         );
-                      }).toList(),
-                      onChanged: _selectedDate != null &&
-                              _selectedFacilityType != null
-                          ? (value) => setState(() => _selectedTimeSlot = value)
-                          : null,
-                      decoration: const InputDecoration(
-                          labelText: 'Select Time Slot',
-                          border: OutlineInputBorder()),
+                      },
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
@@ -192,7 +208,9 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                                     facilitySlot: _selectedTimeSlot!,
                                     facilityType: _selectedFacilityType!,
                                     studentId: '',
-                                    studentRoomNo: '',
+                                    studentRoomNo: _userController
+                                            .student?.studentRoomNo ??
+                                        '',
                                     facilityApplicationStatus: 'Pending',
                                   ),
                                 );

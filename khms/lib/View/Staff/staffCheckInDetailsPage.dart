@@ -129,9 +129,7 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
                             availableRooms.map<DropdownMenuItem<Room>>((room) {
                           final capacity = room.roomType == 'Double'
                               ? 2
-                              : (room.roomType == 'Triple'
-                                  ? 3
-                                  : 0);
+                              : (room.roomType == 'Triple' ? 3 : 0);
 
                           return DropdownMenuItem<Room>(
                             value: room,
@@ -144,12 +142,12 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
                                 if (tenantCountSnapshot.connectionState ==
                                     ConnectionState.waiting) {
                                   return Text(
-                                      '${room.roomNo} (${room.roomType})'); 
+                                      '${room.roomNo} (${room.roomType})');
                                 } else {
                                   final tenantCount =
                                       tenantCountSnapshot.data ?? 0;
                                   return Text(
-                                    '${room.roomNo} (${room.roomType})${room.roomType == 'Single' ? '' : ' - $tenantCount/$capacity'}', 
+                                    '${room.roomNo} (${room.roomType})${room.roomType == 'Single' ? '' : ' - $tenantCount/$capacity'}',
                                   );
                                 }
                               },
@@ -223,14 +221,25 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
         const Text("Documents Uploaded:",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        Column(
           children: [
-            _buildHeroImage(student.frontMatricPic, "Front Matric Card"),
-            const SizedBox(width: 20),
-            _buildHeroImage(student.backMatricPic, "Back Matric Card"),
-            const SizedBox(width: 20),
-            _buildHeroImage(student.passportMyKadPic, "MyKad/Passport"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildHeroImage(student.frontMatricPic, "Front Matric Card"),
+                const SizedBox(width: 20),
+                _buildHeroImage(student.backMatricPic, "Back Matric Card"),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildHeroImage(student.passportMyKadPic, "MyKad/Passport"),
+                const SizedBox(width: 20),
+                _buildHeroImage(student.studentPhoto, "Student Photo"),
+              ],
+            )
           ],
         )
       ],
@@ -332,7 +341,7 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
                         _controller.updateCheckInApplication(
                           widget.application,
                           'Rejected',
-                          '', 
+                          '',
                           _rejectionReasonController.text,
                         );
                         Navigator.pop(context);
@@ -349,12 +358,12 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                showRoomAssignment = true; 
+                showRoomAssignment = true;
               });
             },
             child: const Text("Approve"),
           ),
-        ], 
+        ],
       );
     } else {
       return const SizedBox.shrink();

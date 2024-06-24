@@ -1,5 +1,4 @@
 // ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/paymentController.dart';
 import 'package:khms/Controller/checkInController.dart';
@@ -21,6 +20,7 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
   final PaymentController _paymentController = PaymentController();
   final CheckInController _checkInController = CheckInController();
   bool _isLoading = true;
+  bool _paymentSuccessful = false;
 
   @override
   void initState() {
@@ -37,7 +37,9 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
       body: Center(
         child: _isLoading
             ? const CircularProgressIndicator()
-            : const Text('Payment Successful'),
+            : _paymentSuccessful
+                ? const Text('Payment Successful')
+                : const Text('Payment Cancelled or Failed'),
       ),
     );
   }
@@ -57,17 +59,29 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
 
       // Display payment sheet
       await _paymentController.displayPaymentSheet(context);
-      // Capture the result of the displayPaymentSheet call
 
-      // Check the payment result before updating state or calling the checkIn controller
-      // Change to whatever signifies success
-      setState(() {
-        _isLoading = false;
-      });
+      // Check if the payment was successful
+      // You'll need to implement this method in your PaymentController
+      bool paymentSuccessful =
+          await _paymentController.checkPaymentStatus(paymentIntent['id']);
 
-      // Update the check-in application with payment status
-      await _checkInController
-          .updateCheckInApplicationWithPayment(widget.checkInApplicationId);
+      if (paymentSuccessful) {
+        // Payment was successful
+        setState(() {
+          _isLoading = false;
+          _paymentSuccessful = true;
+        });
+
+        // Update the check-in application with payment status
+        await _checkInController
+            .updateCheckInApplicationWithPayment(widget.checkInApplicationId);
+      } else {
+        // Payment was cancelled or failed
+        setState(() {
+          _isLoading = false;
+          _paymentSuccessful = false;
+        });
+      }
     } catch (err) {
       // Handle errors and show a Snackbar or dialog
       ScaffoldMessenger.of(context).showSnackBar(
@@ -78,6 +92,7 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
       // If there's an error, update UI state
       setState(() {
         _isLoading = false;
+        _paymentSuccessful = false;
       });
     }
   }
