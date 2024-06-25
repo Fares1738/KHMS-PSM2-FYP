@@ -320,10 +320,10 @@ class _CheckInPageState extends State<CheckInPage> {
                         MainAxisAlignment.center, // Center the buttons
                     children: [
                       if (_frontMatricPic != null)
-                        Image.file(_frontMatricPic!, height: 250),
+                        Image.file(_frontMatricPic!, height: 250, width: 175),
                       const SizedBox(width: 10),
                       if (_backMatricPic != null)
-                        Image.file(_backMatricPic!, height: 250),
+                        Image.file(_backMatricPic!, height: 250, width: 175),
                     ],
                   ),
 
@@ -339,10 +339,10 @@ class _CheckInPageState extends State<CheckInPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (_passportMyKadPic != null)
-                        Image.file(_passportMyKadPic!, height: 250),
+                        Image.file(_passportMyKadPic!, height: 250, width: 175),
                       const SizedBox(width: 10),
                       if (_studentPhoto != null)
-                        Image.file(_studentPhoto!, height: 250),
+                        Image.file(_studentPhoto!, height: 250, width: 175),
                     ],
                   ),
                   const SizedBox(height: 30),
@@ -383,15 +383,15 @@ class _CheckInPageState extends State<CheckInPage> {
 
   void _calculatePrice() {
     CheckInApplication application = CheckInApplication(
-        roomType: roomType,
-        checkInApplicationDate: DateTime.now(),
-        checkInApplicationId: '',
-        checkInDate: DateTime.now(),
-        studentId: '',
-        checkInStatus: '',
-        price: priceToDisplay, // Placeholder
-        isPaid: null,
-        );
+      roomType: roomType,
+      checkInApplicationDate: DateTime.now(),
+      checkInApplicationId: '',
+      checkInDate: DateTime.now(),
+      studentId: '',
+      checkInStatus: '',
+      price: priceToDisplay, // Placeholder
+      isPaid: null,
+    );
 
     int calculatedPrice = application.calculatePrice();
     setState(() {

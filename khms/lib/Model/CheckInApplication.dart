@@ -13,8 +13,8 @@ class CheckInApplication {
   int? price;
   Student? student;
   String? rejectionReason;
-  String? applicationData;
   bool? isPaid;
+  DateTime? checkInApprovalDate;
 
   CheckInApplication({
     required this.checkInApplicationDate,
@@ -26,7 +26,6 @@ class CheckInApplication {
     required this.price,
     required this.isPaid,
     this.rejectionReason = '',
-    this.applicationData = '',
   });
 
   int calculatePrice() {
@@ -44,33 +43,37 @@ class CheckInApplication {
       'roomType': roomType,
       'price': price,
       'rejectionReason': rejectionReason,
-      'applicationData': applicationData,
       'isPaid': isPaid,
+      'checkInApprovalDate': checkInApprovalDate,
     };
   }
 
-  CheckInApplication.fromFirestore(DocumentSnapshot document)
-      : checkInApplicationDate = ((document.data()
-                as Map<String, dynamic>)['checkInApplicationDate'] as Timestamp)
-            .toDate(),
-        checkInApplicationId = (document.data()
-            as Map<String, dynamic>)['checkInApplicationId'] as String,
-        checkInDate = ((document.data() as Map<String, dynamic>)['checkInDate']
-                as Timestamp)
-            .toDate(),
-        studentId =
-            (document.data() as Map<String, dynamic>)['studentId'] as String,
-        checkInStatus = (document.data()
-            as Map<String, dynamic>)['checkInStatus'] as String,
-        roomType = (document.data() as Map<String, dynamic>)['roomType']
-            as String?, // Treat roomType as optional
-        price = (document.data() as Map<String, dynamic>)['price']
-            as int?, // Treat price as optional
-        rejectionReason =
-            (document.data() as Map<String, dynamic>)['rejectionReason']
-                as String, // Treat rejectionReason as optional
-        applicationData =
-            (document.data() as Map<String, dynamic>)['applicationData']
-                as String?, // Treat applicationData as optional
-        isPaid = (document.data() as Map<String, dynamic>)['isPaid'] as bool;
+CheckInApplication.fromFirestore(DocumentSnapshot document)
+    : checkInApplicationDate = ((document.data()
+              as Map<String, dynamic>)['checkInApplicationDate'] as Timestamp)
+          .toDate(),
+      checkInApplicationId = (document.data()
+          as Map<String, dynamic>)['checkInApplicationId'] as String,
+      checkInDate = ((document.data() as Map<String, dynamic>)['checkInDate']
+              as Timestamp)
+          .toDate(),
+      studentId =
+          (document.data() as Map<String, dynamic>)['studentId'] as String,
+      checkInStatus = (document.data()
+          as Map<String, dynamic>)['checkInStatus'] as String,
+      roomType = (document.data() as Map<String, dynamic>)['roomType']
+          as String?, // Treat roomType as optional
+      price = (document.data() as Map<String, dynamic>)['price']
+          as int?, // Treat price as optional
+      rejectionReason =
+          (document.data() as Map<String, dynamic>)['rejectionReason']
+              as String, // Treat rejectionReason as optional
+      isPaid = (document.data() as Map<String, dynamic>)['isPaid'] as bool,
+      checkInApprovalDate = (document.data() as Map<String, dynamic>)
+                  .containsKey('checkInApprovalDate')
+              ? ((document.data() as Map<String, dynamic>)['checkInApprovalDate']
+                  as Timestamp)
+                  .toDate()
+              : null; // Set to null if not present
+
 }

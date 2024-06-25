@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
@@ -87,5 +88,14 @@ class PaymentController {
       print('Error checking payment status: $e');
       return false;
     }
+  }
+
+  final _firestore = FirebaseFirestore.instance;
+
+  Future<void> updateFacilitySubscription(String studentId) async {
+    await _firestore
+        .collection('Students')
+        .doc(studentId)
+        .update({'facilitySubscription': true});
   }
 }

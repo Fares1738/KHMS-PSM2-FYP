@@ -88,6 +88,16 @@ class _CheckInStatusWidgetState extends State<CheckInStatusWidget> {
     }
   }
 
+  int? _calculateDaysLeft(DateTime? checkInApprovalDate) {
+    if (checkInApprovalDate == null) {
+      return null;
+    }
+    final rentDueDate = checkInApprovalDate.add(const Duration(days: 31));
+    final currentDate = DateTime.now();
+    final difference = rentDueDate.difference(currentDate).inDays;
+    return difference;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -97,6 +107,8 @@ class _CheckInStatusWidgetState extends State<CheckInStatusWidget> {
     if (_application == null) {
       return const Center(child: Text('Please Check In First'));
     }
+
+    final daysLeft = _calculateDaysLeft(_application!.checkInApprovalDate);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -126,6 +138,25 @@ class _CheckInStatusWidgetState extends State<CheckInStatusWidget> {
                   ),
                 ],
               ),
+              if (_application!.checkInStatus == 'Approved')
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Days left till rent payment: ',
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                    Text(
+                      daysLeft != null ? '$daysLeft' : 'N/A',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               if (_application!.checkInStatus == 'Rejected')
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.center,

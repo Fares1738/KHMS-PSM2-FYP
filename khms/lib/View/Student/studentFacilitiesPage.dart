@@ -4,6 +4,7 @@ import 'package:khms/Controller/facilitiesController.dart';
 import 'package:khms/Controller/userController.dart';
 import 'package:khms/Model/Facilities.dart';
 import 'package:khms/Model/Student.dart';
+import 'package:khms/View/Student/stripePaymentPage.dart';
 
 class FacilitiesPage extends StatefulWidget {
   final Student? student;
@@ -16,6 +17,7 @@ class FacilitiesPage extends StatefulWidget {
 class _FacilitiesPageState extends State<FacilitiesPage> {
   final FacilitiesController _controller = FacilitiesController();
   final UserController _userController = UserController();
+  String studentId = '';
   bool? facilitySubscription;
   Stream<List<String>>? _bookedTimeSlotsStream;
   DateTime? _selectedDate;
@@ -46,6 +48,7 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
     _fetchData();
     setState(() {
       facilitySubscription = widget.student?.facilitySubscription;
+      studentId = _userController.student?.studentId ?? '';
     });
   }
 
@@ -54,6 +57,7 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
       await _userController.fetchUserData();
       setState(() {
         facilitySubscription = _userController.student?.facilitySubscription;
+        studentId = _userController.student?.studentId ?? '';
       });
     } catch (e) {
       print('Error fetching student data: $e');
@@ -102,7 +106,6 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const SizedBox(height: 20),
                     const Text("Facility Booking Form",
                         style: TextStyle(
                             fontSize: 24, fontWeight: FontWeight.bold)),
@@ -234,14 +237,25 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'You must pay for facilities to access this page',
+                      'You must pay 50 RM/month to access facilities.',
                       style: TextStyle(fontSize: 18),
                     ),
                     const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Navigate to your payment screen
-                        // ... Your navigation logic here ...
+                    FilledButton(
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => StripePaymentPage(
+                              priceToDisplay: 50,
+                              studentId: studentId,
+                            ),
+                          ),
+                        );
+
+                        if (result == true) {
+                          _fetchData();
+                        }
                       },
                       child: const Text('Go to Payment'),
                     ),

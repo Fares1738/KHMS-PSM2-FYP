@@ -46,12 +46,16 @@ class CheckInController {
           price: price,
           isPaid: false);
 
-      if (checkInApplicationId == null) {
+      if (checkInApplicationId == null ||
+          checkInApplicationId.isEmpty ||
+          checkInApplicationId == '') {
         DocumentReference docRef = await _firestore
             .collection('CheckInApplications')
             .add(newApplication.toMap());
 
         await docRef.update({'checkInApplicationId': docRef.id});
+        checkInApplicationId =
+            docRef.id; // Update the local variable with the new ID
       } else {
         await _firestore
             .collection('CheckInApplications')
@@ -118,7 +122,7 @@ class CheckInController {
                   )));
     } on FirebaseException {
     } catch (e) {
-      // ... Generic errors
+      print('Error submitting check-in application: $e');
     }
   }
 
@@ -142,8 +146,7 @@ class CheckInController {
 
     return _firestore
         .collection('CheckInApplications')
-        .where('isPaid',
-            isEqualTo: true)
+        .where('isPaid', isEqualTo: true)
         .snapshots()
         .asyncMap((applicationsSnapshot) async {
       final applications = applicationsSnapshot.docs
@@ -193,6 +196,7 @@ class CheckInController {
 
       Map<String, dynamic> updateData = {
         'checkInStatus': newStatus,
+        'checkInApprovalDate': Timestamp.now(),
       };
       if (roomNo != null) {
         updateData['roomNo'] = roomNo;

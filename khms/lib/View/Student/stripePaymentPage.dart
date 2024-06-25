@@ -2,15 +2,18 @@
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/paymentController.dart';
 import 'package:khms/Controller/checkInController.dart';
+import 'package:khms/View/Student/studentMainPage.dart';
 
 class StripePaymentPage extends StatefulWidget {
   final int priceToDisplay;
-  final String checkInApplicationId;
+  final String? checkInApplicationId;
+  final String? studentId;
 
   const StripePaymentPage(
       {super.key,
       required this.priceToDisplay,
-      required this.checkInApplicationId});
+      this.checkInApplicationId,
+      this.studentId});
 
   @override
   _StripePaymentPageState createState() => _StripePaymentPageState();
@@ -26,6 +29,7 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
   void initState() {
     super.initState();
     _makePayment();
+    print('###################### ${widget.studentId} ######################');
   }
 
   @override
@@ -73,8 +77,18 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
         });
 
         // Update the check-in application with payment status
-        await _checkInController
-            .updateCheckInApplicationWithPayment(widget.checkInApplicationId);
+        if (widget.checkInApplicationId != null) {
+          await _checkInController.updateCheckInApplicationWithPayment(
+              widget.checkInApplicationId!);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => StudentMainPage()));
+        } else {
+          print(
+              "###################### ${widget.studentId} ######################");
+          await _paymentController
+              .updateFacilitySubscription(widget.studentId!);
+          Navigator.pop(context, true);
+        }
       } else {
         // Payment was cancelled or failed
         setState(() {

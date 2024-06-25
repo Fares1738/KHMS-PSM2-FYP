@@ -128,6 +128,8 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                               .format(_userController.student!.studentDoB)),
                       _buildProfileCard('MyKad/Passport',
                           _userController.student!.studentmyKadPassportNumber),
+                      _buildProfileCard(
+                          'Student ID', _userController.student!.studentId!),
                       ElevatedButton(
                         onPressed: _showChangePasswordDialog,
                         child: const Text('Change Password'),
