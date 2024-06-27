@@ -301,4 +301,5 @@ class CheckInController {
       throw Exception('Error updating check-in application: $e');
     }
   }
+  
 }

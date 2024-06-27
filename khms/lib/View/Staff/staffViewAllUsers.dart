@@ -60,7 +60,8 @@ class _ViewAllUsersState extends State<ViewAllUsers> {
       _filteredStudents = _students.where((student) {
         return (student.studentFirstName.toLowerCase().contains(query) ||
                 student.studentLastName.toLowerCase().contains(query) ||
-                student.studentEmail.toLowerCase().contains(query)) &&
+                student.studentEmail.toLowerCase().contains(query) ||
+                student.studentRoomNo.toLowerCase().contains(query)) &&
             (_selectedBlock == 'All' ||
                 student.studentRoomNo
                     .startsWith(_selectedBlock.split(' ').last)) &&

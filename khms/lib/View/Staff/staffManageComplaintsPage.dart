@@ -16,7 +16,7 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
   List<Complaint> complaints = [];
   String selectedStatusFilter = 'All';
   bool isLoading = true;
-  String _selectedDateSort = 'Oldest'; // Added for date sorting
+  String _selectedDateSort = 'Newest'; // Added for date sorting
   String _selectedTypeFilter = 'All';
   String _selectedSubTypeFilter = 'All';
 
@@ -283,7 +283,18 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                             ),
-                            child: const Text('Mark as Resolved',
+                            child: const Text('Resolved',
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => _updateComplaintStatus(
+                              complaint.complaintId,
+                              ComplaintStatus.Pending,
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                            ),
+                            child: const Text('Pending',
                                 style: TextStyle(color: Colors.white)),
                           ),
                           if (complaint.complaintStatus !=
@@ -296,7 +307,7 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                               ),
-                              child: const Text('Mark as Unresolved',
+                              child: const Text('Unresolved',
                                   style: TextStyle(color: Colors.white)),
                             ),
                         ],

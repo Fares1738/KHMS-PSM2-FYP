@@ -25,9 +25,12 @@ class UserDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text("User Details"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: student != null ? _buildStudentDetails() : _buildStaffDetails(),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child:
+              student != null ? _buildStudentDetails() : _buildStaffDetails(),
+        ),
       ),
     );
   }
@@ -38,26 +41,22 @@ class UserDetailPage extends StatelessWidget {
       children: [
         Center(
           child: CircleAvatar(
-              radius: 80, backgroundImage: _determineProfileImage()),
+            radius: 80,
+            backgroundImage: _determineProfileImage(),
+          ),
         ),
         const SizedBox(height: 16),
-        Text('Name: ${student!.studentFirstName} ${student!.studentLastName}',
-            style: const TextStyle(fontSize: 18)),
-        Text('Email: ${student!.studentEmail}',
-            style: const TextStyle(fontSize: 18)),
-        Text('Matric No: ${student!.studentMatricNo}',
-            style: const TextStyle(fontSize: 18)),
-        Text('IC No: ${student!.studentIcNumber}',
-            style: const TextStyle(fontSize: 18)),
-        Text('Room No: ${student!.studentRoomNo}',
-            style: const TextStyle(fontSize: 18)),
-        Text('Phone No: ${student!.studentPhoneNumber}',
-            style: const TextStyle(fontSize: 18)),
-        Text(
-            'Date of Birth: ${DateFormat('dd-MM-yyyy').format(student!.studentDoB)}',
-            style: const TextStyle(fontSize: 18)),
-        Text('MyKad/Passport: ${student!.studentmyKadPassportNumber}',
-            style: const TextStyle(fontSize: 18)),
+        _buildCard(Icons.person, 'Name',
+            '${student!.studentFirstName} ${student!.studentLastName}'),
+        _buildCard(Icons.email, 'Email', student!.studentEmail),
+        _buildCard(Icons.school, 'Matric No', student!.studentMatricNo),
+        _buildCard(Icons.credit_card, 'IC No', student!.studentIcNumber),
+        _buildCard(Icons.meeting_room, 'Room No', student!.studentRoomNo),
+        _buildCard(Icons.phone, 'Phone No', student!.studentPhoneNumber),
+        _buildCard(Icons.cake, 'Date of Birth',
+            DateFormat('dd-MM-yyyy').format(student!.studentDoB)),
+        _buildCard(Icons.document_scanner, 'MyKad/Passport',
+            student!.studentmyKadPassportNumber),
         // Add more fields as necessary
       ],
     );
@@ -69,22 +68,44 @@ class UserDetailPage extends StatelessWidget {
       children: [
         Center(
           child: CircleAvatar(
-              radius: 80, backgroundImage: _determineProfileImage()),
+            radius: 80,
+            backgroundImage: _determineProfileImage(),
+          ),
         ),
         const SizedBox(height: 16),
-
-        Text('Name: ${staff!.staffFirstName} ${staff!.staffLastName}',
-            style: const TextStyle(fontSize: 18)),
-        Text('Email: ${staff!.staffEmail}',
-            style: const TextStyle(fontSize: 18)),
-        Text('Phone No: ${staff!.staffPhoneNumber}',
-            style: const TextStyle(fontSize: 18)),
-        Text('Role: ${staff!.userType.toString().split('.').last}',
-            style: const TextStyle(fontSize: 18)),
-        Text('Staff ID: ${staff!.staffId}',
-            style: const TextStyle(fontSize: 18)),
+        _buildCard(Icons.person, 'Name',
+            '${staff!.staffFirstName} ${staff!.staffLastName}'),
+        _buildCard(Icons.email, 'Email', staff!.staffEmail),
+        _buildCard(Icons.phone, 'Phone No', staff!.staffPhoneNumber),
+        _buildCard(
+            Icons.work, 'Role', staff!.userType.toString().split('.').last),
+        _buildCard(Icons.badge, 'Staff ID', staff!.staffId),
         // Add more fields as necessary
       ],
+    );
+  }
+
+  Widget _buildCard(IconData icon, String label, String value) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          children: [
+            Icon(icon, size: 24),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(value, style: const TextStyle(fontSize: 16)),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

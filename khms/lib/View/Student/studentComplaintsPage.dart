@@ -20,6 +20,7 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
   List<Complaint> _complaints = [];
   bool checkedIn = false;
   bool _isLoading = false;
+  String? studentRoomNo;
   String? studentId; // To store the current student's ID
 
   @override
@@ -48,12 +49,16 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
           studentDoc.data()!.containsKey('studentRoomNo') &&
           studentDoc['studentRoomNo'] != null &&
           studentDoc['studentRoomNo'] != "") {
+        studentRoomNo = studentDoc['studentRoomNo'];
+        print("#################$studentRoomNo #################");
         checkedIn = true;
       }
 
       setState(() {
         _complaints = complaints;
         _isLoading = false;
+        studentRoomNo = studentDoc['studentRoomNo'];
+        print("#################$studentRoomNo #################");
       });
     } catch (e) {
       print('Error fetching complaints: $e');
@@ -76,23 +81,24 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
                           TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
-                    if (_isLoading)
-                      const Center(child: CircularProgressIndicator())
-                    else
-                      _buildComplaintsList(),
-                    const SizedBox(height: 10),
                     ElevatedButton.icon(
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const AddComplaintPage(),
+                            builder: (context) =>
+                                AddComplaintPage(studentRoomNo: studentRoomNo),
                           ),
                         );
                       },
                       icon: const Icon(Icons.add),
                       label: const Text("Add New"),
                     ),
+                    const SizedBox(height: 10),
+                    if (_isLoading)
+                      const Center(child: CircularProgressIndicator())
+                    else
+                      _buildComplaintsList(),
                     const SizedBox(height: 10),
                     const Text(
                         "Your Complaints are listed here. You can add new complaints by clicking the 'Add New' button.",

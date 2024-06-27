@@ -9,7 +9,8 @@ import 'package:khms/Controller/complaintsController.dart';
 import '../Custom_Widgets/appBar.dart';
 
 class AddComplaintPage extends StatefulWidget {
-  const AddComplaintPage({super.key});
+  final String? studentRoomNo;
+  const AddComplaintPage({super.key, this.studentRoomNo});
 
   @override
   State<AddComplaintPage> createState() => _AddComplaintPageState();
@@ -25,19 +26,9 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
   File? _pickedImage;
   final _controller = ComplaintsController();
 
-  String? _roomNumber;
-
   @override
   void initState() {
     super.initState();
-    _fetchRoomNumber();
-  }
-
-  void _fetchRoomNumber() async {
-    final roomNumber = await ComplaintsController().fetchStudentRoomNumber();
-    setState(() {
-      _roomNumber = roomNumber;
-    });
   }
 
   // Dropdown Lists
@@ -69,7 +60,9 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
       "Sink Clogged / Damage / Leakage",
       "Cistern Broken / Damaged"
     ],
-    "Other": [] // No pre-defined sub-types for 'Other'
+    "Other": [
+      "Other",
+    ],
   };
 
   // Image Selection
@@ -166,7 +159,7 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
                       complaintId:
                           '', // Omit for auto-generated ID in Firestore
                       studentId: '',
-                      studentRoomNo: '',
+                      studentRoomNo: widget.studentRoomNo,
                       complaintImageUrl: '');
 
                   try {
@@ -216,9 +209,9 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
             const Text("Location"),
           ],
         ),
-        if (_selectedLocation == 'Room' && _roomNumber != null)
+        if (_selectedLocation == 'Room' && widget.studentRoomNo != null)
           Text(
-            'Your Room: $_roomNumber',
+            'Your Room: ${widget.studentRoomNo}',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ), // Display room number
         if (_selectedLocation == 'Location') _buildLocationField(),
@@ -258,8 +251,7 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
   }
 
   Widget _buildSubTypeDropdown() {
-    if (_selectedMaintenanceType == null ||
-        _selectedMaintenanceType == 'Other') {
+    if (_selectedMaintenanceType == null) {
       return const SizedBox.shrink();
     }
 
