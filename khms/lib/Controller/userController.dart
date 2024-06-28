@@ -72,9 +72,6 @@ class UserController with ChangeNotifier {
             .collection('Students')
             .doc(userCredential.user!.uid)
             .set(newStudent.toMap());
-        print("################$fcmToken######################");
-        print("################$fcmToken######################");
-        print("################$fcmToken######################");
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registration successful!')),

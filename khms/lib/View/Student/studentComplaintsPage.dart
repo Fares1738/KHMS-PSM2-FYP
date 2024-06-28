@@ -52,14 +52,13 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
         studentRoomNo = studentDoc['studentRoomNo'];
         print("#################$studentRoomNo #################");
         checkedIn = true;
+        setState(() {
+          _complaints = complaints;
+          _isLoading = false;
+          studentRoomNo = studentDoc['studentRoomNo'];
+          print("#################$studentRoomNo #################");
+        });
       }
-
-      setState(() {
-        _complaints = complaints;
-        _isLoading = false;
-        studentRoomNo = studentDoc['studentRoomNo'];
-        print("#################$studentRoomNo #################");
-      });
     } catch (e) {
       print('Error fetching complaints: $e');
       setState(() => _isLoading = false);
