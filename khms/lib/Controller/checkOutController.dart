@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:khms/Model/CheckOutApplication.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/View/Student/studentMainPage.dart';
+import 'package:khms/api/firebase_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:khms/Model/Student.dart';
 
@@ -109,6 +110,13 @@ class CheckOutController {
             .collection('CheckOutApplications')
             .doc(application.checkOutApplicationId),
         updateData,
+      );
+
+      FirebaseApi.sendNotification(
+        'CheckOutApplications',
+        application.checkOutApplicationId,
+        'Check-Out Status is $newStatus',
+        'Your check-out time will be at ${selectedTime!.hour}:${selectedTime.minute}. Check the app for more details.',
       );
 
       // Clear studentRoomNo if checkout is completed

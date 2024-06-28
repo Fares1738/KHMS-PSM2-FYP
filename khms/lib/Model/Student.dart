@@ -18,6 +18,7 @@ class Student {
   String backMatricPic;
   String frontMatricPic;
   String passportMyKadPic;
+  String fcmToken;
   bool facilitySubscription;
 
   Student(
@@ -35,6 +36,7 @@ class Student {
     this.backMatricPic,
     this.frontMatricPic,
     this.facilitySubscription,
+    this.fcmToken,
     this.passportMyKadPic, {
     this.studentId,
     userType,
@@ -57,6 +59,7 @@ class Student {
       'frontMatricPic': frontMatricPic,
       'passportMyKadPic': passportMyKadPic,
       'studentId': studentId,
+      'fcmToken': fcmToken,
       'facilitySubscription': facilitySubscription,
     };
   }
@@ -77,6 +80,7 @@ class Student {
         frontMatricPic = json['frontMatricPic'],
         passportMyKadPic = json['passportMyKadPic'],
         studentId = json['studentId'],
+        fcmToken = json['fcmToken'],
         facilitySubscription = json['facilitySubscription'];
 
   Map<String, dynamic> toMap() {
@@ -97,6 +101,7 @@ class Student {
       'frontMatricCardImage': frontMatricPic,
       'passportMyKadImage': passportMyKadPic,
       'studentDoB': studentDoB,
+      'fcmToken': fcmToken,
       'facilitySubscription': facilitySubscription,
     };
   }
@@ -142,6 +147,7 @@ class Student {
         passportMyKadPic =
             (document.data() as Map<String, dynamic>)['passportMyKadImage'] ??
                 '',
+        fcmToken = (document.data() as Map<String, dynamic>)['fcmToken'] ?? '',
         facilitySubscription =
             (document.data() as Map<String, dynamic>)['facilitySubscription'];
 }

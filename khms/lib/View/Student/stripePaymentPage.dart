@@ -29,7 +29,6 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
   void initState() {
     super.initState();
     _makePayment();
-    print('###################### ${widget.studentId} ######################');
   }
 
   @override
@@ -84,7 +83,7 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
               MaterialPageRoute(builder: (context) => StudentMainPage()));
         } else {
           print(
-              "###################### ${widget.studentId} ######################");
+              "###################### facility payment page: ${widget.studentId} ######################");
           await _paymentController
               .updateFacilitySubscription(widget.studentId!);
           Navigator.pop(context, true);

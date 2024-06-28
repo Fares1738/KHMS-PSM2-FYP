@@ -10,7 +10,7 @@ class Facilities {
   String facilityType;
   String studentId;
   Student? student;
-  String studentRoomNo;
+  String? studentRoomNo;
   String facilityApplicationStatus;
 
   Facilities({
@@ -19,7 +19,7 @@ class Facilities {
     required this.facilitySlot,
     required this.facilityType,
     required this.studentId,
-    required this.studentRoomNo,
+     this.studentRoomNo,
     required this.facilityApplicationStatus,
     this.student
   });

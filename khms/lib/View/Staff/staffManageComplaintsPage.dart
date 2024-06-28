@@ -286,17 +286,19 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
                             child: const Text('Resolved',
                                 style: TextStyle(color: Colors.white)),
                           ),
-                          ElevatedButton(
-                            onPressed: () => _updateComplaintStatus(
-                              complaint.complaintId,
-                              ComplaintStatus.Pending,
+                          if (complaint.complaintStatus !=
+                              ComplaintStatus.Pending)
+                            ElevatedButton(
+                              onPressed: () => _updateComplaintStatus(
+                                complaint.complaintId,
+                                ComplaintStatus.Pending,
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                              ),
+                              child: const Text('Pending',
+                                  style: TextStyle(color: Colors.white)),
                             ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                            ),
-                            child: const Text('Pending',
-                                style: TextStyle(color: Colors.white)),
-                          ),
                           if (complaint.complaintStatus !=
                               ComplaintStatus.Unresolved)
                             ElevatedButton(

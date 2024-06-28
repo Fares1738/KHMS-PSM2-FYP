@@ -2,16 +2,16 @@
 
 import 'dart:io';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:khms/Controller/authCheck.dart';
 import 'package:khms/Model/Staff.dart';
 import 'package:khms/Model/Student.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:khms/View/Common/loginPage.dart';
 import 'package:khms/View/Common/welcomePage.dart';
-import 'package:khms/View/Staff/staffHomePage.dart';
-import 'package:khms/View/Student/studentMainPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserController with ChangeNotifier {
@@ -40,6 +40,11 @@ class UserController with ChangeNotifier {
         password: _passwordController.text,
       );
 
+      final _firebaseMessaging = FirebaseMessaging.instance;
+      final fcmToken = await _firebaseMessaging.getToken();
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString('fcmToken', fcmToken!);
+
       if (formKey.currentState!.validate()) {
         final _firestore = FirebaseFirestore.instance;
         Student newStudent = Student(
@@ -57,6 +62,7 @@ class UserController with ChangeNotifier {
           '',
           '',
           false,
+          fcmToken,
           '',
           userType: 'Student',
           studentId: userCredential.user!.uid,
@@ -66,6 +72,9 @@ class UserController with ChangeNotifier {
             .collection('Students')
             .doc(userCredential.user!.uid)
             .set(newStudent.toMap());
+        print("################$fcmToken######################");
+        print("################$fcmToken######################");
+        print("################$fcmToken######################");
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registration successful!')),
@@ -120,6 +129,7 @@ class UserController with ChangeNotifier {
   Future<void> signInWithEmailAndPassword(
       BuildContext context, String email, String password) async {
     try {
+      final FirebaseFirestore _firestore = FirebaseFirestore.instance;
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -138,6 +148,8 @@ class UserController with ChangeNotifier {
           await FirebaseFirestore.instance.collection('Staff').doc(uid).get();
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
+      final _firebaseMessaging = FirebaseMessaging.instance;
+      final fcmToken = await _firebaseMessaging.getToken();
 
       if (studentDoc.exists) {
         // Student login
@@ -145,11 +157,17 @@ class UserController with ChangeNotifier {
         await prefs.setString('userType', 'Students');
         await prefs.setString(
             'studentRoomNo', studentDoc.get('studentRoomNo') ?? '');
+        prefs.setString('fcmToken', fcmToken!);
+
+        await _firestore
+            .collection('Students')
+            .doc(uid)
+            .update({'fcmToken': fcmToken});
 
         // ... your existing navigation to StudentMainPage ...
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => StudentMainPage()),
+          MaterialPageRoute(builder: (context) => const AuthCheck()),
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -165,7 +183,7 @@ class UserController with ChangeNotifier {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const StaffHomePage()),
+          MaterialPageRoute(builder: (context) => const AuthCheck()),
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -199,6 +217,9 @@ class UserController with ChangeNotifier {
         MaterialPageRoute(builder: (context) => const WelcomePage()),
         (Route<dynamic> route) => false,
       );
+
+      await Future.delayed(
+          const Duration(milliseconds: 1000)); // Adjust delay if needed
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Logout successful!')),

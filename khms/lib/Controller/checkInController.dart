@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/Model/Room.dart';
 import 'package:khms/Model/Student.dart';
 import 'package:khms/View/Student/stripePaymentPage.dart';
+import 'package:khms/api/firebase_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -228,6 +229,11 @@ class CheckInController {
       }
 
       await batch.commit();
+      FirebaseApi.sendNotification(
+          'CheckInApplications',
+          application.checkInApplicationId,
+          'Check-In Application Status is $newStatus',
+          'Your check-in application status has been $newStatus. Check the app for more details.');
     } on FirebaseException catch (e) {
       print('Firebase Error updating check-in application: $e');
     } catch (e) {
@@ -301,5 +307,4 @@ class CheckInController {
       throw Exception('Error updating check-in application: $e');
     }
   }
-  
 }

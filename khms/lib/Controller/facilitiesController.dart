@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:khms/Model/Student.dart';
+import 'package:khms/api/firebase_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:khms/Model/Facilities.dart';
 import 'package:khms/View/Student/studentMainPage.dart';
@@ -72,8 +73,8 @@ class FacilitiesController {
       return Stream.value([]);
     }
 
-    final dayStart = DateTime(
-        selectedDate.year, selectedDate.month, selectedDate.day, 0, 0);
+    final dayStart =
+        DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 0, 0);
     final dayEnd = DateTime(
         selectedDate.year, selectedDate.month, selectedDate.day, 23, 59);
 
@@ -185,6 +186,41 @@ class FacilitiesController {
     });
   }
 
+
+Future<List<Facilities>> fetchStudentFacilityApplications(String studentId) async {
+  try {
+    final QuerySnapshot applicationsSnapshot = await FirebaseFirestore.instance
+        .collectionGroup('Applications')
+        .where('studentId', isEqualTo: studentId)
+        .get();
+
+    List<Facilities> facilities = [];
+
+    for (var doc in applicationsSnapshot.docs) {
+      final facilityData = doc.data() as Map<String, dynamic>;
+      final facilityType = doc.reference.parent.parent!.id; // Get facility type from the parent document's ID
+
+      facilities.add(Facilities(
+        facilityApplicationId: doc.id,
+        facilityApplicationDate:
+            (facilityData['facilityApplicationDate'] as Timestamp).toDate(),
+        facilitySlot: facilityData['facilitySlot'] as String,
+        facilityType: facilityType,
+        facilityApplicationStatus: facilityData['facilityStatus'] as String,
+        studentId: studentId,
+        // Add more fields as needed
+      ));
+    }
+
+    return facilities;
+  } catch (e) {
+    print('Error fetching facility applications: $e');
+    throw e; // Throw the error to handle it in UI or caller function
+  }
+}
+
+
+
   Future<void> updateFacilityApplicationStatus(
       String applicationId, String status, String facilityType) async {
     await _firestore
@@ -193,6 +229,9 @@ class FacilitiesController {
         .collection('Applications')
         .doc(applicationId)
         .update({'facilityStatus': status});
+
+    FirebaseApi.sendNotification('Facilities', applicationId, 'Facility application is $status',
+        'Your facility application has been $status. Check the app for more details.', subCollectionName: facilityType);
   }
 
   List<Facilities> sortFacilityApplicationsByDate(

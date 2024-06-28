@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:khms/Model/Complaint.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/View/Student/studentMainPage.dart';
+import 'package:khms/api/firebase_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -57,6 +58,11 @@ class ComplaintsController {
     await _firestore.collection('Complaints').doc(complaintId).update({
       'complaintStatus': status.name,
     });
+    FirebaseApi.sendNotification(
+        'Complaints',
+        complaintId,
+        'Complaint Status is ${status.name}',
+        'Your complaint status has been ${status.name}. Check the app for more details.');
   }
 
   Future<String> _uploadImageToFirebase(File image) async {
@@ -102,6 +108,4 @@ class ComplaintsController {
 
     return studentRoomNo!;
   }
-
-  
 }

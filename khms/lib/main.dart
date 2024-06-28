@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:khms/Controller/authCheck.dart';
 import 'package:khms/Controller/userController.dart';
+import 'package:khms/api/firebase_api.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
@@ -16,10 +17,18 @@ Future<void> main() async {
       storageBucket: 'gs://khms-d556a.appspot.com',
     ),
   );
+
+  FirebaseApi firebaseApi = FirebaseApi();
+  await firebaseApi.initNotifications();
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => UserController(),
-      child: const AuthCheck(),
+      child: MaterialApp(
+        theme: ThemeData(useMaterial3: true),
+        debugShowCheckedModeBanner: false,
+        home: const AuthCheck(),
+      ),
     ),
   );
 }

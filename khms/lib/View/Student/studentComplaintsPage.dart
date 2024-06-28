@@ -109,14 +109,17 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
               ),
             )
           : const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'You must check in first before accessing this page.',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ],
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Check in first before accessing this page.',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ],
+                ),
               ),
             ),
     );
@@ -160,10 +163,9 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
       case ComplaintStatus.Pending:
         return const Row(
           children: [
-            Icon(Icons.pending, color: Color.fromARGB(255, 255, 230, 0)),
+            Icon(Icons.pending, color: Colors.orange),
             SizedBox(width: 5),
-            Text('Pending',
-                style: TextStyle(color: Color.fromARGB(255, 255, 230, 0))),
+            Text('Pending', style: TextStyle(color: Colors.orange)),
           ],
         );
       case ComplaintStatus.Resolved:
@@ -174,9 +176,22 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
             Text('Fixed', style: TextStyle(color: Colors.green)),
           ],
         );
-      // Add cases for other statuses (InProgress, Resolved) as needed
+      case ComplaintStatus.Unresolved:
+        return const Row(
+          children: [
+            Icon(Icons.dangerous, color: Colors.red),
+            SizedBox(width: 5),
+            Text('Not Fixed', style: TextStyle(color: Colors.red)),
+          ],
+        );
       default:
-        return const SizedBox.shrink(); // Default (e.g., if status is unknown)
+        return const Row(
+          children: [
+            Icon(Icons.pending, color: Colors.grey),
+            SizedBox(width: 5),
+            Text('Visit Office', style: TextStyle(color: Colors.grey)),
+          ],
+        ); // Default
     }
   }
 

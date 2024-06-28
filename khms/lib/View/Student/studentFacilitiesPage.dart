@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/Controller/facilitiesController.dart';
@@ -6,15 +8,15 @@ import 'package:khms/Model/Facilities.dart';
 import 'package:khms/Model/Student.dart';
 import 'package:khms/View/Student/stripePaymentPage.dart';
 
-class FacilitiesPage extends StatefulWidget {
+class AddFacilitiesPage extends StatefulWidget {
   final Student? student;
-  const FacilitiesPage({Key? key, this.student}) : super(key: key);
+  const AddFacilitiesPage({super.key, this.student});
 
   @override
-  _FacilitiesPageState createState() => _FacilitiesPageState();
+  _AddFacilitiesPageState createState() => _AddFacilitiesPageState();
 }
 
-class _FacilitiesPageState extends State<FacilitiesPage> {
+class _AddFacilitiesPageState extends State<AddFacilitiesPage> {
   final FacilitiesController _controller = FacilitiesController();
   final UserController _userController = UserController();
   String studentId = '';
@@ -232,35 +234,38 @@ class _FacilitiesPageState extends State<FacilitiesPage> {
                   ],
                 ),
               )
-            : Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'You must pay 50 RM/month to access facilities.',
-                      style: TextStyle(fontSize: 18),
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text(
+                        'You must pay 50 RM/month to access facilities.',
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => StripePaymentPage(
-                              priceToDisplay: 50,
-                              studentId: studentId,
-                            ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StripePaymentPage(
+                            priceToDisplay: 50,
+                            studentId: studentId,
                           ),
-                        );
+                        ),
+                      );
 
-                        if (result == true) {
-                          _fetchData();
-                        }
-                      },
-                      child: const Text('Go to Payment'),
-                    ),
-                  ],
-                ),
+                      if (result == true) {
+                        _fetchData();
+                      }
+                    },
+                    child: const Text('Go to Payment'),
+                  ),
+                ],
               ),
       ),
     );

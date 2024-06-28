@@ -153,7 +153,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const Text(
                           'I agree to the terms and conditions of K Hotel',
-                          style: TextStyle(fontSize: 16.0),
+                          style: TextStyle(fontSize: 14.0),
                         ),
                       ],
                     ),
@@ -163,7 +163,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         children: [
                           Text(
                             "Sdn Bhd",
-                            style: TextStyle(fontSize: 16.0),
+                            style: TextStyle(fontSize: 14.0),
                           ),
                         ],
                       ),

@@ -34,7 +34,7 @@ class AccommodationApplicationPage extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+        if (snapshot.hasError || snapshot.data == null) {
           return const Center(child: Text('Student ID not found.'));
         }
 
