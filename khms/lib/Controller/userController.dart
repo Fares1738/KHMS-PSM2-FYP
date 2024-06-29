@@ -5,16 +5,14 @@ import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:khms/Controller/authCheck.dart';
 import 'package:khms/Model/Staff.dart';
 import 'package:khms/Model/Student.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:khms/View/Common/loginPage.dart';
-import 'package:khms/View/Common/welcomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class UserController with ChangeNotifier {
+class UserController extends ChangeNotifier {
   final formKey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance; // Firebase authentication instance
   Student? student;
@@ -123,84 +121,7 @@ class UserController with ChangeNotifier {
     }
   }
 
-  Future<void> signInWithEmailAndPassword(
-      BuildContext context, String email, String password) async {
-    try {
-      final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
 
-      String uid = userCredential.user!.uid;
-
-      // Check if user exists in Students collection
-      DocumentSnapshot studentDoc = await FirebaseFirestore.instance
-          .collection('Students')
-          .doc(uid)
-          .get();
-
-      // Check if user exists in Staff collection
-      DocumentSnapshot staffDoc =
-          await FirebaseFirestore.instance.collection('Staff').doc(uid).get();
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      final _firebaseMessaging = FirebaseMessaging.instance;
-      final fcmToken = await _firebaseMessaging.getToken();
-
-      if (studentDoc.exists) {
-        // Student login
-        await prefs.setString('userId', uid);
-        await prefs.setString('userType', 'Students');
-        await prefs.setString(
-            'studentRoomNo', studentDoc.get('studentRoomNo') ?? '');
-        prefs.setString('fcmToken', fcmToken!);
-
-        await _firestore
-            .collection('Students')
-            .doc(uid)
-            .update({'fcmToken': fcmToken});
-
-        // ... your existing navigation to StudentMainPage ...
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AuthCheck()),
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful!')),
-        );
-      } else if (staffDoc.exists) {
-        // Staff login
-        await prefs.setString('userId', uid);
-
-        // Get userType directly from Firestore
-        String userType = staffDoc.get('userType');
-        await prefs.setString('userType', userType);
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AuthCheck()),
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful!')),
-        );
-      } else {
-        // User not found in either collection
-        throw FirebaseAuthException(code: 'user-not-found');
-      }
-
-      // Fetch user data based on userType
-      await fetchUserData();
-    } on FirebaseAuthException catch (e) {
-      // ... your existing error handling ...
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login failed. Please try again.')),
-      );
-    }
-  }
 
   Future<void> signOutUser(BuildContext context) async {
     try {
@@ -208,23 +129,9 @@ class UserController with ChangeNotifier {
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const WelcomePage()),
-        (Route<dynamic> route) => false,
-      );
-
-      await Future.delayed(
-          const Duration(milliseconds: 1000)); // Adjust delay if needed
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Logout successful!')),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Logout failed. Please try again.')),
-      );
+      print('Error signing out: $e');
+      // Handle error (e.g., show a snackbar or alert dialog)
     }
   }
 
@@ -330,6 +237,61 @@ class UserController with ChangeNotifier {
         print('Error updating user data: $e');
         // Handle the error (e.g., show a SnackBar)
       }
+    }
+  }
+
+  Future<void> updateUserEmail(String newEmail) async {
+    final _firestore = FirebaseFirestore.instance;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userType = prefs.getString('userType');
+
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.verifyBeforeUpdateEmail(newEmail);
+        // Update email in Firestore collection
+        if (user.email != null && userType == 'Students') {
+          await _firestore
+              .collection('Students')
+              .doc(user.uid)
+              .update({'studentEmail': newEmail});
+        } else {
+          await _firestore
+              .collection('Staff')
+              .doc(user.uid)
+              .update({'staffEmail': newEmail});
+        }
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error updating email: $e');
+    }
+  }
+
+  Future<void> updateUserPhoneNumber(String newPhoneNumber) async {
+    final _firestore = FirebaseFirestore.instance;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userType = prefs.getString('userType');
+
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        // Update email in Firestore collection
+        if (userType == 'Students') {
+          await _firestore
+              .collection('Students')
+              .doc(user.uid)
+              .update({'studentPhoneNumber': newPhoneNumber});
+        } else {
+          await _firestore
+              .collection('Staff')
+              .doc(user.uid)
+              .update({'staffPhoneNumber': newPhoneNumber});
+        }
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error updating phone number: $e');
     }
   }
 

@@ -1,5 +1,6 @@
-import 'dart:io';
+// ignore_for_file: library_private_types_in_public_api, file_names, use_build_context_synchronously, avoid_print
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -61,6 +62,38 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
     }
   }
 
+  void _showEditDialog(
+      String title, String currentValue, Function(String) onSave) {
+    TextEditingController controller =
+        TextEditingController(text: currentValue);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Edit $title'),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(labelText: title),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                onSave(controller.text);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,43 +146,96 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                       ),
                       const SizedBox(height: 10),
                       _buildProfileCard(
-                          'Email', _userController.student!.studentEmail),
-                      _buildProfileCard('Matric No',
-                          _userController.student!.studentMatricNo),
+                        'Email',
+                        _userController.student!.studentEmail,
+                        Icons.email,
+                        (newValue) async {
+                          await _userController.updateUserEmail(newValue);
+                          _fetchData();
+                        },
+                      ),
                       _buildProfileCard(
-                          'IC No', _userController.student!.studentIcNumber),
+                        'Matric No',
+                        _userController.student!.studentMatricNo,
+                        Icons.school,
+                      ),
                       _buildProfileCard(
-                          'Room No', _userController.student!.studentRoomNo),
-                      _buildProfileCard('Phone No',
-                          _userController.student!.studentPhoneNumber),
+                        'IC No',
+                        _userController.student!.studentIcNumber,
+                        Icons.credit_card,
+                      ),
                       _buildProfileCard(
-                          'Date of Birth',
-                          DateFormat('dd-MM-yyyy')
-                              .format(_userController.student!.studentDoB)),
-                      _buildProfileCard('MyKad/Passport',
-                          _userController.student!.studentmyKadPassportNumber),
+                        'Room No',
+                        _userController.student!.studentRoomNo,
+                        Icons.meeting_room,
+                      ),
                       _buildProfileCard(
-                          'Student ID', _userController.student!.studentId!),
+                        'Phone No',
+                        _userController.student!.studentPhoneNumber,
+                        Icons.phone,
+                        (newValue) async {
+                          await _userController.updateUserPhoneNumber(newValue);
+                          _fetchData();
+                        },
+                      ),
+                      _buildProfileCard(
+                        'Date of Birth',
+                        DateFormat('dd-MM-yyyy')
+                            .format(_userController.student!.studentDoB),
+                        Icons.calendar_today,
+                      ),
+                      _buildProfileCard(
+                        'MyKad/Passport',
+                        _userController.student!.studentmyKadPassportNumber,
+                        Icons.document_scanner,
+                      ),
+                      _buildProfileCard(
+                        'Student ID',
+                        _userController.student!.studentId!,
+                        Icons.badge,
+                      ),
                       ElevatedButton(
                         onPressed: _showChangePasswordDialog,
                         child: const Text('Change Password'),
                       ),
                     ] else if (_userController.staff != null) ...[
                       // Display staff data
-                      _buildProfileCard('Name',
-                          '${_userController.staff!.staffFirstName} ${_userController.staff!.staffLastName}'),
                       _buildProfileCard(
-                          'Email', _userController.staff!.staffEmail),
+                        'Name',
+                        '${_userController.staff!.staffFirstName} ${_userController.staff!.staffLastName}',
+                        Icons.person,
+                      ),
                       _buildProfileCard(
-                          'Phone No', _userController.staff!.staffPhoneNumber),
+                        'Email',
+                        _userController.staff!.staffEmail,
+                        Icons.email,
+                        (newValue) async {
+                          await _userController.updateUserEmail(newValue);
+                          _fetchData();
+                        },
+                      ),
                       _buildProfileCard(
-                          'Role',
-                          _userController.staff!.userType
-                              .toString()
-                              .split('.')
-                              .last),
+                        'Phone No',
+                        _userController.staff!.staffPhoneNumber,
+                        Icons.phone,
+                        (newValue) async {
+                          await _userController.updateUserPhoneNumber(newValue);
+                          _fetchData();
+                        },
+                      ),
                       _buildProfileCard(
-                          'Staff ID', _userController.staff!.staffId),
+                        'Role',
+                        _userController.staff!.userType
+                            .toString()
+                            .split('.')
+                            .last,
+                        Icons.work,
+                      ),
+                      _buildProfileCard(
+                        'Staff ID',
+                        _userController.staff!.staffId,
+                        Icons.badge,
+                      ),
                       ElevatedButton(
                         onPressed: _showChangePasswordDialog,
                         child: const Text('Change Password'),
@@ -171,8 +257,8 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
       builder: (context) {
         TextEditingController oldPasswordController = TextEditingController();
         TextEditingController newPasswordController = TextEditingController();
-        bool _obscureOldPassword = true;
-        bool _obscureNewPassword = true;
+        bool obscureOldPassword = true;
+        bool obscureNewPassword = true;
 
         return StatefulBuilder(
           builder: (context, setState) {
@@ -183,18 +269,18 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                 children: [
                   TextField(
                     controller: oldPasswordController,
-                    obscureText: _obscureOldPassword,
+                    obscureText: obscureOldPassword,
                     decoration: InputDecoration(
                       labelText: 'Old Password',
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureOldPassword
+                          obscureOldPassword
                               ? Icons.visibility_off
                               : Icons.visibility,
                         ),
                         onPressed: () {
                           setState(() {
-                            _obscureOldPassword = !_obscureOldPassword;
+                            obscureOldPassword = !obscureOldPassword;
                           });
                         },
                       ),
@@ -202,18 +288,18 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                   ),
                   TextField(
                     controller: newPasswordController,
-                    obscureText: _obscureNewPassword,
+                    obscureText: obscureNewPassword,
                     decoration: InputDecoration(
                       labelText: 'New Password',
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureNewPassword
+                          obscureNewPassword
                               ? Icons.visibility_off
                               : Icons.visibility,
                         ),
                         onPressed: () {
                           setState(() {
-                            _obscureNewPassword = !_obscureNewPassword;
+                            obscureNewPassword = !obscureNewPassword;
                           });
                         },
                       ),
@@ -259,16 +345,24 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
     );
   }
 
-  Widget _buildProfileCard(String title, String value) {
+  Widget _buildProfileCard(String title, String value,
+      [IconData? icon, Function(String)? onEdit]) {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 5.0),
       child: ListTile(
+        leading: icon != null ? Icon(icon) : null,
         title: Text(
           title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(value, style: const TextStyle(fontSize: 16)),
+        trailing: onEdit != null
+            ? IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () => _showEditDialog(title, value, onEdit),
+              )
+            : null,
       ),
     );
   }

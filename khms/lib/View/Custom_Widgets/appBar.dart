@@ -3,7 +3,6 @@ import 'package:khms/Controller/userController.dart';
 import 'package:khms/View/Common/profilePage.dart';
 import 'package:khms/View/Staff/staffAddUserPage.dart';
 import 'package:khms/View/Staff/staffViewAllUsers.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GeneralCustomAppBar extends StatelessWidget
@@ -12,7 +11,7 @@ class GeneralCustomAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<UserController>(context);
+    //Provider.of<UserController>(context);
 
     return AppBar(
       title: const Text(
@@ -32,7 +31,7 @@ class HomeCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<UserController>(context);
+    //Provider.of<UserController>(context);
 
     return AppBar(
       title: const Text(

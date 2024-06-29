@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:khms/Controller/userController.dart';
+import 'package:khms/Controller/authCheck.dart';
 import 'package:khms/View/Common/resetPasswordPage.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final UserController _controller = UserController();
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -53,7 +52,6 @@ class _LoginPageState extends State<LoginPage> {
             key: _formKey,
             child: Column(
               children: [
-                // Remove mainAxisAlignment
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
@@ -101,19 +99,20 @@ class _LoginPageState extends State<LoginPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 25), // Increase space here
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    minimumSize:
-                        const Size.fromHeight(50), // Adjust button height
-                  ),
-                  onPressed: () {
+                const SizedBox(height: 25),
+                ElevatedButton(
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      _controller.signInWithEmailAndPassword(
-                        context,
-                        _emailController.text,
-                        _passwordController.text,
-                      );
+                      try {
+                        await AuthCheck.signInWithEmailAndPassword(
+                          context,
+                          _emailController.text,
+                          _passwordController.text,
+                        );
+                      } catch (e) {
+                        // Handle any errors here
+                        print('Login failed: $e');
+                      }
                     }
                   },
                   child: const Text('Login'),
@@ -123,7 +122,8 @@ class _LoginPageState extends State<LoginPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const ResetPasswordPage()),
+                        builder: (context) => const ResetPasswordPage(),
+                      ),
                     );
                   },
                   child: const Text(

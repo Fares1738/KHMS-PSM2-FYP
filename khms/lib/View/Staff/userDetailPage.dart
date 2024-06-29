@@ -53,7 +53,7 @@ class UserDetailPage extends StatelessWidget {
         _buildCard(Icons.credit_card, 'IC No', student!.studentIcNumber),
         _buildCard(Icons.meeting_room, 'Room No', student!.studentRoomNo),
         _buildCard(Icons.phone, 'Phone No', student!.studentPhoneNumber),
-        _buildCard(Icons.cake, 'Date of Birth',
+        _buildCard(Icons.calendar_today, 'Date of Birth',
             DateFormat('dd-MM-yyyy').format(student!.studentDoB)),
         _buildCard(Icons.document_scanner, 'MyKad/Passport',
             student!.studentmyKadPassportNumber),
