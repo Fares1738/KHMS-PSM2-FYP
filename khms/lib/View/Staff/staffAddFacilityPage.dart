@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/facilitiesController.dart';
+import 'package:khms/View/Custom_Widgets/textFormFieldDesign.dart';
 import 'package:khms/View/Staff/staffManageFacilities.dart';
 
 class AddFacilityPage extends StatefulWidget {
@@ -27,10 +28,17 @@ class _AddFacilityPageState extends State<AddFacilityPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
+            CustomTextFormField(
               // New text field for facility name
               controller: _facilityTypeController,
-              decoration: const InputDecoration(labelText: 'Facility Name'),
+              labelText: 'Facility Name',
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a facility name';
+                }
+                return null;
+              },
+              prefixIcon: Icons.gamepad,
             ),
             const SizedBox(height: 16),
             ElevatedButton(

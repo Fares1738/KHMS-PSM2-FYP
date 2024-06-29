@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/userController.dart';
 import 'package:khms/Model/Staff.dart';
+import 'package:khms/View/Custom_Widgets/textFormFieldDesign.dart';
 
 class AddUserPage extends StatefulWidget {
   const AddUserPage({super.key});
@@ -24,55 +25,62 @@ class _AddUserPageState extends State<AddUserPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add New User')),
+      appBar: AppBar(title: const Text('Add New Staff User')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              TextFormField(
+              CustomTextFormField(
                 controller: _firstNameController,
-                decoration: const InputDecoration(labelText: 'First Name'),
+                labelText: 'First Name',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a first name';
                   }
                   return null;
                 },
+                prefixIcon: Icons.person,
               ),
-              TextFormField(
+              const SizedBox(height: 16),
+              CustomTextFormField(
                 controller: _lastNameController,
-                decoration: const InputDecoration(labelText: 'Last Name'),
+                labelText: 'Last Name',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a last name';
                   }
                   return null;
                 },
+                prefixIcon: Icons.person,
               ),
-              TextFormField(
+              const SizedBox(height: 16),
+              CustomTextFormField(
                 controller: _phoneNumberController,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
+                labelText: 'Phone Number',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a phone number';
                   }
                   return null;
                 },
-                keyboardType: TextInputType.phone,
+                prefixIcon: Icons.phone,
+                isPhoneNumber: true,
               ),
-              TextFormField(
+              const SizedBox(height: 16),
+              CustomTextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                labelText: 'Email',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter an email';
                   }
                   return null;
                 },
-                keyboardType: TextInputType.emailAddress,
+                prefixIcon: Icons.email,
               ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<UserType>(
                 value: _selectedRole,
                 onChanged: (UserType? value) {
@@ -81,8 +89,18 @@ class _AddUserPageState extends State<AddUserPage> {
                     _selectedRole = value;
                   });
                 },
-                decoration:
-                    const InputDecoration(labelText: 'Role'), // Add this line
+                decoration: InputDecoration(
+                  labelText: 'Role',
+                  prefixIcon: const Icon(Icons.badge),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                  ),
+                ), // Add this line
                 items: UserType.values.map((UserType role) {
                   return DropdownMenuItem<UserType>(
                     // Change to UserType
@@ -94,7 +112,7 @@ class _AddUserPageState extends State<AddUserPage> {
                 // ... (rest of the DropdownButtonFormField code)
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _userController.addStaff(

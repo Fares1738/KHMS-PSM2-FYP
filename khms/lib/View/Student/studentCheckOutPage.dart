@@ -20,15 +20,36 @@ class _CheckOutPageState extends State<CheckOutPage> {
     final firstDate = today.add(const Duration(days: 30));
     final lastDate = today.add(const Duration(days: 365));
 
+    bool isSelectableDay(DateTime date) {
+      return date.isAfter(firstDate.subtract(const Duration(days: 1))) &&
+          date.isBefore(lastDate.add(const Duration(days: 1))) &&
+          date.weekday != DateTime.saturday;
+    }
+
     final newDate = await showDatePicker(
       context: context,
       initialDate: firstDate,
       firstDate: firstDate,
       lastDate: lastDate,
-      selectableDayPredicate: (DateTime date) {
-        // Ensure the date is between 30 and 365 days from today
-        return date.isAfter(firstDate.subtract(const Duration(days: 1))) &&
-            date.isBefore(lastDate.add(const Duration(days: 1)));
+      selectableDayPredicate: isSelectableDay,
+      builder: (BuildContext context, Widget? child) {
+        // Customize the appearance of each day in the calendar
+        if (child is Text) {
+          DateTime date = DateTime.parse(child.data!);
+          bool isDisabled = date.weekday == DateTime.saturday;
+
+          return Container(
+            decoration: BoxDecoration(
+              color: isDisabled
+                  ? Colors.grey.withOpacity(0.4)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            alignment: Alignment.center,
+            child: child,
+          );
+        }
+        return child!;
       },
     );
 
@@ -57,7 +78,7 @@ class _CheckOutPageState extends State<CheckOutPage> {
               _buildDropdown("Check Out Date:", _selectedDate, _showDatePicker),
               const SizedBox(height: 20),
               const Text(
-                'Note: Please ensure the room is clean before checking out',
+                'Note: Please ensure the room is clean before checking out. A staff member will inspect the room before you leave.',
                 style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 20),

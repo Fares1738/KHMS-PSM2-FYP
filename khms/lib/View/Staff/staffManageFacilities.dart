@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:khms/Controller/facilitiesController.dart';
 import 'package:khms/Model/Facilities.dart';
 import 'package:khms/View/Staff/staffAddFacilityPage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FacilityManagementPage extends StatefulWidget {
   const FacilityManagementPage({super.key});
@@ -17,6 +18,7 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
   Map<String, bool> _facilityAvailability = {};
   String sortByDate = 'Oldest';
   String sortByStatus = 'All';
+  String? userType;
 
   @override
   void initState() {
@@ -41,6 +43,8 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
 
   Future<void> _fetchAvailability() async {
     final availability = await _controller.fetchFacilityAvailability();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    userType = prefs.getString('userType');
     setState(() {
       _facilityAvailability = availability;
     });
@@ -184,23 +188,24 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
           Expanded(
             child: ListView(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AddFacilityPage(),
-                          ),
-                        );
-                      },
-                      child: const Text('Add Facility'),
+                if (userType == 'Manager')
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AddFacilityPage(),
+                            ),
+                          );
+                        },
+                        child: const Text('Add Facility'),
+                      ),
                     ),
                   ),
-                ),
                 ..._facilityAvailability.entries.map((entry) {
                   return SwitchListTile(
                     title: Text('${entry.key} (Disable/Enable)'),

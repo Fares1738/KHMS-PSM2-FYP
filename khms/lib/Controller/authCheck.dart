@@ -25,7 +25,8 @@ class _AuthCheckState extends State<AuthCheck> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> _signInWithEmailAndPassword(String email, String password) async {
+  Future<void> _signInWithEmailAndPassword(
+      String email, String password) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -101,7 +102,6 @@ class _AuthCheckState extends State<AuthCheck> {
 
       // Trigger a rebuild of the widget tree
       if (mounted) setState(() {});
-
     } on FirebaseAuthException catch (e) {
       // Handle specific FirebaseAuthException
       if (mounted) {
@@ -144,7 +144,7 @@ class _AuthCheckState extends State<AuthCheck> {
                 DocumentSnapshot staffDoc = snapshot.data![1];
 
                 if (studentDoc.exists) {
-                  return  StudentMainPage();
+                  return StudentMainPage();
                 } else if (staffDoc.exists) {
                   return const StaffHomePage();
                 }

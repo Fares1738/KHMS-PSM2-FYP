@@ -173,7 +173,7 @@ class _RegisterPageState extends State<RegisterPage> {
               FilledButton(
                 onPressed: () {
                   if (_controller.formKey.currentState!.validate()) {
-                    if (isChecked == false) {
+                    if (isChecked == true) {
                       _controller.registerUser(context);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(

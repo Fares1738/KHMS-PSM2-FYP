@@ -43,6 +43,7 @@ class CheckInController {
           checkInDate: checkInDate,
           studentId: storedStudentId,
           checkInStatus: 'Pending',
+          checkInApprovalDate: DateTime.now(), //Placeholder value, will be updated after approval
           roomType: roomType,
           price: price,
           isPaid: false);

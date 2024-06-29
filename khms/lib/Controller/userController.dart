@@ -78,7 +78,7 @@ class UserController extends ChangeNotifier {
         // Navigate to the login page
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LoginPage()),
+          MaterialPageRoute(builder: (context) => LoginPage()),
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -120,8 +120,6 @@ class UserController extends ChangeNotifier {
       throw e; // Rethrow the error if you want to handle it further up the call chain
     }
   }
-
-
 
   Future<void> signOutUser(BuildContext context) async {
     try {

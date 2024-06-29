@@ -114,7 +114,7 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Check in first before accessing this page.',
+                      'Your Check in application must be approved first before accessing this page.',
                       style: TextStyle(fontSize: 18),
                     ),
                   ],

@@ -26,6 +26,8 @@ class CheckInApplication {
     required this.price,
     required this.isPaid,
     this.rejectionReason = '',
+    this.checkInApprovalDate,
+    
   });
 
   int calculatePrice() {
