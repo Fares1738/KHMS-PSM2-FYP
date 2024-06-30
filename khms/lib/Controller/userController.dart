@@ -61,6 +61,8 @@ class UserController extends ChangeNotifier {
           '',
           false,
           fcmToken,
+          null,
+          null,
           '',
           userType: 'Student',
           studentId: userCredential.user!.uid,

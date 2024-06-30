@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'package:khms/api/firebase_api.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class PaymentController {
-  static const String _publishableKey =
-      'pk_test_51PURV8GEl1f5CNC2poQSXGf4NZeuFDerQr9NaJEavzD0oWhEKKJsuBn6qg2mJ6JVrKtpAk1PFZzgE6pT2H1oa2xi00CzAUqFA3'; // Replace
-  static const String _secretKey =
-      'sk_test_51PURV8GEl1f5CNC2ZsqpoKxa2u574F9D5fPLHc3FXmGgGbmtJBBSAv1uMFeTikBLac1or9yqiEGaT6vLqRfbqkCj006KzpD7AQ'; // Replace
+  final _publishableKey = dotenv.env['STRIPE_PUBLIC_KEY'] as String;
+  final _secretKey = dotenv.env['STRIPE_SECRET_KEY'] as String;
 
   PaymentController() {
     Stripe.publishableKey = _publishableKey;
@@ -94,10 +93,10 @@ class PaymentController {
   final _firestore = FirebaseFirestore.instance;
 
   Future<void> updateFacilitySubscription(String studentId) async {
-    await _firestore
-        .collection('Students')
-        .doc(studentId)
-        .update({'facilitySubscription': true});
+    await _firestore.collection('Students').doc(studentId).update({
+      'facilitySubscription': true,
+      'lastFacilitySubscriptionPaidDate': DateTime.now()
+    });
 
     FirebaseApi.sendNotification('Students', studentId, 'Facility Subscription',
         'Your facility subscription has been activated. Enjoy the facilities!');

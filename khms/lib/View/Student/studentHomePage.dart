@@ -1,7 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api, file_names, must_be_immutable
 
 import 'package:flutter/material.dart';
-import 'package:khms/View/Custom_Widgets/CheckInStatusWidget.dart';
+import 'package:khms/View/Custom_Widgets/homeScreenWidgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StudentHomePage extends StatefulWidget {
@@ -48,7 +48,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     return const Center(child: Text('Student ID not found.'));
                   }
 
-                  return CheckInStatusWidget(studentId: snapshot.data!);
+                  return HomeScreenWidgets(studentId: snapshot.data!);
                 },
               ),
             ],

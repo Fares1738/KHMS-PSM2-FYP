@@ -1,11 +1,9 @@
-// ignore_for_file: use_build_context_synchronously, file_names
-
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/checkOutController.dart';
 import 'package:khms/View/Custom_Widgets/appBar.dart';
 
 class CheckOutPage extends StatefulWidget {
-  const CheckOutPage({super.key});
+  const CheckOutPage({Key? key}) : super(key: key);
 
   @override
   State<CheckOutPage> createState() => _CheckOutPageState();
@@ -18,7 +16,7 @@ class _CheckOutPageState extends State<CheckOutPage> {
   void _showDatePicker() async {
     final today = DateTime.now();
     final firstDate = today.add(const Duration(days: 30));
-    final lastDate = today.add(const Duration(days: 365));
+    final lastDate = today.add(const Duration(days: 60));
 
     bool isSelectableDay(DateTime date) {
       return date.isAfter(firstDate.subtract(const Duration(days: 1))) &&
@@ -33,23 +31,16 @@ class _CheckOutPageState extends State<CheckOutPage> {
       lastDate: lastDate,
       selectableDayPredicate: isSelectableDay,
       builder: (BuildContext context, Widget? child) {
-        // Customize the appearance of each day in the calendar
-        if (child is Text) {
-          DateTime date = DateTime.parse(child.data!);
-          bool isDisabled = date.weekday == DateTime.saturday;
-
-          return Container(
-            decoration: BoxDecoration(
-              color: isDisabled
-                  ? Colors.grey.withOpacity(0.4)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            alignment: Alignment.center,
-            child: child,
-          );
-        }
-        return child!;
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: Theme.of(context).primaryColor,
+            colorScheme:
+                ColorScheme.light(primary: Theme.of(context).primaryColor),
+            buttonTheme:
+                const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+          ),
+          child: child!,
+        );
       },
     );
 
@@ -68,27 +59,19 @@ class _CheckOutPageState extends State<CheckOutPage> {
         child: Container(
           padding: const EdgeInsets.all(20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
                 "Check Out",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
-              _buildDropdown("Check Out Date:", _selectedDate, _showDatePicker),
-              const SizedBox(height: 20),
-              const Text(
-                'Note: Please ensure the room is clean before checking out. A staff member will inspect the room before you leave.',
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: () async {
-                  await _controller.submitCheckOutApplication(
-                      context, _selectedDate);
-                },
-                child: const Text("Submit"),
-              ),
+              const SizedBox(height: 30),
+              _buildDateSelector(),
+              const SizedBox(height: 30),
+              _buildNoteCard(),
+              const SizedBox(height: 30),
+              _buildSubmitButton(),
             ],
           ),
         ),
@@ -96,20 +79,94 @@ class _CheckOutPageState extends State<CheckOutPage> {
     );
   }
 
-  Widget _buildDropdown(String label, dynamic selectedValue, Function onTap) {
-    return Row(
-      children: [
-        Text(label),
-        const SizedBox(width: 20),
-        ElevatedButton(
-          onPressed: () => onTap(),
-          child: Text(selectedValue == null
-              ? "Select"
-              : (selectedValue is DateTime
-                  ? "${selectedValue.day}/${selectedValue.month}/${selectedValue.year}"
-                  : "${selectedValue.hour}:${selectedValue.minute}")),
+  Widget _buildDateSelector() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Select Check Out Date:",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: _showDatePicker,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Theme.of(context).primaryColor),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _selectedDate == null
+                          ? "Tap to select date"
+                          : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color:
+                            _selectedDate == null ? Colors.grey : Colors.black,
+                      ),
+                    ),
+                    Icon(Icons.calendar_today,
+                        color: Theme.of(context).primaryColor),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildNoteCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Important Note:",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Please ensure the room is clean before checking out. A staff member will inspect the room before you leave.',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return ElevatedButton(
+      onPressed: _selectedDate == null
+          ? null
+          : () async {
+              await _controller.submitCheckOutApplication(
+                  context, _selectedDate);
+            },
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: const Text(
+        "Submit Check Out Request",
+        style: TextStyle(fontSize: 18),
+      ),
     );
   }
 }

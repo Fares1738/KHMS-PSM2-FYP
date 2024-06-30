@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:khms/Controller/authCheck.dart';
 import 'package:khms/Controller/userController.dart';
 import 'package:khms/api/firebase_api.dart';
@@ -9,6 +10,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   await Firebase.initializeApp(
     options: FirebaseOptions(
       appId: '1:819742488371:android:4b223d23a81a07f1e3f046',

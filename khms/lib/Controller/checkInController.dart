@@ -43,7 +43,8 @@ class CheckInController {
           checkInDate: checkInDate,
           studentId: storedStudentId,
           checkInStatus: 'Pending',
-          checkInApprovalDate: DateTime.now(), //Placeholder value, will be updated after approval
+          checkInApprovalDate: DateTime
+              .now(), //Placeholder value, will be updated after approval
           roomType: roomType,
           price: price,
           isPaid: false);
@@ -119,6 +120,7 @@ class CheckInController {
           context,
           MaterialPageRoute(
               builder: (context) => StripePaymentPage(
+                studentId: storedStudentId,
                     priceToDisplay: price,
                     checkInApplicationId: checkInApplicationId ?? '',
                   )));
@@ -295,7 +297,7 @@ class CheckInController {
   final _firestore = FirebaseFirestore.instance;
 
   Future<void> updateCheckInApplicationWithPayment(
-      String checkInApplicationId) async {
+      String checkInApplicationId, String studentId) async {
     try {
       // Update the CheckInApplication document in Firestore
       await _firestore
@@ -304,8 +306,14 @@ class CheckInController {
           .update({
         'isPaid': true,
       });
+
+      // Update the Student document in Firestore
+      await _firestore.collection('Students').doc(studentId).update({
+        'lastRentPaidDate': DateTime.now(),
+      });
     } catch (e) {
-      throw Exception('Error updating check-in application: $e');
+      throw Exception(
+          'Error updating check-in application or student document: $e');
     }
   }
 }

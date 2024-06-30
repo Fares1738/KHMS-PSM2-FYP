@@ -1,5 +1,3 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/Controller/facilitiesController.dart';
@@ -7,10 +5,11 @@ import 'package:khms/Controller/userController.dart';
 import 'package:khms/Model/Facilities.dart';
 import 'package:khms/Model/Student.dart';
 import 'package:khms/View/Student/stripePaymentPage.dart';
+import 'package:intl/intl.dart';
 
 class AddFacilitiesPage extends StatefulWidget {
   final Student? student;
-  const AddFacilitiesPage({super.key, this.student});
+  const AddFacilitiesPage({Key? key, this.student}) : super(key: key);
 
   @override
   _AddFacilitiesPageState createState() => _AddFacilitiesPageState();
@@ -39,7 +38,6 @@ class _AddFacilitiesPageState extends State<AddFacilitiesPage> {
     '08:00 PM - 09:00 PM',
     '09:00 PM - 10:00 PM',
   ];
-
   List<String> _facilityTypes = [];
 
   @override
@@ -48,10 +46,6 @@ class _AddFacilitiesPageState extends State<AddFacilitiesPage> {
     _fetchFacilityAvailability();
     _fetchFacilityTypes();
     _fetchData();
-    setState(() {
-      facilitySubscription = widget.student?.facilitySubscription;
-      studentId = _userController.student?.studentId ?? '';
-    });
   }
 
   Future<void> _fetchData() async {
@@ -63,9 +57,7 @@ class _AddFacilitiesPageState extends State<AddFacilitiesPage> {
       });
     } catch (e) {
       print('Error fetching student data: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error fetching student data!')),
-      );
+      _showErrorSnackBar('Error fetching student data!');
     }
   }
 
@@ -85,6 +77,7 @@ class _AddFacilitiesPageState extends State<AddFacilitiesPage> {
       });
     } catch (e) {
       print('Error fetching facility types: $e');
+      _showErrorSnackBar('Error fetching facility types!');
     }
   }
 
@@ -97,177 +90,284 @@ class _AddFacilitiesPageState extends State<AddFacilitiesPage> {
     }
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: facilitySubscription == true
-            ? SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text("Facility Booking Form",
-                        style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
-                    OutlinedButton(
-                      onPressed: () async {
-                        final selectedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 3)),
-                        );
-                        if (selectedDate != null) {
-                          setState(() {
-                            _selectedDate = selectedDate;
-                            _selectedTimeSlot = null;
-                          });
-                          _updateBookedTimeSlotsStream();
-                        }
-                      },
-                      child: Text(_selectedDate?.toString().split(' ')[0] ??
-                          'Select Date'),
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _selectedFacilityType,
-                      items: _facilityTypes.map((type) {
-                        final isEnabled = _facilityAvailability[type] ?? false;
-                        return DropdownMenuItem<String>(
-                          value: type,
-                          enabled: isEnabled,
-                          child: Text(
-                            type,
-                            style: TextStyle(
-                              color: isEnabled ? null : Colors.grey,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null &&
-                            (_facilityAvailability[value] ?? false)) {
-                          setState(() {
-                            _selectedFacilityType = value;
-                            _selectedTimeSlot = null;
-                          });
-                          _updateBookedTimeSlotsStream();
-                        }
-                      },
-                      decoration: const InputDecoration(
-                          labelText: 'Select Facility Type',
-                          border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 16),
-                    StreamBuilder<List<String>>(
-                      stream: _bookedTimeSlotsStream,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        }
-                        final bookedTimeSlots = snapshot.data ?? [];
-                        return DropdownButtonFormField<String>(
-                          value: _selectedTimeSlot,
-                          items: _timeSlots.map((slot) {
-                            final isBooked = bookedTimeSlots.contains(slot);
-                            return DropdownMenuItem<String>(
-                              value: slot,
-                              enabled: !isBooked,
-                              child: Text(
-                                slot,
-                                style: TextStyle(
-                                  color: isBooked ? Colors.grey : null,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: _selectedDate != null &&
-                                  _selectedFacilityType != null
-                              ? (value) =>
-                                  setState(() => _selectedTimeSlot = value)
-                              : null,
-                          decoration: const InputDecoration(
-                              labelText: 'Select Time Slot',
-                              border: OutlineInputBorder()),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _selectedDate != null &&
-                              _selectedTimeSlot != null &&
-                              _selectedFacilityType != null &&
-                              (_facilityAvailability[_selectedFacilityType!] ??
-                                  false)
-                          ? () async {
-                              try {
-                                await _controller.submitFacilityBooking(
-                                  context,
-                                  Facilities(
-                                    facilityApplicationId: '',
-                                    facilityApplicationDate: _selectedDate!,
-                                    facilitySlot: _selectedTimeSlot!,
-                                    facilityType: _selectedFacilityType!,
-                                    studentId: '',
-                                    studentRoomNo: _userController
-                                            .student?.studentRoomNo ??
-                                        '',
-                                    facilityApplicationStatus: 'Pending',
-                                  ),
-                                );
-                              } catch (e) {
-                                print('Error: $e');
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Error submitting booking')),
-                                );
-                              }
-                            }
-                          : null,
-                      child: const Text('Submit'),
-                    ),
-                  ],
-                ),
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text(
-                        'You must pay 50 RM/month to access facilities.',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => StripePaymentPage(
-                            priceToDisplay: 50,
-                            studentId: studentId,
-                          ),
-                        ),
-                      );
+      appBar: AppBar(
+        title: const Text('Facility Booking'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: facilitySubscription == true
+          ? _buildBookingForm()
+          : _buildSubscriptionPrompt(),
+    );
+  }
 
-                      if (result == true) {
-                        _fetchData();
-                      }
-                    },
-                    child: const Text('Go to Payment'),
-                  ),
-                ],
-              ),
+  Widget _buildBookingForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildDatePicker(),
+          const SizedBox(height: 16),
+          _buildFacilityTypeDropdown(),
+          const SizedBox(height: 16),
+          _buildTimeSlotDropdown(),
+          const SizedBox(height: 24),
+          _buildSubmitButton(),
+        ],
       ),
     );
+  }
+
+  Widget _buildDatePicker() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () async {
+          final selectedDate = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime.now(),
+            lastDate: DateTime.now().add(const Duration(days: 3)),
+          );
+          if (selectedDate != null) {
+            setState(() {
+              _selectedDate = selectedDate;
+              _selectedTimeSlot = null;
+            });
+            _updateBookedTimeSlotsStream();
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _selectedDate != null
+                    ? DateFormat('MMMM d, yyyy').format(_selectedDate!)
+                    : 'Select Date',
+                style: const TextStyle(fontSize: 16),
+              ),
+              const Icon(Icons.calendar_today),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFacilityTypeDropdown() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: DropdownButtonFormField<String>(
+          value: _selectedFacilityType,
+          items: _facilityTypes.map((type) {
+            final isEnabled = _facilityAvailability[type] ?? false;
+            return DropdownMenuItem<String>(
+              value: type,
+              enabled: isEnabled,
+              child: Text(
+                type,
+                style: TextStyle(color: isEnabled ? null : Colors.grey),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null && (_facilityAvailability[value] ?? false)) {
+              setState(() {
+                _selectedFacilityType = value;
+                _selectedTimeSlot = null;
+              });
+              _updateBookedTimeSlotsStream();
+            }
+          },
+          decoration: const InputDecoration(
+            labelText: 'Select Facility Type',
+            border: InputBorder.none,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeSlotDropdown() {
+    return StreamBuilder<List<String>>(
+      stream: _bookedTimeSlotsStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final bookedTimeSlots = snapshot.data ?? [];
+        return Card(
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: DropdownButtonFormField<String>(
+              value: _selectedTimeSlot,
+              items: _timeSlots.map((slot) {
+                final isBooked = bookedTimeSlots.contains(slot);
+                return DropdownMenuItem<String>(
+                  value: slot,
+                  enabled: !isBooked,
+                  child: Text(
+                    slot,
+                    style: TextStyle(color: isBooked ? Colors.grey : null),
+                  ),
+                );
+              }).toList(),
+              onChanged: _selectedDate != null && _selectedFacilityType != null
+                  ? (value) => setState(() => _selectedTimeSlot = value)
+                  : null,
+              decoration: const InputDecoration(
+                labelText: 'Select Time Slot',
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return ElevatedButton(
+      onPressed: _canSubmit() ? _submitBooking : null,
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Text('Submit Booking', style: TextStyle(fontSize: 16)),
+      ),
+    );
+  }
+
+  bool _canSubmit() {
+    return _selectedDate != null &&
+        _selectedTimeSlot != null &&
+        _selectedFacilityType != null &&
+        (_facilityAvailability[_selectedFacilityType!] ?? false);
+  }
+
+  Future<void> _submitBooking() async {
+    try {
+      await _controller.submitFacilityBooking(
+        context,
+        Facilities(
+          facilityApplicationId: '',
+          facilityApplicationDate: _selectedDate!,
+          facilitySlot: _selectedTimeSlot!,
+          facilityType: _selectedFacilityType!,
+          studentId: '',
+          studentRoomNo: _userController.student?.studentRoomNo ?? '',
+          facilityApplicationStatus: 'Pending',
+        ),
+      );
+      _showSuccessDialog();
+    } catch (e) {
+      print('Error: $e');
+      _showErrorSnackBar('Error submitting booking');
+    }
+  }
+
+  void _showSuccessDialog() {
+    if (!mounted) return; // Check if the widget is still mounted
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Booking Successful'),
+          content: const Text(
+              'Your facility booking has been submitted successfully.'),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (mounted) {
+                  // Check again before calling setState
+                  setState(() {
+                    _selectedDate = null;
+                    _selectedTimeSlot = null;
+                    _selectedFacilityType = null;
+                  });
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSubscriptionPrompt() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.sports_tennis, size: 64, color: Colors.blue),
+            const SizedBox(height: 24),
+            const Text(
+              'Facility Access Required',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'You need to pay 50 RM/month to access facilities.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => _navigateToPayment(),
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                child: Text('Subscribe Now', style: TextStyle(fontSize: 16)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToPayment() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StripePaymentPage(
+          priceToDisplay: 50,
+          studentId: studentId,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      _fetchData();
+    }
   }
 }

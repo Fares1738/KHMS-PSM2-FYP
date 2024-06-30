@@ -78,12 +78,10 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
         // Update the check-in application with payment status
         if (widget.checkInApplicationId != null) {
           await _checkInController.updateCheckInApplicationWithPayment(
-              widget.checkInApplicationId!);
+              widget.checkInApplicationId!, widget.studentId!);
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => StudentMainPage()));
         } else {
-          print(
-              "###################### facility payment page: ${widget.studentId} ######################");
           await _paymentController
               .updateFacilitySubscription(widget.studentId!);
           Navigator.pop(context, true);

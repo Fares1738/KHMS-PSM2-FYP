@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:khms/Controller/userController.dart';
 import 'package:khms/View/Common/profilePage.dart';
 import 'package:khms/View/Staff/staffAddUserPage.dart';
+import 'package:khms/View/Staff/staffManageAnnoucementsPage.dart';
 import 'package:khms/View/Staff/staffViewAllUsers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -159,6 +160,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const ViewAllUsers(),
+                  ),
+                );
+              },
+            ),
+          if (userType == 'Manager')
+            ListTile(
+              leading: const Icon(Icons.announcement),
+              title: const Text('Manage Announcements'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ManageAnnouncementsPage(),
                   ),
                 );
               },

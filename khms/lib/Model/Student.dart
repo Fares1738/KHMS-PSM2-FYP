@@ -20,6 +20,8 @@ class Student {
   String passportMyKadPic;
   String fcmToken;
   bool facilitySubscription;
+  DateTime? lastRentPaidDate;
+  DateTime? lastFacilitySubscriptionPaidDate;
 
   Student(
     this.studentDoB,
@@ -37,6 +39,8 @@ class Student {
     this.frontMatricPic,
     this.facilitySubscription,
     this.fcmToken,
+    this.lastFacilitySubscriptionPaidDate,
+    this.lastRentPaidDate,
     this.passportMyKadPic, {
     this.studentId,
     userType,
@@ -60,7 +64,6 @@ class Student {
       'passportMyKadPic': passportMyKadPic,
       'studentId': studentId,
       'fcmToken': fcmToken,
-      'facilitySubscription': facilitySubscription,
     };
   }
 
@@ -81,7 +84,10 @@ class Student {
         passportMyKadPic = json['passportMyKadPic'],
         studentId = json['studentId'],
         fcmToken = json['fcmToken'],
-        facilitySubscription = json['facilitySubscription'];
+        facilitySubscription = json['facilitySubscription'],
+        lastRentPaidDate = json['lastRentPaidDate'],
+        lastFacilitySubscriptionPaidDate =
+            json['lastFacilitySubscriptionPaidDate'];
 
   Map<String, dynamic> toMap() {
     return {
@@ -103,6 +109,8 @@ class Student {
       'studentDoB': studentDoB,
       'fcmToken': fcmToken,
       'facilitySubscription': facilitySubscription,
+      'lastRentPaidDate': lastRentPaidDate,
+      'lastFacilitySubscriptionPaidDate': lastFacilitySubscriptionPaidDate,
     };
   }
 
@@ -149,5 +157,19 @@ class Student {
                 '',
         fcmToken = (document.data() as Map<String, dynamic>)['fcmToken'] ?? '',
         facilitySubscription =
-            (document.data() as Map<String, dynamic>)['facilitySubscription'];
+            (document.data() as Map<String, dynamic>)['facilitySubscription'],
+        lastRentPaidDate =
+            (document.data() as Map<String, dynamic>)['lastRentPaidDate'] !=
+                    null
+                ? ((document.data() as Map<String, dynamic>)['lastRentPaidDate']
+                        as Timestamp)
+                    .toDate()
+                : DateTime.now(),
+        lastFacilitySubscriptionPaidDate = (document.data() as Map<String,
+                    dynamic>)['lastFacilitySubscriptionPaidDate'] !=
+                null
+            ? ((document.data() as Map<String, dynamic>)[
+                    'lastFacilitySubscriptionPaidDate'] as Timestamp)
+                .toDate()
+            : DateTime.now();
 }

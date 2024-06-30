@@ -1,15 +1,14 @@
-// ignore_for_file: file_names, avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:khms/View/Student/studentAddComplaint.dart';
 import 'package:khms/Model/Complaint.dart';
 import 'package:khms/Controller/complaintsController.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Add this import
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:photo_view/photo_view.dart';
 
 class ComplaintsPage extends StatefulWidget {
-  const ComplaintsPage({super.key});
+  const ComplaintsPage({Key? key}) : super(key: key);
 
   @override
   State<ComplaintsPage> createState() => _ComplaintsPageState();
@@ -21,7 +20,7 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
   bool checkedIn = false;
   bool _isLoading = false;
   String? studentRoomNo;
-  String? studentId; // To store the current student's ID
+  String? studentId;
 
   @override
   void initState() {
@@ -35,11 +34,10 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final studentId = prefs.getString('userId') as String;
-      this.studentId = studentId; // Store studentId in the class variable
+      this.studentId = studentId;
 
       final complaints = await _controller.fetchComplaints(studentId);
 
-      // Fetch the student data to check the room number
       final studentDoc = await FirebaseFirestore.instance
           .collection('Students')
           .doc(studentId)
@@ -49,14 +47,16 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
           studentDoc.data()!.containsKey('studentRoomNo') &&
           studentDoc['studentRoomNo'] != null &&
           studentDoc['studentRoomNo'] != "") {
-        studentRoomNo = studentDoc['studentRoomNo'];
-        print("#################$studentRoomNo #################");
-        checkedIn = true;
         setState(() {
           _complaints = complaints;
           _isLoading = false;
+          checkedIn = true;
           studentRoomNo = studentDoc['studentRoomNo'];
-          print("#################$studentRoomNo #################");
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          checkedIn = false;
         });
       }
     } catch (e) {
@@ -67,90 +67,165 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: checkedIn == true
-          ? SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Complaints",
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                AddComplaintPage(studentRoomNo: studentRoomNo),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.add),
-                      label: const Text("Add New"),
-                    ),
-                    const SizedBox(height: 10),
-                    if (_isLoading)
-                      const Center(child: CircularProgressIndicator())
-                    else
-                      _buildComplaintsList(),
-                    const SizedBox(height: 10),
-                    const Text(
-                        "Your Complaints are listed here. You can add new complaints by clicking the 'Add New' button.",
-                        style: TextStyle(color: Colors.grey)),
-                    const SizedBox(height: 20),
-                  ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Complaints'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : checkedIn
+              ? _buildComplaintsContent()
+              : _buildNotCheckedInContent(),
+    );
+  }
+
+  Widget _buildComplaintsContent() {
+    return RefreshIndicator(
+      onRefresh: _fetchData,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _buildAddComplaintButton(),
+          const SizedBox(height: 16),
+          _complaints.isEmpty
+              ? _buildEmptyState()
+              : Column(
+                  children: _complaints
+                      .map((complaint) => _buildComplaintItem(complaint))
+                      .toList(),
                 ),
+          const SizedBox(height: 16),
+          const Text(
+            "Your complaints are listed here. Pull down to refresh.",
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddComplaintButton() {
+    return ElevatedButton.icon(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                AddComplaintPage(studentRoomNo: studentRoomNo),
+          ),
+        ).then((_) =>
+            _fetchData()); // Refresh the list when returning from AddComplaintPage
+      },
+      icon: const Icon(Icons.add),
+      label: const Text("Add New Complaint"),
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.sentiment_satisfied, size: 64, color: Colors.grey),
+          SizedBox(height: 16),
+          Text(
+            'No complaints yet',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Great! Looks like everything is going well.',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullScreenImage(String imageUrl) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          body: Container(
+            child: PhotoView(
+              imageProvider: NetworkImage(imageUrl),
+              minScale: PhotoViewComputedScale.contained,
+              maxScale: PhotoViewComputedScale.covered * 2,
+              backgroundDecoration: const BoxDecoration(
+                color: Colors.black,
               ),
-            )
-          : const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Your Check in application must be approved first before accessing this page.',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ],
-                ),
-              ),
+              heroAttributes:
+                  const PhotoViewHeroAttributes(tag: "complaintImage"),
             ),
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildComplaintItem(Complaint complaint) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(DateFormat('d MMM yyyy | hh:mm a')
-                    .format(complaint.complaintDate)),
+                Text(
+                  DateFormat('d MMM yyyy | hh:mm a')
+                      .format(complaint.complaintDate),
+                  style: const TextStyle(color: Colors.grey),
+                ),
                 _buildStatusIndicator(complaint.complaintStatus),
               ],
             ),
-            Text(complaint.complaintType,
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(
+              complaint.complaintType,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
             Text(
               complaint.complaintDescription,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 14),
             ),
-            Text(complaint.complaintLocation),
-            const SizedBox(height: 12),
-            if (complaint.complaintImageUrl.isNotEmpty)
-              Image.network(complaint.complaintImageUrl,
-                  height: 150, fit: BoxFit.cover),
+            const SizedBox(height: 4),
+            Text(
+              complaint.complaintLocation,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            if (complaint.complaintImageUrl.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => _showFullScreenImage(complaint.complaintImageUrl),
+                child: Container(
+                  height: 300,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: NetworkImage(complaint.complaintImageUrl),
+                      fit: BoxFit.cover,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -158,52 +233,71 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
   }
 
   Widget _buildStatusIndicator(ComplaintStatus status) {
+    IconData icon;
+    String text;
+    Color color;
+
     switch (status) {
       case ComplaintStatus.Pending:
-        return const Row(
-          children: [
-            Icon(Icons.pending, color: Colors.orange),
-            SizedBox(width: 5),
-            Text('Pending', style: TextStyle(color: Colors.orange)),
-          ],
-        );
+        icon = Icons.pending;
+        text = 'Pending';
+        color = Colors.orange;
+        break;
       case ComplaintStatus.Resolved:
-        return const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 5),
-            Text('Fixed', style: TextStyle(color: Colors.green)),
-          ],
-        );
+        icon = Icons.check_circle;
+        text = 'Fixed';
+        color = Colors.green;
+        break;
       case ComplaintStatus.Unresolved:
-        return const Row(
-          children: [
-            Icon(Icons.dangerous, color: Colors.red),
-            SizedBox(width: 5),
-            Text('Not Fixed', style: TextStyle(color: Colors.red)),
-          ],
-        );
+        icon = Icons.dangerous;
+        text = 'Not Fixed';
+        color = Colors.red;
+        break;
       default:
-        return const Row(
-          children: [
-            Icon(Icons.pending, color: Colors.grey),
-            SizedBox(width: 5),
-            Text('Visit Office', style: TextStyle(color: Colors.grey)),
-          ],
-        ); // Default
+        icon = Icons.info;
+        text = 'Visit Office';
+        color = Colors.grey;
     }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 4),
+          Text(text, style: TextStyle(color: color, fontSize: 12)),
+        ],
+      ),
+    );
   }
 
-  Widget _buildComplaintsList() {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _complaints.length,
-      itemBuilder: (context, index) {
-        final complaint = _complaints[index];
-
-        return _buildComplaintItem(complaint);
-      },
+  Widget _buildNotCheckedInContent() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.warning, size: 64, color: Colors.orange),
+            SizedBox(height: 16),
+            Text(
+              'Check-In Required',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Your check-in application must be approved before you can access this page.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

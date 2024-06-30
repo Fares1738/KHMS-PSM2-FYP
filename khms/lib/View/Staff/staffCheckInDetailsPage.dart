@@ -1,5 +1,3 @@
-// ignore_for_file: file_names, use_build_context_synchronously, avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:khms/Model/CheckInApplication.dart';
 import 'package:intl/intl.dart';
@@ -26,22 +24,232 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Check-In Application Details"),
+        elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildStudentDetails(),
-            const SizedBox(height: 30),
-            _buildStatusSection(),
-            _buildRejectionReasonSection(),
-            if (showRoomAssignment) _buildRoomAssignmentSection(),
-            _buildButtons(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                Text(
+                  "${widget.application.student?.studentFirstName} ${widget.application.student?.studentLastName}",
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "Application Date: ${DateFormat('dd MMM yyyy | hh:mm a').format(widget.application.checkInApplicationDate)}",
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildStudentDetails(),
+                  const SizedBox(height: 30),
+                  _buildStatusSection(),
+                  _buildRejectionReasonSection(),
+                  if (showRoomAssignment) _buildRoomAssignmentSection(),
+                  _buildButtons(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildStudentDetails() {
+    final student = widget.application.student;
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Student Details",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            _buildDetailRow(
+                "Check-In Date",
+                DateFormat('dd MMM yyyy | hh:mm a')
+                    .format(widget.application.checkInDate)),
+            _buildDetailRow("Email", student?.studentEmail ?? ''),
+            _buildDetailRow("Phone", student?.studentPhoneNumber ?? ''),
+            _buildDetailRow("Nationality", student?.studentNationality ?? ''),
+            _buildDetailRow("IC Number", student?.studentIcNumber ?? ''),
+            _buildDetailRow(
+                "MyKad/Passport", student?.studentmyKadPassportNumber ?? ''),
+            _buildDetailRow("Date of Birth",
+                DateFormat('dd MMM yyyy').format(student!.studentDoB)),
+            const SizedBox(height: 20),
+            const Text("Documents",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            _buildDocumentsGrid(student),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(label,
+                style: const TextStyle(fontWeight: FontWeight.w500)),
+          ),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentsGrid(student) {
+    return GridView.count(
+      shrinkWrap: true,
+      crossAxisCount: 2,
+      childAspectRatio: 1,
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        _buildDocumentThumbnail(student.frontMatricPic, "Front Matric Card"),
+        _buildDocumentThumbnail(student.backMatricPic, "Back Matric Card"),
+        _buildDocumentThumbnail(student.passportMyKadPic, "MyKad/Passport"),
+        _buildDocumentThumbnail(student.studentPhoto, "Student Photo"),
+      ],
+    );
+  }
+
+  Widget _buildDocumentThumbnail(String imageUrl, String tag) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HeroDetailScreen(imageUrl: imageUrl, tag: tag),
+          ),
+        );
+      },
+      child: Hero(
+        tag: tag,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            image: DecorationImage(
+              image: NetworkImage(imageUrl),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
+              ),
+            ),
+            alignment: Alignment.bottomCenter,
+            padding: const EdgeInsets.all(8),
+            child: Text(
+              tag,
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusSection() {
+    final application = widget.application;
+    Color statusColor = application.checkInStatus == "Approved"
+        ? Colors.green
+        : application.checkInStatus == "Rejected"
+            ? Colors.red
+            : Colors.orange;
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Icon(
+              application.checkInStatus == "Approved"
+                  ? Icons.check_circle
+                  : application.checkInStatus == "Rejected"
+                      ? Icons.cancel
+                      : Icons.hourglass_empty,
+              color: statusColor,
+              size: 40,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Check-In Status",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    application.checkInStatus,
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: statusColor),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRejectionReasonSection() {
+    if (widget.application.checkInStatus == "Rejected") {
+      return Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Rejection Reason",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text(widget.application.rejectionReason ?? "No reason provided"),
+            ],
+          ),
+        ),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
   Widget _buildRoomAssignmentSection() {
@@ -196,174 +404,71 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
     });
   }
 
-  Widget _buildStudentDetails() {
-    final student = widget.application.student;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("Student Details:",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 20),
-        Text(
-            "Student Name: ${student?.studentFirstName} ${student?.studentLastName}"),
-        Text(
-            "Application Date: ${DateFormat('dd MMM yyyy | hh:mm a').format(widget.application.checkInApplicationDate)}"),
-        Text(
-            "Check-In Date: ${DateFormat('dd MMM yyyy | hh:mm a').format(widget.application.checkInDate)}"),
-        Text("Email: ${student?.studentEmail}"),
-        Text("Phone: ${student?.studentPhoneNumber}"),
-        Text("Nationality: ${student?.studentNationality}"),
-        Text("IC Number: ${student?.studentIcNumber}"),
-        Text("MyKad/Passport Number: ${student?.studentmyKadPassportNumber}"),
-        Text(
-            "Date of Birth: ${DateFormat('dd MMM yyyy').format(student!.studentDoB)}"),
-        const SizedBox(height: 20),
-        const Text("Documents Uploaded:",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildHeroImage(student.frontMatricPic, "Front Matric Card"),
-                const SizedBox(width: 20),
-                _buildHeroImage(student.backMatricPic, "Back Matric Card"),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildHeroImage(student.passportMyKadPic, "MyKad/Passport"),
-                const SizedBox(width: 20),
-                _buildHeroImage(student.studentPhoto, "Student Photo"),
-              ],
-            )
-          ],
-        )
-      ],
-    );
-  }
-
-  Widget _buildHeroImage(String imageUrl, String tag) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => HeroDetailScreen(imageUrl: imageUrl, tag: tag),
-          ),
-        );
-      },
-      child: Hero(
-        tag: tag,
-        child: Image.network(
-          imageUrl,
-          width: 100,
-          height: 150,
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusSection() {
-    final application = widget.application;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Check-In Status: ${application.checkInStatus}",
-          style: TextStyle(
-            color: application.checkInStatus == "Approved"
-                ? Colors.green
-                : application.checkInStatus == "Rejected"
-                    ? Colors.red
-                    : Colors.orange,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
-  Widget _buildRejectionReasonSection() {
-    if (widget.application.checkInStatus == "Rejected") {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text("Rejection Reason: ",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(widget.application.rejectionReason ?? "No reason provided"),
-            ],
-          ),
-          const SizedBox(height: 20),
-        ],
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
-
   Widget _buildButtons() {
     final application = widget.application;
     if (application.checkInStatus != 'Approved' &&
         application.checkInStatus != 'Rejected' &&
         !showRoomAssignment) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton(
-            onPressed: () async {
-              await showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Reject Application'),
-                  content: TextField(
-                    controller: _rejectionReasonController,
-                    decoration: const InputDecoration(
-                        hintText: "Enter rejection reason"),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Reject Application'),
+                    content: TextField(
+                      controller: _rejectionReasonController,
+                      decoration: const InputDecoration(
+                          hintText: "Enter rejection reason"),
+                    ),
+                    actions: [
+                      TextButton(
+                        child: const Text('Cancel'),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      ElevatedButton(
+                        child: const Text('Reject'),
+                        onPressed: () {
+                          _controller.updateCheckInApplication(
+                            widget.application,
+                            'Rejected',
+                            '',
+                            _rejectionReasonController.text,
+                          );
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
                   ),
-                  actions: [
-                    TextButton(
-                      child: const Text('Cancel'),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const SizedBox(height: 10),
-                    TextButton(
-                      child: const Text('Reject'),
-                      onPressed: () {
-                        _controller.updateCheckInApplication(
-                          widget.application,
-                          'Rejected',
-                          '',
-                          _rejectionReasonController.text,
-                        );
-                        Navigator.pop(context);
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-            child: const Text("Reject"),
-          ),
-          const SizedBox(width: 20),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                showRoomAssignment = true;
-              });
-            },
-            child: const Text("Approve"),
-          ),
-        ],
+                );
+              },
+              icon: const Icon(Icons.close, color: Colors.white),
+              label: const Text(
+                "Reject",
+                style: TextStyle(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  showRoomAssignment = true;
+                });
+              },
+              icon: const Icon(Icons.check, color: Colors.white),
+              label: const Text(
+                "Approve",
+                style: TextStyle(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            ),
+          ],
+        ),
       );
     } else {
       return const SizedBox.shrink();
@@ -383,13 +488,17 @@ class HeroDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(tag),
+        backgroundColor: Colors.black,
       ),
-      body: Center(
-        child: Hero(
-          tag: tag,
-          child: Image.network(
-            imageUrl,
-            fit: BoxFit.contain,
+      body: Container(
+        color: Colors.black,
+        child: Center(
+          child: Hero(
+            tag: tag,
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       ),
