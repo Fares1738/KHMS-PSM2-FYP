@@ -37,7 +37,7 @@ class _StudentMainPageState extends State<StudentMainPage> {
               studentName: displayName,
             ),
             const ComplaintsPage(),
-            const AddFacilitiesPage(),
+            const BookFacilitiesPage(),
             const AccommodationApplicationPage(),
           ],
         ),

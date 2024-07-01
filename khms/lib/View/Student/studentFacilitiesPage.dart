@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/Controller/facilitiesController.dart';
@@ -7,15 +9,15 @@ import 'package:khms/Model/Student.dart';
 import 'package:khms/View/Student/stripePaymentPage.dart';
 import 'package:intl/intl.dart';
 
-class AddFacilitiesPage extends StatefulWidget {
+class BookFacilitiesPage extends StatefulWidget {
   final Student? student;
-  const AddFacilitiesPage({Key? key, this.student}) : super(key: key);
+  const BookFacilitiesPage({super.key, this.student});
 
   @override
-  _AddFacilitiesPageState createState() => _AddFacilitiesPageState();
+  _BookFacilitiesPageState createState() => _BookFacilitiesPageState();
 }
 
-class _AddFacilitiesPageState extends State<AddFacilitiesPage> {
+class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
   final FacilitiesController _controller = FacilitiesController();
   final UserController _userController = UserController();
   String studentId = '';
