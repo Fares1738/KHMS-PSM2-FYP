@@ -1,5 +1,3 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/Controller/facilitiesController.dart';
@@ -8,6 +6,7 @@ import 'package:khms/Model/Facilities.dart';
 import 'package:khms/Model/Student.dart';
 import 'package:khms/View/Student/stripePaymentPage.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BookFacilitiesPage extends StatefulWidget {
   final Student? student;
@@ -22,6 +21,7 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
   final UserController _userController = UserController();
   String studentId = '';
   bool? facilitySubscription;
+  bool hasRoomNumber = false;
   Stream<List<String>>? _bookedTimeSlotsStream;
   DateTime? _selectedDate;
   String? _selectedTimeSlot, _selectedFacilityType;
@@ -52,14 +52,35 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
 
   Future<void> _fetchData() async {
     try {
-      await _userController.fetchUserData();
-      setState(() {
-        facilitySubscription = _userController.student?.facilitySubscription;
-        studentId = _userController.student?.studentId ?? '';
-      });
+      final prefs = await SharedPreferences.getInstance();
+      final studentId = prefs.getString('userId') as String;
+      this.studentId = studentId;
+
+      final studentDoc = await FirebaseFirestore.instance
+          .collection('Students')
+          .doc(studentId)
+          .get();
+
+      if (studentDoc.exists &&
+          studentDoc.data()!.containsKey('studentRoomNo') &&
+          studentDoc['studentRoomNo'] != null &&
+          studentDoc['studentRoomNo'] != "") {
+        if (mounted) {
+          setState(() {
+            hasRoomNumber = true;
+            facilitySubscription = studentDoc['facilitySubscription'] ?? false;
+            this.studentId = studentId;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            hasRoomNumber = false;
+          });
+        }
+      }
     } catch (e) {
       print('Error fetching student data: $e');
-      _showErrorSnackBar('Error fetching student data!');
     }
   }
 
@@ -102,14 +123,41 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Facility Booking'),
-        centerTitle: true,
-        elevation: 0,
+        appBar: AppBar(
+          title: const Text('Facility Booking'),
+          centerTitle: true,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+        ),
+        body: hasRoomNumber
+            ? (facilitySubscription == true
+                ? _buildBookingForm()
+                : _buildSubscriptionPrompt())
+            : _buildNotCheckedInContent());
+  }
+
+  Widget _buildNotCheckedInContent() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.warning, size: 64, color: Colors.orange),
+            SizedBox(height: 16),
+            Text(
+              'Check-In Required',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Your check-in application must be approved before you can access this page.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
+        ),
       ),
-      body: facilitySubscription == true
-          ? _buildBookingForm()
-          : _buildSubscriptionPrompt(),
     );
   }
 

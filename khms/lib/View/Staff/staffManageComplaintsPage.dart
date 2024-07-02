@@ -1,8 +1,7 @@
-// ignore_for_file: library_private_types_in_public_api, file_names, avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/complaintsController.dart';
 import 'package:khms/Model/Complaint.dart';
+import 'package:intl/intl.dart';
 
 class StaffComplaintsPage extends StatefulWidget {
   const StaffComplaintsPage({super.key});
@@ -16,7 +15,7 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
   List<Complaint> complaints = [];
   String selectedStatusFilter = 'All';
   bool isLoading = true;
-  String _selectedDateSort = 'Newest'; // Added for date sorting
+  String _selectedDateSort = 'Newest';
   String _selectedTypeFilter = 'All';
   String _selectedSubTypeFilter = 'All';
 
@@ -34,8 +33,10 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
         isLoading = false;
       });
     } catch (e) {
-      // Handle errors appropriately (e.g., display a snackbar)
       print('Error fetching complaints: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load complaints: $e')),
+      );
     }
   }
 
@@ -47,17 +48,14 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
 
   List<Complaint> _getFilteredComplaints() {
     List<Complaint> filtered = complaints.where((c) {
-      // Filter by status
       if (selectedStatusFilter != 'All' &&
           c.complaintStatus.name != selectedStatusFilter) {
         return false;
       }
-      // Filter by type
       if (_selectedTypeFilter != 'All' &&
           c.complaintType != _selectedTypeFilter) {
         return false;
       }
-      // Filter by sub-type
       if (_selectedSubTypeFilter != 'All' &&
           c.complaintSubType != _selectedSubTypeFilter) {
         return false;
@@ -65,12 +63,9 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
       return true;
     }).toList();
 
-    // Sort by date
-    if (_selectedDateSort == 'Oldest') {
-      filtered.sort((a, b) => a.complaintDate.compareTo(b.complaintDate));
-    } else {
-      filtered.sort((a, b) => b.complaintDate.compareTo(a.complaintDate));
-    }
+    filtered.sort((a, b) => _selectedDateSort == 'Oldest'
+        ? a.complaintDate.compareTo(b.complaintDate)
+        : b.complaintDate.compareTo(a.complaintDate));
 
     return filtered;
   }
@@ -83,139 +78,110 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
       appBar: AppBar(
         title: const Text('Complaints'),
       ),
-      body: Column(
+      body: ListView(
         children: [
-          _buildFilterRow(), // Row for filters (status and date)
-          Expanded(
-            child: _buildComplaintList(filteredComplaints),
-          ),
+          _buildFilterSection(),
+          _buildComplaintList(filteredComplaints),
         ],
       ),
     );
   }
 
-  Widget _buildFilterRow() {
+  Widget _buildFilterSection() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 8.0),
+      padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            'Filter Complaints',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              const Text('Status: '),
-              _buildStatusFilterDropdown(),
-              const Text("Sort by: "),
-              _buildDateSortDropdown(),
+              Expanded(
+                  child: _buildFilterDropdown(
+                      'Status',
+                      selectedStatusFilter,
+                      ['All', 'Pending', 'Unresolved', 'Resolved'],
+                      (value) =>
+                          setState(() => selectedStatusFilter = value!))),
+              const SizedBox(width: 16),
+              Expanded(
+                  child: _buildFilterDropdown(
+                      'Sort by',
+                      _selectedDateSort,
+                      ['Newest', 'Oldest'],
+                      (value) => setState(() => _selectedDateSort = value!))),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 0.0),
-            child: Row(
-              children: [
-                const Text("Type: "),
-                _buildTypeFilterDropdown(),
-              ],
-            ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                  child: _buildFilterDropdown('Type', _selectedTypeFilter, [
+                'All',
+                ...complaints.map((c) => c.complaintType).toSet()
+              ], (value) {
+                setState(() {
+                  _selectedTypeFilter = value!;
+                  _selectedSubTypeFilter = 'All';
+                });
+              })),
+              const SizedBox(width: 16),
+              Expanded(
+                  child: _buildFilterDropdown(
+                      'Sub-Type',
+                      _selectedSubTypeFilter,
+                      [
+                        'All',
+                        ...complaints
+                            .where(
+                                (c) => c.complaintType == _selectedTypeFilter)
+                            .map((c) => c.complaintSubType)
+                            .toSet()
+                      ],
+                      (value) =>
+                          setState(() => _selectedSubTypeFilter = value!))),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 0.0),
-            child: Row(
-              children: [
-                const Text("Sub-Type: "),
-                _buildSubTypeFilterDropdown(),
-              ],
-            ),
-          )
         ],
       ),
     );
   }
 
-  Widget _buildTypeFilterDropdown() {
-    final types = [
-      'All',
-      ...complaints.map((c) => c.complaintType).toSet()
-    ]; // Get unique types
-    return DropdownButton<String>(
-      value: _selectedTypeFilter,
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedTypeFilter = newValue!;
-          _selectedSubTypeFilter =
-              'All'; // Reset subtype filter when type changes
-        });
-      },
-      items: types.map((type) {
-        return DropdownMenuItem<String>(
-          value: type,
-          child: Text(type),
-        );
-      }).toList(),
-    );
-  }
-
-//Dropdown for Complaint Subtype
-  Widget _buildSubTypeFilterDropdown() {
-    final subTypesForSelectedType = complaints
-        .where((c) => c.complaintType == _selectedTypeFilter)
-        .map((c) => c.complaintSubType)
-        .toSet()
-        .toList();
-    subTypesForSelectedType.insert(0, 'All'); // Add 'All' option
-
-    return DropdownButton<String>(
-      value: _selectedSubTypeFilter,
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedSubTypeFilter = newValue!;
-        });
-      },
-      items: subTypesForSelectedType.map((subType) {
-        return DropdownMenuItem<String>(
-          value: subType,
-          child: Text(subType),
-        );
-      }).toList(),
-    );
-  }
-
-  // Dropdown for date sorting
-  Widget _buildDateSortDropdown() {
-    return DropdownButton<String>(
-      value: _selectedDateSort,
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedDateSort = newValue!;
-        });
-      },
-      items: <String>['Oldest', 'Newest']
-          .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildStatusFilterDropdown() {
-    return DropdownButton<String>(
-      value: selectedStatusFilter,
-      onChanged: (value) {
-        setState(() {
-          selectedStatusFilter = value!;
-        });
-      },
-      items: ['All', 'Pending', 'Unresolved', 'Resolved'].map((status) {
-        return DropdownMenuItem<String>(
-          value: status,
-          child: Row(
-            children: [
-              Text(status),
-            ],
+  Widget _buildFilterDropdown(String label, String value, List<String> items,
+      Function(String?) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300),
           ),
-        );
-      }).toList(),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              onChanged: onChanged,
+              items: items
+                  .map((item) =>
+                      DropdownMenuItem<String>(value: item, child: Text(item)))
+                  .toList(),
+              isExpanded: true,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -225,21 +191,32 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
     }
 
     if (complaints.isEmpty) {
-      return const Center(child: Text("No complaints found."));
+      return Center(
+        child: Text(
+          "No complaints found.",
+          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+        ),
+      );
     }
+
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: complaints.length,
       itemBuilder: (context, index) {
         final complaint = complaints[index];
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          elevation: 3.0,
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ExpansionTile(
             leading: CircleAvatar(
               backgroundColor: _getStatusColor(complaint.complaintStatus.name),
               child: Text(
                 complaint.complaintStatus.name[0],
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
             title: Text(
@@ -248,72 +225,27 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
             ),
             subtitle: Text('Room: ${complaint.studentRoomNo ?? "N/A"}'),
             children: [
-              ListTile(
-                title: Text('Location: ${complaint.complaintLocation}'),
-                subtitle: Column(
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Type: ${complaint.complaintType}'),
-                    Text('Sub-Type: ${complaint.complaintSubType}'),
-                    Text('Date: ${complaint.complaintDate}'),
-                    if (complaint.complaintImageUrl.isNotEmpty)
-                      FutureBuilder(
-                        future: _loadImage(complaint.complaintImageUrl),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (snapshot.hasError) {
-                            return const Text('Error loading image');
-                          } else {
-                            return Image.network(complaint.complaintImageUrl);
-                          }
-                        },
-                      ),
-                    if (complaint.complaintStatus != ComplaintStatus.Resolved)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () => _updateComplaintStatus(
-                              complaint.complaintId,
-                              ComplaintStatus.Resolved,
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                            ),
-                            child: const Text('Resolved',
-                                style: TextStyle(color: Colors.white)),
-                          ),
-                          if (complaint.complaintStatus !=
-                              ComplaintStatus.Pending)
-                            ElevatedButton(
-                              onPressed: () => _updateComplaintStatus(
-                                complaint.complaintId,
-                                ComplaintStatus.Pending,
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
-                              ),
-                              child: const Text('Pending',
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                          if (complaint.complaintStatus !=
-                              ComplaintStatus.Unresolved)
-                            ElevatedButton(
-                              onPressed: () => _updateComplaintStatus(
-                                complaint.complaintId,
-                                ComplaintStatus.Unresolved,
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                              ),
-                              child: const Text('Unresolved',
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                        ],
-                      ),
+                    _buildInfoRow('Location', complaint.complaintLocation),
+                    _buildInfoRow('Type', complaint.complaintType),
+                    _buildInfoRow('Sub-Type', complaint.complaintSubType),
+                    _buildInfoRow(
+                        'Date',
+                        DateFormat('MMM d, yyyy')
+                            .format(complaint.complaintDate)),
+                    if (complaint.complaintImageUrl.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildExpandableImage(complaint.complaintImageUrl),
+                    ],
+                    if (complaint.complaintStatus !=
+                        ComplaintStatus.Resolved) ...[
+                      const SizedBox(height: 16),
+                      _buildActionButtons(complaint),
+                    ],
                   ],
                 ),
               ),
@@ -321,6 +253,120 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpandableImage(String imageUrl) {
+    return GestureDetector(
+      onTap: () => _showFullScreenImage(context, imageUrl),
+      child: Hero(
+        tag: imageUrl,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            imageUrl,
+            height: 200,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return SizedBox(
+                height: 200,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+                  ),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) =>
+                const Text('Error loading image'),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => Scaffold(
+        body: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: Center(
+            child: Hero(
+              tag: imageUrl,
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+  }
+
+  Widget _buildActionButtons(Complaint complaint) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildActionButton(
+          'Resolved',
+          Colors.green,
+          () => _updateComplaintStatus(
+              complaint.complaintId, ComplaintStatus.Resolved),
+        ),
+        if (complaint.complaintStatus != ComplaintStatus.Pending)
+          _buildActionButton(
+            'Pending',
+            Colors.orange,
+            () => _updateComplaintStatus(
+                complaint.complaintId, ComplaintStatus.Pending),
+          ),
+        if (complaint.complaintStatus != ComplaintStatus.Unresolved)
+          _buildActionButton(
+            'Unresolved',
+            Colors.red,
+            () => _updateComplaintStatus(
+                complaint.complaintId, ComplaintStatus.Unresolved),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton(String label, Color color, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+      child: Text(label),
     );
   }
 
@@ -333,13 +379,7 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
       case 'Unresolved':
         return Colors.red;
       default:
-        return Colors.black; // Default color for 'All'
+        return Colors.grey;
     }
-  }
-
-  Future<Image> _loadImage(String imageUrl) async {
-    final image = Image.network(imageUrl);
-    await precacheImage(image.image, context);
-    return image;
   }
 }

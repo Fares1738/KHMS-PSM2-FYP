@@ -150,4 +150,47 @@ class CheckOutController {
       print('Error updating room availability: $e');
     }
   }
+
+  Future<void> deleteUserDocuments(String studentId) async {
+    try {
+
+      List<String> relatedCollections = [
+        'CheckInApplications',
+        'Complaints',
+      ];
+
+      // Delete documents from related collections
+      for (String collection in relatedCollections) {
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection(collection)
+            .where('studentId', isEqualTo: studentId)
+            .get();
+
+        for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+          await doc.reference.delete();
+        }
+      }
+
+      // Handle special case for Facilities collection with Applications subcollection
+      QuerySnapshot facilitiesSnapshot =
+          await FirebaseFirestore.instance.collection('Facilities').get();
+
+      for (QueryDocumentSnapshot facilityDoc in facilitiesSnapshot.docs) {
+        QuerySnapshot applicationsSnapshot = await facilityDoc.reference
+            .collection('Applications')
+            .where('studentId', isEqualTo: studentId)
+            .get();
+
+        for (QueryDocumentSnapshot applicationDoc
+            in applicationsSnapshot.docs) {
+          await applicationDoc.reference.delete();
+        }
+      }
+
+      // Finally, delete the student document itself
+    } catch (e) {
+      // Handle errors
+      print('Error deleting user documents: $e');
+    }
+  }
 }

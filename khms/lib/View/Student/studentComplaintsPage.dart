@@ -47,21 +47,27 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
           studentDoc.data()!.containsKey('studentRoomNo') &&
           studentDoc['studentRoomNo'] != null &&
           studentDoc['studentRoomNo'] != "") {
-        setState(() {
-          _complaints = complaints;
-          _isLoading = false;
-          checkedIn = true;
-          studentRoomNo = studentDoc['studentRoomNo'];
-        });
+        if (mounted) {
+          setState(() {
+            _complaints = complaints;
+            _isLoading = false;
+            checkedIn = true;
+            studentRoomNo = studentDoc['studentRoomNo'];
+          });
+        }
       } else {
-        setState(() {
-          _isLoading = false;
-          checkedIn = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            checkedIn = false;
+          });
+        }
       }
     } catch (e) {
       print('Error fetching complaints: $e');
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -72,6 +78,7 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
         title: const Text('Complaints'),
         centerTitle: true,
         elevation: 0,
+        automaticallyImplyLeading: false,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

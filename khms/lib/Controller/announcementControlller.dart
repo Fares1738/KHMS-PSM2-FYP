@@ -38,6 +38,7 @@ class AnnouncementController {
       'title': title,
       'description': description,
       'imageUrl': uploadedImageUrl,
+      'createdAt': Timestamp.now(),
     });
   }
 

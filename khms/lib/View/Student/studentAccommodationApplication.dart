@@ -32,6 +32,7 @@ class AccommodationApplicationPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Accommodation Applications'),
         centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
       body: FutureBuilder<String?>(
         future: _getStudentId(),
@@ -204,12 +205,17 @@ class AccommodationApplicationPage extends StatelessWidget {
           context: context,
           icon: Icons.logout,
           label: "Check Out",
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CheckOutPage()),
-            );
-          },
+          onPressed: applicationData != null &&
+                  applicationData['isPaid'] == true &&
+                  applicationData['checkInStatus'] == "Approved"
+              ? () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const CheckOutPage()),
+                  );
+                }
+              : null, // Disable if no check-in application or not paid
         ),
       ],
     );

@@ -1,6 +1,5 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:khms/Controller/facilitiesController.dart';
 import 'package:khms/Model/Facilities.dart';
 import 'package:khms/View/Staff/staffAddFacilityPage.dart';
@@ -16,7 +15,7 @@ class FacilityManagementPage extends StatefulWidget {
 class _FacilityManagementPageState extends State<FacilityManagementPage> {
   final FacilitiesController _controller = FacilitiesController();
   Map<String, bool> _facilityAvailability = {};
-  String sortByDate = 'Oldest';
+  String sortByDate = 'Newest';
   String sortByStatus = 'All';
   String? userType;
 
@@ -27,16 +26,24 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
   }
 
   Widget _buildStatusIndicator(String status) {
-    final color = _controller.getStatusColor(status);
-    final iconData = _controller.getStatusIcon(status);
+    Color color;
+    switch (status) {
+      case 'Approved':
+        color = Colors.green.shade400;
+        break;
+      case 'Rejected':
+        color = Colors.red.shade400;
+        break;
+      default:
+        color = Colors.orange.shade400;
+    }
 
-    return CircleAvatar(
-      backgroundColor: color,
-      radius: 12,
-      child: Icon(
-        iconData,
-        color: Colors.white,
-        size: 16,
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
       ),
     );
   }
@@ -75,180 +82,222 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
     });
   }
 
-  Widget _buildExpansionTile(Facilities facility) {
-    return Card(
-      child: ExpansionTile(
-        leading: _buildStatusIndicator(facility.facilityApplicationStatus),
-        title: Text('${facility.facilityType} - ${facility.facilitySlot}'),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Facility Management'),
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.background,
+      ),
+      body: ListView(
         children: [
-          ListTile(
-            title: Text(
-                'Student Name: ${facility.student?.studentFirstName} ${facility.student?.studentLastName}'),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Slot: ${facility.facilitySlot}'),
-                Text('Date: ${facility.facilityApplicationDate.day}/'
-                    '${facility.facilityApplicationDate.month}/'
-                    '${facility.facilityApplicationDate.year}'),
-                Text('Room No: ${facility.student?.studentRoomNo}'),
-              ],
+          _buildFilterSection(),
+          if (userType == 'Manager') _buildAddFacilityButton(),
+          _buildFacilityToggleList(),
+          _buildFacilityList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildFilterDropdown(
+              "Sort By Date",
+              sortByDate,
+              ['Newest', 'Oldest'],
+              (value) => setState(() => sortByDate = value!),
             ),
           ),
-          ButtonBar(
-            children: [
-              ElevatedButton(
-                onPressed: () => _approveApplication(
-                    facility.facilityApplicationId, facility.facilityType),
-                child: const Text('Approve'),
-              ),
-              ElevatedButton(
-                onPressed: () => _rejectApplication(
-                    facility.facilityApplicationId, facility.facilityType),
-                child: const Text('Reject'),
-              ),
-            ],
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildFilterDropdown(
+              "Status",
+              sortByStatus,
+              ['All', 'Pending', 'Approved', 'Rejected'],
+              (value) => setState(() => sortByStatus = value!),
+            ),
           ),
         ],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Facility Management'),
+  Widget _buildFilterDropdown(String label, String value, List<String> items,
+      Function(String?) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: DropdownButton<String>(
+            value: value,
+            items: items.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: onChanged,
+            isExpanded: true,
+            underline: Container(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddFacilityButton() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AddFacilityPage(),
+              ),
+            );
+          },
+          child: const Text('Add Facility'),
+        ),
       ),
-      body: Column(
+    );
+  }
+
+  Widget _buildFacilityToggleList() {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Column(
+        children: _facilityAvailability.entries.map((entry) {
+          return SwitchListTile(
+            title: Text('${entry.key} (Disable/Enable)'),
+            value: entry.value,
+            onChanged: (bool value) {
+              _toggleFacility(entry.key, value);
+            },
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildFacilityList() {
+    return StreamBuilder<List<Facilities>>(
+      stream: _controller.fetchFacilityApplicationsStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No facilities available'));
+        } else {
+          List<Facilities> sortedFacilities =
+              _controller.sortFacilityApplicationsByDate(
+            _controller.sortFacilityApplicationsByStatus(
+                snapshot.data!, sortByStatus),
+            sortByDate,
+          );
+
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            itemCount: sortedFacilities.length,
+            itemBuilder: (context, index) {
+              return _buildFacilityCard(sortedFacilities[index]);
+            },
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildFacilityCard(Facilities facility) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: _buildStatusIndicator(facility.facilityApplicationStatus),
+        title: Text(
+          '${facility.facilityType} - ${facility.facilitySlot}',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Date: ',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Student Name: ${facility.student?.studentFirstName} ${facility.student?.studentLastName}',
+                  style: TextStyle(color: Colors.grey[600]),
                 ),
-                DropdownButton<String>(
-                  value: sortByDate,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      sortByDate = newValue!;
-                    });
-                  },
-                  items: <String>['Newest', 'Oldest']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
+                const SizedBox(height: 4),
+                Text(
+                  'Slot: ${facility.facilitySlot}',
+                  style: TextStyle(color: Colors.grey[600]),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Date: ${DateFormat('dd MMM yyyy').format(facility.facilityApplicationDate)}',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Room No: ${facility.student?.studentRoomNo}',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 16),
                 Row(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    const Text(
-                      'Status: ',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    ElevatedButton(
+                      onPressed: () => _approveApplication(
+                          facility.facilityApplicationId,
+                          facility.facilityType),
+                      child: const Text('Approve'),
                     ),
-                    DropdownButton<String>(
-                      value: sortByStatus,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          sortByStatus = newValue!;
-                        });
-                      },
-                      items: <String>['All', 'Pending', 'Approved', 'Rejected']
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: () => _rejectApplication(
+                          facility.facilityApplicationId,
+                          facility.facilityType),
+                      child: const Text('Reject'),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-
-          // Add facility button
-
-          Expanded(
-            child: ListView(
-              children: [
-                if (userType == 'Manager')
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AddFacilityPage(),
-                            ),
-                          );
-                        },
-                        child: const Text('Add Facility'),
-                      ),
-                    ),
-                  ),
-                ..._facilityAvailability.entries.map((entry) {
-                  return SwitchListTile(
-                    title: Text('${entry.key} (Disable/Enable)'),
-                    value: entry.value,
-                    onChanged: (bool value) {
-                      _toggleFacility(entry.key, value);
-                    },
-                  );
-                }),
-                StreamBuilder<List<Facilities>>(
-                  stream: _controller.fetchFacilityApplicationsStream(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(
-                          child: Text('No facilities available'));
-                    } else {
-                      // Sort data in the build method to update dynamically
-                      List<Facilities> sortedFacilities =
-                          _controller.sortFacilityApplicationsByDate(
-                        _controller.sortFacilityApplicationsByStatus(
-                            snapshot.data!, sortByStatus),
-                        sortByDate,
-                      );
-
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const ClampingScrollPhysics(),
-                        itemCount: sortedFacilities.length,
-                        itemBuilder: (context, index) {
-                          return _buildExpansionTile(sortedFacilities[index]);
-                        },
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
-          )
         ],
       ),
     );

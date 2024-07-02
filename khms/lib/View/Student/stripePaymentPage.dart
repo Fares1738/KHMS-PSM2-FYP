@@ -84,7 +84,8 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
         } else {
           await _paymentController
               .updateFacilitySubscription(widget.studentId!);
-          Navigator.pop(context, true);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => StudentMainPage()));
         }
       } else {
         // Payment was cancelled or failed

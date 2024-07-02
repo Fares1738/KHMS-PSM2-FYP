@@ -41,11 +41,17 @@ class _CheckInPageState extends State<CheckInPage> {
   String? checkInApplicationId;
   DateTime? _dateOfBirth; // For the date of birth picker
   DateTime? _checkInDate; // For the check-in date picker
+  bool isPaid = false;
 
   File? _frontMatricPic;
   File? _backMatricPic;
   File? _passportMyKadPic;
   File? _studentPhoto;
+
+  String? _frontMatricPicLink;
+  String? _backMatricPicLink;
+  String? _passportMyKadPicLink;
+  String? _studentPhotoLink;
 
   Future<void> _pickFile(int buttonIndex) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -92,6 +98,11 @@ class _CheckInPageState extends State<CheckInPage> {
         (widget.applicationData['checkInDate'] as Timestamp?)?.toDate();
     rejectReason = widget.applicationData['rejectionReason'];
     checkInApplicationId = widget.applicationData['checkInApplicationId'] ?? '';
+    _backMatricPicLink = widget.studentData['backMatricCardImage'];
+    _frontMatricPicLink = widget.studentData['frontMatricCardImage'];
+    _passportMyKadPicLink = widget.studentData['passportMyKadImage'];
+    _studentPhotoLink = widget.studentData['studentPhoto'];
+    isPaid = widget.applicationData['isPaid'] ?? false;
 
     if (roomType != null) {
       _calculatePrice();
@@ -422,14 +433,11 @@ class _CheckInPageState extends State<CheckInPage> {
                     ),
 
                     Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.center, // Center the buttons
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (_frontMatricPic != null)
-                          Image.file(_frontMatricPic!, height: 250, width: 175),
+                        _buildImageWidget(_frontMatricPic, _frontMatricPicLink),
                         const SizedBox(width: 10),
-                        if (_backMatricPic != null)
-                          Image.file(_backMatricPic!, height: 250, width: 175),
+                        _buildImageWidget(_backMatricPic, _backMatricPicLink),
                       ],
                     ),
 
@@ -446,12 +454,10 @@ class _CheckInPageState extends State<CheckInPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (_passportMyKadPic != null)
-                          Image.file(_passportMyKadPic!,
-                              height: 250, width: 175),
+                        _buildImageWidget(
+                            _passportMyKadPic, _passportMyKadPicLink),
                         const SizedBox(width: 10),
-                        if (_studentPhoto != null)
-                          Image.file(_studentPhoto!, height: 250, width: 175),
+                        _buildImageWidget(_studentPhoto, _studentPhotoLink),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -473,18 +479,26 @@ class _CheckInPageState extends State<CheckInPage> {
                                 null;
                           }
                         });
+
                         print(
                             "Form is invalid. Don't proceed to payment."); // Debugging message
 
                         if (_formKey.currentState!.validate() &&
-                            _imageUploaded.every((element) => element)) {
+                            (_imageUploaded.every((element) =>
+                                    element) || // Check if all images are uploaded
+                                (_frontMatricPicLink != null &&
+                                    _backMatricPicLink != null &&
+                                    _passportMyKadPicLink != null &&
+                                    _studentPhotoLink != null))) {
                           showDialog(
                             context: context,
                             barrierDismissible: false,
                             builder: (BuildContext context) {
-                              return const LoadingDialog(
-                                message:
-                                    "Submitting check in application.\nRedirecting to payment...",
+                              return LoadingDialog(
+                                // Remove the "const" keyword to allow for dynamic message
+                                message: isPaid
+                                    ? "Resubmitting Application" // If isPaid is true
+                                    : "Submitting check in application.\nRedirecting to payment...", // If isPaid is false
                               );
                             },
                           );
@@ -507,7 +521,8 @@ class _CheckInPageState extends State<CheckInPage> {
                               _frontMatricPic,
                               _backMatricPic,
                               _passportMyKadPic,
-                              _studentPhoto);
+                              _studentPhoto,
+                              isPaid);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -517,7 +532,10 @@ class _CheckInPageState extends State<CheckInPage> {
                           );
                         }
                       },
-                      child: const Text("Proceed to Payment"),
+                      // ...
+                      child: Text(isPaid
+                          ? "Resubmit Application"
+                          : "Proceed to Payment"), // Conditional Text
                     ),
                   ],
                 ),
@@ -547,6 +565,22 @@ class _CheckInPageState extends State<CheckInPage> {
     });
   }
 
+  bool _hasExistingImage(int buttonIndex) {
+    switch (buttonIndex) {
+      case 1:
+        return _frontMatricPicLink != null && _frontMatricPicLink!.isNotEmpty;
+      case 2:
+        return _backMatricPicLink != null && _backMatricPicLink!.isNotEmpty;
+      case 3:
+        return _passportMyKadPicLink != null &&
+            _passportMyKadPicLink!.isNotEmpty;
+      case 4:
+        return _studentPhotoLink != null && _studentPhotoLink!.isNotEmpty;
+      default:
+        return false;
+    }
+  }
+
   Widget _buildUploadButton(String label, int buttonIndex, File? pickedFile) {
     return Expanded(
       child: Container(
@@ -568,7 +602,9 @@ class _CheckInPageState extends State<CheckInPage> {
                   label,
                   textAlign: TextAlign.center,
                 ),
-                if (!_imageUploaded[buttonIndex - 1] && pickedFile == null)
+                if (!_imageUploaded[buttonIndex - 1] &&
+                    pickedFile == null &&
+                    !_hasExistingImage(buttonIndex))
                   const Text(
                     "No image uploaded",
                     style: TextStyle(color: Colors.red),
@@ -579,6 +615,28 @@ class _CheckInPageState extends State<CheckInPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildImageWidget(File? file, String? imageLink) {
+    if (file != null) {
+      return Image.file(file, height: 250, width: 175);
+    } else if (imageLink != null && imageLink.isNotEmpty) {
+      return Image.network(
+        imageLink,
+        height: 250,
+        width: 175,
+        fit: BoxFit.cover,
+      );
+    } else {
+      return Container(
+        height: 250,
+        width: 175,
+        color: Colors.grey[300],
+        child: const Center(
+          child: Text('No image'),
+        ),
+      );
+    }
   }
 
   Widget buildDateField({

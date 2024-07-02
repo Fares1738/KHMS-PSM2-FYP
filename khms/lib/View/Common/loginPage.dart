@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:khms/Controller/authCheck.dart';
+import 'package:khms/Controller/userController.dart';
 import 'package:khms/View/Common/resetPasswordPage.dart';
+import 'package:khms/View/Custom_Widgets/loadingDialog.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,6 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _controller = UserController();
   bool _obscurePassword = true;
 
   String? _validateEmail(String? value) {
@@ -108,8 +110,10 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
+                      const LoadingDialog(message: "Logging in");
+
                       try {
-                        await AuthCheck.signInWithEmailAndPassword(
+                        await _controller.signInWithEmailAndPassword(
                           context,
                           _emailController.text,
                           _passwordController.text,

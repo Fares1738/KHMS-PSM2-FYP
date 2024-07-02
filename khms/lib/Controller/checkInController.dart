@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:khms/Model/Room.dart';
 import 'package:khms/Model/Student.dart';
 import 'package:khms/View/Student/stripePaymentPage.dart';
+import 'package:khms/View/Student/studentMainPage.dart';
 import 'package:khms/api/firebase_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -31,7 +32,8 @@ class CheckInController {
       File? frontMatricPic,
       File? backMatricPic,
       File? passportMyKadPic,
-      File? studentPhoto) async {
+      File? studentPhoto,
+      bool isPaid) async {
     try {
       final _firestore = FirebaseFirestore.instance;
       final prefs2 = await SharedPreferences.getInstance();
@@ -116,14 +118,19 @@ class CheckInController {
 
       //String studentName = '$firstName $lastName';
 
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => StripePaymentPage(
-                studentId: storedStudentId,
-                    priceToDisplay: price,
-                    checkInApplicationId: checkInApplicationId ?? '',
-                  )));
+      if (isPaid == false) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => StripePaymentPage(
+                      studentId: storedStudentId,
+                      priceToDisplay: price,
+                      checkInApplicationId: checkInApplicationId ?? '',
+                    )));
+      } else {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => StudentMainPage()));
+      }
     } on FirebaseException {
     } catch (e) {
       print('Error submitting check-in application: $e');
@@ -235,8 +242,8 @@ class CheckInController {
       FirebaseApi.sendNotification(
           'CheckInApplications',
           application.checkInApplicationId,
-          'Check-In Application Status is $newStatus',
-          'Your check-in application status has been $newStatus. Check the app for more details.');
+          'Check-In Application Status Update',
+          'Your check-in application status has been $newStatus. Open the app to view details.');
     } on FirebaseException catch (e) {
       print('Firebase Error updating check-in application: $e');
     } catch (e) {

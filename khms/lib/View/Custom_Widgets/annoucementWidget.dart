@@ -1,4 +1,7 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:khms/Controller/announcementControlller.dart';
 import 'package:khms/Model/Announcement.dart';
 
@@ -45,11 +48,18 @@ class _AnnouncementWidgetState extends State<AnnouncementWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.network(
-                  announcement.imageUrl,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+                if (announcement.imageUrl.isNotEmpty)
+                  Image.network(
+                    announcement.imageUrl,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                else
+                  const Icon(
+                    Icons.announcement,
+                    size: 150,
+                    color: Colors.grey,
+                  ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -88,17 +98,54 @@ class _AnnouncementWidgetState extends State<AnnouncementWidget> {
       itemBuilder: (context, index) {
         Announcement announcement = _announcements[index];
         return ListTile(
-          title: Text(announcement.title),
-          subtitle: Text(announcement.description),
-          leading: Image.network(
-            announcement.imageUrl,
-            width: 50,
-            height: 50,
-            fit: BoxFit.cover,
+          title: Text(
+            announcement.title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(announcement.description),
+              Text(
+                DateFormat('dd MMM yyyy h:mm a').format(announcement.createdAt),
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          leading: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Image.network(
+              announcement.imageUrl,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.error),
+            ),
           ),
           onTap: () => _showAnnouncementDetails(context, announcement),
         );
       },
     );
+  }
+
+  Widget _buildAnnouncementLeading(Announcement announcement) {
+    if (announcement.imageUrl.isNotEmpty) {
+      return Image.network(
+        announcement.imageUrl,
+        width: 50,
+        height: 50,
+        fit: BoxFit.cover,
+      );
+    } else {
+      return const Icon(
+        Icons.announcement,
+        size: 50,
+        color: Colors.grey,
+      );
+    }
   }
 }
