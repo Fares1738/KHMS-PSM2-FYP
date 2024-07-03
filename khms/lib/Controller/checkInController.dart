@@ -157,7 +157,6 @@ class CheckInController {
 
     return _firestore
         .collection('CheckInApplications')
-        .where('isPaid', isEqualTo: true)
         .snapshots()
         .asyncMap((applicationsSnapshot) async {
       final applications = applicationsSnapshot.docs
@@ -207,7 +206,8 @@ class CheckInController {
 
       Map<String, dynamic> updateData = {
         'checkInStatus': newStatus,
-        'checkInApprovalDate': Timestamp.now(),
+        if (newStatus == 'Approved') 'checkInApprovalDate': Timestamp.now(),
+        if (newStatus == 'Approved') 'isPaid': true,
       };
       if (roomNo != null) {
         updateData['roomNo'] = roomNo;
@@ -216,17 +216,20 @@ class CheckInController {
         updateData['rejectionReason'] = rejectionReason;
       }
       batch.update(
-          firestore
-              .collection('CheckInApplications')
-              .doc(application.checkInApplicationId),
-          updateData);
+        firestore
+            .collection('CheckInApplications')
+            .doc(application.checkInApplicationId),
+        updateData,
+      );
 
       batch.update(
         firestore.collection('Students').doc(application.studentId),
         {'studentRoomNo': roomNo},
       );
 
-      if (newStatus == 'Approved' && roomNo != null) {
+      if (newStatus == 'Approved' &&
+          roomNo != null &&
+          application.roomType == 'Single') {
         String blockName = roomNo.substring(0, 1);
         batch.update(
           firestore
@@ -238,12 +241,33 @@ class CheckInController {
         );
       }
 
+      // Check if room type is double or triple
+      if (newStatus == 'Approved' &&
+          roomNo != null &&
+          application.roomType != 'Single') {
+        final assignedCount = await getAssignedTenantsCount(roomNo);
+        final capacity = application.roomType == 'Double' ? 2 : 3;
+
+        if (assignedCount == capacity - 1) {
+          // Update roomAvailability to false
+          batch.update(
+            firestore
+                .collection('Blocks')
+                .doc('Block ${roomNo[0]}')
+                .collection('Rooms')
+                .doc(roomNo),
+            {'roomAvailability': false},
+          );
+        }
+      }
+
       await batch.commit();
       FirebaseApi.sendNotification(
-          'CheckInApplications',
-          application.checkInApplicationId,
-          'Check-In Application Status Update',
-          'Your check-in application status has been $newStatus. Open the app to view details.');
+        'CheckInApplications',
+        application.checkInApplicationId,
+        'Check-In Application Status Update',
+        'Your check-in application status has been $newStatus. Open the app to view details.',
+      );
     } on FirebaseException catch (e) {
       print('Firebase Error updating check-in application: $e');
     } catch (e) {

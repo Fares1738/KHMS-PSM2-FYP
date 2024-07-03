@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:khms/View/Staff/staffManageComplaintsPage.dart';
 import 'package:khms/View/Staff/staffManageCheckInPage.dart';
 import 'package:khms/View/Staff/staffManageCheckOutPage.dart';
-import 'package:khms/View/Staff/staffManageFacilities.dart';
+import 'package:khms/View/Staff/staffManageFacilityBookingsPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ManageApplications extends StatefulWidget {
@@ -35,6 +35,7 @@ class _ManageApplicationsState extends State<ManageApplications> {
       appBar: AppBar(
         title: const Text('Manage Applications'),
         centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -98,7 +99,7 @@ class _ManageApplicationsState extends State<ManageApplications> {
         _buildActionCard(
           icon: Icons.business,
           title: "Manage Facilities and Bookings",
-          onTap: () => _navigateTo(const FacilityManagementPage()),
+          onTap: () => _navigateTo(FacilityBookingsPage(userType: userType!)),
         ),
       ]);
     }

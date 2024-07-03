@@ -15,6 +15,8 @@ class CheckOutApplicationsListPage extends StatefulWidget {
 class _CheckOutApplicationsListPageState
     extends State<CheckOutApplicationsListPage> {
   final CheckOutController _controller = CheckOutController();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   bool isSortDateAsc = true;
   String selectedStatusFilter = 'All';
   String selectedSortOrder = 'Newest';
@@ -33,11 +35,15 @@ class _CheckOutApplicationsListPageState
 
   List<CheckOutApplication> _filterApplications(
       List<CheckOutApplication> applications) {
-    var filtered = selectedStatusFilter == 'All'
-        ? applications
-        : applications
-            .where((app) => app.checkOutStatus == selectedStatusFilter)
-            .toList();
+    var filtered = applications.where((app) {
+      final matchesStatus = selectedStatusFilter == 'All' ||
+          app.checkOutStatus == selectedStatusFilter;
+      final matchesSearch =
+          "${app.student?.studentFirstName} ${app.student?.studentLastName}"
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase());
+      return matchesStatus && matchesSearch;
+    }).toList();
 
     filtered.sort((a, b) => isSortDateAsc
         ? a.checkOutDate.compareTo(b.checkOutDate)
@@ -89,70 +95,52 @@ class _CheckOutApplicationsListPageState
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.background,
       ),
-      body: Column(
-        children: [
-          Container(
+      body: StreamBuilder<List<CheckOutApplication>>(
+        stream: _controller.fetchCheckOutApplicationsStream(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final applications = snapshot.data ?? [];
+          final filteredApplications = _filterApplications(applications);
+
+          return ListView.builder(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildFilterDropdown(
-                    "Status",
-                    selectedStatusFilter,
-                    ['All', 'Pending', 'In Progress', 'Completed'],
-                    (value) => setState(() => selectedStatusFilter = value!),
+            itemCount: filteredApplications.length +
+                2, // +2 for search bar and filter section
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      labelText: 'Search by name',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildFilterDropdown(
-                    "Sort By",
-                    selectedSortOrder,
-                    ['Oldest', 'Newest'],
-                    (value) => setState(() => selectedSortOrder = value!),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: StreamBuilder<List<CheckOutApplication>>(
-              stream: _controller.fetchCheckOutApplicationsStream(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final applications = snapshot.data ?? [];
-                final filteredApplications = _filterApplications(applications);
-
-                return filteredApplications.isEmpty
-                    ? const Center(child: Text("No data found."))
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: filteredApplications.length,
-                        itemBuilder: (context, index) =>
-                            _buildCheckOutItem(filteredApplications[index]),
-                      );
-              },
-            ),
-          ),
-        ],
+                );
+              } else if (index == 1) {
+                return _buildFilterSection();
+              }
+              final application = filteredApplications[
+                  index - 2]; // Adjust for search bar and filter section
+              return _buildCheckOutItem(application);
+            },
+          );
+        },
       ),
     );
   }
@@ -229,6 +217,42 @@ class _CheckOutApplicationsListPageState
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFilterSection() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0, top: 6.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildFilterDropdown(
+              'Status',
+              selectedStatusFilter,
+              ['All', 'Completed', 'Pending', 'In Progress'],
+              (value) {
+                setState(() {
+                  selectedStatusFilter = value!;
+                });
+              },
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildFilterDropdown(
+              'Sort Order',
+              selectedSortOrder,
+              ['Newest', 'Oldest'],
+              (value) {
+                setState(() {
+                  selectedSortOrder = value!;
+                  isSortDateAsc = value == 'Newest';
+                });
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

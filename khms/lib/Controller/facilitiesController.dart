@@ -186,40 +186,48 @@ class FacilitiesController {
     });
   }
 
+  Future<List<String>> fetchFacilitiesList() {
 
-Future<List<Facilities>> fetchStudentFacilityApplications(String studentId) async {
-  try {
-    final QuerySnapshot applicationsSnapshot = await FirebaseFirestore.instance
-        .collectionGroup('Applications')
-        .where('studentId', isEqualTo: studentId)
-        .get();
-
-    List<Facilities> facilities = [];
-
-    for (var doc in applicationsSnapshot.docs) {
-      final facilityData = doc.data() as Map<String, dynamic>;
-      final facilityType = doc.reference.parent.parent!.id; // Get facility type from the parent document's ID
-
-      facilities.add(Facilities(
-        facilityApplicationId: doc.id,
-        facilityApplicationDate:
-            (facilityData['facilityApplicationDate'] as Timestamp).toDate(),
-        facilitySlot: facilityData['facilitySlot'] as String,
-        facilityType: facilityType,
-        facilityApplicationStatus: facilityData['facilityStatus'] as String,
-        studentId: studentId,
-        // Add more fields as needed
-      ));
-    }
-
-    return facilities;
-  } catch (e) {
-    print('Error fetching facility applications: $e');
-    rethrow; // Throw the error to handle it in UI or caller function
+    //return a list of documents within the Facilities collection
+    return _firestore.collection('Facilities').get().then((querySnapshot) {
+      return querySnapshot.docs.map((doc) => doc.id).toList();
+    });
   }
-}
 
+  Future<List<Facilities>> fetchStudentFacilityApplications(
+      String studentId) async {
+    try {
+      final QuerySnapshot applicationsSnapshot = await FirebaseFirestore
+          .instance
+          .collectionGroup('Applications')
+          .where('studentId', isEqualTo: studentId)
+          .get();
 
+      List<Facilities> facilities = [];
+
+      for (var doc in applicationsSnapshot.docs) {
+        final facilityData = doc.data() as Map<String, dynamic>;
+        final facilityType = doc.reference.parent.parent!
+            .id; // Get facility type from the parent document's ID
+
+        facilities.add(Facilities(
+          facilityApplicationId: doc.id,
+          facilityApplicationDate:
+              (facilityData['facilityApplicationDate'] as Timestamp).toDate(),
+          facilitySlot: facilityData['facilitySlot'] as String,
+          facilityType: facilityType,
+          facilityApplicationStatus: facilityData['facilityStatus'] as String,
+          studentId: studentId,
+          // Add more fields as needed
+        ));
+      }
+
+      return facilities;
+    } catch (e) {
+      print('Error fetching facility applications: $e');
+      rethrow; // Throw the error to handle it in UI or caller function
+    }
+  }
 
   Future<void> updateFacilityApplicationStatus(
       String applicationId, String status, String facilityType) async {
@@ -230,8 +238,12 @@ Future<List<Facilities>> fetchStudentFacilityApplications(String studentId) asyn
         .doc(applicationId)
         .update({'facilityStatus': status});
 
-    FirebaseApi.sendNotification('Facilities', applicationId, 'Facility application is $status',
-        'Your facility application has been $status. Check the app for more details.', subCollectionName: facilityType);
+    FirebaseApi.sendNotification(
+        'Facilities',
+        applicationId,
+        'Facility application is $status',
+        'Your facility application has been $status. Check the app for more details.',
+        subCollectionName: facilityType);
   }
 
   List<Facilities> sortFacilityApplicationsByDate(
@@ -289,5 +301,9 @@ Future<List<Facilities>> fetchStudentFacilityApplications(String studentId) asyn
       default:
         return Icons.question_mark;
     }
+  }
+
+  deleteFacility(String facilityType) {
+    _firestore.collection('Facilities').doc(facilityType).delete();
   }
 }

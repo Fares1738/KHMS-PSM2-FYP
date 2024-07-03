@@ -84,7 +84,8 @@ class DashboardController {
     }
   }
 
-  Future<Map<String, dynamic>> fetchBlockData(String blockName) async {
+  Future<Map<String, dynamic>> fetchBlockData(String blockName,
+      {String? floorNumber}) async {
     try {
       // Check if block data is cached and valid
       if (_blockDataCache.containsKey(blockName) &&
@@ -92,7 +93,11 @@ class DashboardController {
                   .difference(_blockDataCacheTime[blockName]!)
                   .inSeconds <=
               cacheDurationSeconds) {
-        return _blockDataCache[blockName]!;
+        final cachedData = _blockDataCache[blockName]!;
+        if (floorNumber != null) {
+          return _extractFloorData(cachedData, floorNumber);
+        }
+        return cachedData;
       }
 
       final roomsSnapshot = await _firestore
@@ -100,18 +105,11 @@ class DashboardController {
           .doc(blockName)
           .collection('Rooms')
           .get();
-      final Map<String, int> availableRoomsByType = {
-        'Single': 0,
-        'Double': 0,
-        'Triple': 0
-      };
-      final Map<String, int> totalRoomsByType = {
-        'Single': 0,
-        'Double': 0,
-        'Triple': 0
-      };
-      int occupiedRooms = 0;
-      int totalRooms = 0;
+
+      final Map<String, Map<String, int>> availableRoomsByTypeAndFloor = {};
+      final Map<String, Map<String, int>> totalRoomsByTypeAndFloor = {};
+      final Map<String, int> occupiedRoomsByFloor = {};
+      final Map<String, int> totalRoomsByFloor = {};
 
       // Fetch tenant counts using batch queries
       Map<String, int> roomTenantCounts =
@@ -119,39 +117,75 @@ class DashboardController {
 
       // Iterate through rooms and update counters
       for (var roomDoc in roomsSnapshot.docs) {
-        final roomType = roomDoc['roomType'] as String;
+        final roomNumber = roomDoc.id;
+        final floorNum = roomNumber.substring(1, 2);
+        final roomType =
+            _getRoomTypeFromNumber(int.parse(roomNumber.substring(2)));
         final isAvailable = roomDoc['roomAvailability'] as bool;
-        totalRoomsByType[roomType] = (totalRoomsByType[roomType] ?? 0) + 1;
-        totalRooms++;
+
+        availableRoomsByTypeAndFloor.putIfAbsent(
+            floorNum, () => {'Single': 0, 'Double': 0, 'Triple': 0});
+        totalRoomsByTypeAndFloor.putIfAbsent(
+            floorNum, () => {'Single': 0, 'Double': 0, 'Triple': 0});
+        occupiedRoomsByFloor.putIfAbsent(floorNum, () => 0);
+        totalRoomsByFloor.putIfAbsent(floorNum, () => 0);
+
+        totalRoomsByTypeAndFloor[floorNum]![roomType] =
+            (totalRoomsByTypeAndFloor[floorNum]![roomType] ?? 0) + 1;
+        totalRoomsByFloor[floorNum] = (totalRoomsByFloor[floorNum] ?? 0) + 1;
 
         if (!isAvailable) {
-          occupiedRooms++;
+          occupiedRoomsByFloor[floorNum] =
+              (occupiedRoomsByFloor[floorNum] ?? 0) + 1;
         } else {
           final assignedTenants = roomTenantCounts[roomDoc.id] ?? 0;
           final capacity = _getRoomCapacity(roomType);
           if (assignedTenants < capacity) {
-            availableRoomsByType[roomType] =
-                (availableRoomsByType[roomType] ?? 0) + 1;
+            availableRoomsByTypeAndFloor[floorNum]![roomType] =
+                (availableRoomsByTypeAndFloor[floorNum]![roomType] ?? 0) + 1;
           }
         }
       }
 
-      // Store data in block-specific cache
-      _blockDataCache[blockName] = {
-        'totalRooms': totalRooms,
-        'occupiedRooms': occupiedRooms,
-        'availableRooms': totalRooms - occupiedRooms,
-        'availableRoomsByType': availableRoomsByType,
-        'totalRoomsByType': totalRoomsByType,
+      // Prepare the block data
+      final blockData = {
+        'totalRooms': totalRoomsByFloor.values.reduce((a, b) => a + b),
+        'occupiedRooms': occupiedRoomsByFloor.values.reduce((a, b) => a + b),
+        'availableRooms': totalRoomsByFloor.values.reduce((a, b) => a + b) -
+            occupiedRoomsByFloor.values.reduce((a, b) => a + b),
+        'availableRoomsByTypeAndFloor': availableRoomsByTypeAndFloor,
+        'totalRoomsByTypeAndFloor': totalRoomsByTypeAndFloor,
+        'occupiedRoomsByFloor': occupiedRoomsByFloor,
+        'totalRoomsByFloor': totalRoomsByFloor,
       };
 
+      // Store data in block-specific cache
+      _blockDataCache[blockName] = blockData;
       _blockDataCacheTime[blockName] = DateTime.now();
 
-      return _blockDataCache[blockName]!;
+      if (floorNumber != null) {
+        return _extractFloorData(blockData, floorNumber);
+      }
+
+      return blockData;
     } catch (e) {
       print('Error fetching block data for $blockName: $e');
       return {}; // Return empty map on error
     }
+  }
+
+  Map<String, dynamic> _extractFloorData(
+      Map<String, dynamic> blockData, String floorNumber) {
+    return {
+      'totalRooms': blockData['totalRoomsByFloor'][floorNumber] ?? 0,
+      'occupiedRooms': blockData['occupiedRoomsByFloor'][floorNumber] ?? 0,
+      'availableRooms': (blockData['totalRoomsByFloor'][floorNumber] ?? 0) -
+          (blockData['occupiedRoomsByFloor'][floorNumber] ?? 0),
+      'availableRoomsByType':
+          blockData['availableRoomsByTypeAndFloor'][floorNumber] ?? {},
+      'totalRoomsByType':
+          blockData['totalRoomsByTypeAndFloor'][floorNumber] ?? {},
+    };
   }
 
   Future<Map<String, int>> _fetchRoomTenantCounts(
@@ -221,5 +255,12 @@ class DashboardController {
       result[complaintType] = (result[complaintType] ?? 0) + 1;
     }
     return result;
+  }
+
+  String _getRoomTypeFromNumber(int roomNumber) {
+    if (roomNumber >= 1 && roomNumber <= 19) return 'Single';
+    if (roomNumber >= 20 && roomNumber <= 23) return 'Double';
+    if (roomNumber >= 24 && roomNumber <= 26) return 'Triple';
+    throw ArgumentError('Invalid room number');
   }
 }

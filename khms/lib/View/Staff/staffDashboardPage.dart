@@ -13,6 +13,7 @@ class _DashboardPageState extends State<DashboardPage>
     with SingleTickerProviderStateMixin {
   final DashboardController _controller = DashboardController();
   String? _selectedBlock;
+  String? _selectedFloor;
   Future<Map<String, dynamic>>? _blockDataFuture;
   Future<Map<String, dynamic>>? _generalDataFuture;
   late TabController _tabController;
@@ -30,36 +31,9 @@ class _DashboardPageState extends State<DashboardPage>
     super.dispose();
   }
 
-  Future<void> _showBlockSelectionDialog() async {
-    final selectedBlock = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return SimpleDialog(
-          title: const Text('Select Block'),
-          children: <Widget>[
-            SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context, 'Block A');
-              },
-              child: const Text('Block A'),
-            ),
-            SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context, 'Block B');
-              },
-              child: const Text('Block B'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (selectedBlock != null) {
-      setState(() {
-        _selectedBlock = selectedBlock;
-        _blockDataFuture = _controller.fetchBlockData(selectedBlock);
-      });
-    }
+  void _updateBlockDataFuture() {
+    _blockDataFuture = _controller.fetchBlockData(_selectedBlock!,
+        floorNumber: _selectedFloor);
   }
 
   @override
@@ -210,17 +184,7 @@ class _DashboardPageState extends State<DashboardPage>
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            ElevatedButton(
-              onPressed: _showBlockSelectionDialog,
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-              ),
-              child: Text(_selectedBlock ?? 'Select Block'),
-            ),
+            _buildBlockFloorSelection(),
             const SizedBox(height: 20),
             if (_selectedBlock != null)
               FutureBuilder(
@@ -230,9 +194,10 @@ class _DashboardPageState extends State<DashboardPage>
                     return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (snapshot.hasData) {
+                  } else if (snapshot.hasData && snapshot.data != null) {
                     final data = snapshot.data!;
-                    return _buildBlockDetails(data, _selectedBlock!);
+                    return _buildBlockDetails(
+                        data, _selectedBlock!, _selectedFloor);
                   } else {
                     return const Center(child: Text('No data available'));
                   }
@@ -251,7 +216,7 @@ class _DashboardPageState extends State<DashboardPage>
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: FutureBuilder(
+        child: FutureBuilder<Map<String, dynamic>>(
           future: future,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -259,7 +224,12 @@ class _DashboardPageState extends State<DashboardPage>
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (snapshot.hasData) {
-              return builder(snapshot.data!);
+              // Check for null data before using it
+              final Map<String, dynamic>? data = snapshot.data;
+              if (data == null || data.isEmpty) {
+                return const Center(child: Text('No data available'));
+              }
+              return builder(data);
             } else {
               return const Center(child: Text('No data available'));
             }
@@ -319,28 +289,56 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
-  Widget _buildBlockDetails(Map<String, dynamic> data, String blockName) {
+  Widget _buildBlockDetails(
+      Map<String, dynamic> data, String blockName, String? floorNumber) {
+    String title = floorNumber != null
+        ? '$blockName - Floor $floorNumber'
+        : '$blockName - All Floors';
+    Map<String, dynamic> displayData = floorNumber != null
+        ? data
+        : {
+            'totalRooms': data['totalRooms'],
+            'occupiedRooms': data['occupiedRooms'],
+            'availableRoomsByType': {
+              'Single': data['availableRoomsByTypeAndFloor']
+                  .values
+                  .map((floor) => floor['Single'] ?? 0)
+                  .reduce((a, b) => a + b),
+              'Double': data['availableRoomsByTypeAndFloor']
+                  .values
+                  .map((floor) => floor['Double'] ?? 0)
+                  .reduce((a, b) => a + b),
+              'Triple': data['availableRoomsByTypeAndFloor']
+                  .values
+                  .map((floor) => floor['Triple'] ?? 0)
+                  .reduce((a, b) => a + b),
+            },
+          };
+
     return Column(
       children: [
-        _buildSummaryCard('Total Rooms', data['totalRooms'], Icons.hotel,
+        Text(title,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 16),
+        _buildSummaryCard('Total Rooms', displayData['totalRooms'], Icons.hotel,
             const Color(0xFF3949AB), const Color(0xFF5C6BC0)),
-        _buildSummaryCard('Occupied Rooms', data['occupiedRooms'], Icons.person,
-            const Color(0xFF00897B), const Color(0xFF26A69A)),
+        _buildSummaryCard('Occupied Rooms', displayData['occupiedRooms'],
+            Icons.person, const Color(0xFF00897B), const Color(0xFF26A69A)),
         _buildSummaryCard(
             'Available Single Rooms',
-            data['availableRoomsByType']['Single'] ?? 0,
+            displayData['availableRoomsByType']['Single'],
             Icons.single_bed,
             const Color(0xFF7B1FA2),
             const Color(0xFF9C27B0)),
         _buildSummaryCard(
             'Available Double Rooms',
-            data['availableRoomsByType']['Double'] ?? 0,
+            displayData['availableRoomsByType']['Double'],
             Icons.hotel,
             const Color(0xFFC62828),
             const Color(0xFFE53935)),
         _buildSummaryCard(
             'Available Triple Rooms',
-            data['availableRoomsByType']['Triple'] ?? 0,
+            displayData['availableRoomsByType']['Triple'],
             Icons.people,
             const Color(0xFF689F38),
             const Color(0xFF7CB342)),
@@ -530,6 +528,90 @@ class _DashboardPageState extends State<DashboardPage>
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildBlockFloorSelection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              value: _selectedBlock,
+              decoration: InputDecoration(
+                labelText: 'Select Block',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              items: ['Block A', 'Block B'].map((String block) {
+                return DropdownMenuItem<String>(
+                  value: block,
+                  child: Text(block),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedBlock = newValue;
+                  _selectedFloor =
+                      null; // Reset floor selection when block changes
+                  if (_selectedBlock != null) {
+                    _updateBlockDataFuture();
+                  }
+                });
+              },
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: DropdownButtonFormField<String?>(
+              value: _selectedFloor,
+              decoration: InputDecoration(
+                labelText: 'Select Floor',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              items: [
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text('All Floors'),
+                ),
+                ...List.generate(
+                  8,
+                  (index) => DropdownMenuItem<String>(
+                    value: (index + 1).toString(),
+                    child: Text('Floor ${index + 1}'),
+                  ),
+                ),
+              ],
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedFloor = newValue;
+                  _updateBlockDataFuture();
+                });
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

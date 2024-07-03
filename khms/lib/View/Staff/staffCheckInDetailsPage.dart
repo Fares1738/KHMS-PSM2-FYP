@@ -82,8 +82,9 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
             const SizedBox(height: 16),
             _buildDetailRow(
                 "Check-In Date",
-                DateFormat('dd MMM yyyy | hh:mm a')
+                DateFormat('dd MMM yyyy')
                     .format(widget.application.checkInDate)),
+            _buildDetailRow('Room Type', widget.application.roomType ?? ''),
             _buildDetailRow("Email", student?.studentEmail ?? ''),
             _buildDetailRow("Phone", student?.studentPhoneNumber ?? ''),
             _buildDetailRow("Nationality", student?.studentNationality ?? ''),
@@ -92,6 +93,8 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
                 "MyKad/Passport", student?.studentmyKadPassportNumber ?? ''),
             _buildDetailRow("Date of Birth",
                 DateFormat('dd MMM yyyy').format(student!.studentDoB)),
+            _buildDetailRow('Payment Status',
+                widget.application.isPaid! ? 'Paid' : 'Not Paid'),
             const SizedBox(height: 20),
             const Text("Documents",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -110,11 +113,12 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: 150,
             child: Text(label,
-                style: const TextStyle(fontWeight: FontWeight.w500)),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
           ),
-          Expanded(child: Text(value)),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
         ],
       ),
     );
@@ -231,19 +235,25 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
 
   Widget _buildRejectionReasonSection() {
     if (widget.application.checkInStatus == "Rejected") {
-      return Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Rejection Reason",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text(widget.application.rejectionReason ?? "No reason provided"),
-            ],
+      return SizedBox(
+        width: double.infinity,
+        child: Card(
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Rejection Reason",
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text(
+                    widget.application.rejectionReason ?? "No reason provided"),
+              ],
+            ),
           ),
         ),
       );
@@ -261,9 +271,10 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 16),
           const Text("Assign Room:",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
 
           // Block selection dropdown
           DropdownButtonFormField<String>(
@@ -283,7 +294,7 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
             decoration: const InputDecoration(
                 labelText: 'Block', border: OutlineInputBorder()),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
 
           // Floor selection dropdown (enabled only after block is selected)
           if (selectedBlock != null)

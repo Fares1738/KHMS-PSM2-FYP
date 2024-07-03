@@ -1,29 +1,25 @@
+// ignore_for_file: library_private_types_in_public_api, file_names
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:khms/Controller/facilitiesController.dart';
 import 'package:khms/Model/Facilities.dart';
-import 'package:khms/View/Staff/staffAddFacilityPage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:khms/View/Staff/staffManageFacilityPage.dart';
 
-class FacilityManagementPage extends StatefulWidget {
-  const FacilityManagementPage({super.key});
+class FacilityBookingsPage extends StatefulWidget {
+  final String? userType;
+  const FacilityBookingsPage({super.key, this.userType});
 
   @override
-  _FacilityManagementPageState createState() => _FacilityManagementPageState();
+  _FacilityBookingsPageState createState() => _FacilityBookingsPageState();
 }
 
-class _FacilityManagementPageState extends State<FacilityManagementPage> {
+class _FacilityBookingsPageState extends State<FacilityBookingsPage> {
   final FacilitiesController _controller = FacilitiesController();
-  Map<String, bool> _facilityAvailability = {};
   String sortByDate = 'Newest';
   String sortByStatus = 'All';
-  String? userType;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchAvailability();
-  }
+  String selectedFacilityType = 'All'; // Track selected facility type
+  List<Facilities> facilitiesList = [];
 
   Widget _buildStatusIndicator(String status) {
     Color color;
@@ -39,8 +35,8 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
     }
 
     return Container(
-      width: 12,
-      height: 12,
+      width: 16,
+      height: 16,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
@@ -48,19 +44,12 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
     );
   }
 
-  Future<void> _fetchAvailability() async {
-    final availability = await _controller.fetchFacilityAvailability();
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    userType = prefs.getString('userType');
-    setState(() {
-      _facilityAvailability = availability;
-    });
-  }
-
   void _approveApplication(String applicationId, String facilityType) {
     _controller.updateFacilityApplicationStatus(
-        applicationId, 'Approved', facilityType);
-    _fetchAvailability();
+      applicationId,
+      'Approved',
+      facilityType,
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Booking Approved')),
     );
@@ -68,22 +57,19 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
 
   void _rejectApplication(String applicationId, String facilityType) {
     _controller.updateFacilityApplicationStatus(
-        applicationId, 'Rejected', facilityType);
-    _fetchAvailability();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Application Rejected')),
+      applicationId,
+      'Rejected',
+      facilityType,
     );
-  }
-
-  void _toggleFacility(String facilityType, bool isEnabled) {
-    _controller.toggleFacilityAvailability(facilityType, isEnabled);
-    setState(() {
-      _facilityAvailability[facilityType] = isEnabled;
-    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Booking Rejected')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    String userType = widget.userType!;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Facility Management'),
@@ -93,8 +79,7 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
       body: ListView(
         children: [
           _buildFilterSection(),
-          if (userType == 'Manager') _buildAddFacilityButton(),
-          _buildFacilityToggleList(),
+          if (userType == 'Manager') _buildManageFacilityButton(),
           _buildFacilityList(),
         ],
       ),
@@ -115,25 +100,67 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: _buildFilterDropdown(
-              "Sort By Date",
-              sortByDate,
-              ['Newest', 'Oldest'],
-              (value) => setState(() => sortByDate = value!),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: _buildFilterDropdown(
+                  "Status",
+                  sortByStatus,
+                  ['All', 'Pending', 'Approved', 'Rejected'],
+                  (value) {
+                    setState(() {
+                      sortByStatus = value!;
+                      // Reset selected facility type when status changes to 'All'
+                      if (sortByStatus == 'All') {
+                        selectedFacilityType = 'All';
+                      }
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildFilterDropdown(
+                  "Sort By Date",
+                  sortByDate,
+                  ['Newest', 'Oldest'],
+                  (value) => setState(() => sortByDate = value!),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildFilterDropdown(
-              "Status",
-              sortByStatus,
-              ['All', 'Pending', 'Approved', 'Rejected'],
-              (value) => setState(() => sortByStatus = value!),
-            ),
-          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: FutureBuilder<List<String>>(
+                  future: _controller.fetchFacilitiesList(),
+                  builder: (context, snapshot) {
+                    final facilitiesList = snapshot.data ?? [];
+
+                    // Extract unique facility types from facilitiesList
+                    Set<String> facilityTypesSet = facilitiesList.toSet();
+                    List<String> facilityTypes = facilityTypesSet.toList();
+                    facilityTypes.insert(
+                        0, 'All'); // Add 'All' option at the beginning
+
+                    return _buildFilterDropdown(
+                      "Facility Type",
+                      selectedFacilityType,
+                      facilityTypes,
+                      (value) {
+                        setState(() {
+                          selectedFacilityType = value!;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
@@ -171,39 +198,22 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
     );
   }
 
-  Widget _buildAddFacilityButton() {
+  Widget _buildManageFacilityButton() {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: SizedBox(
         width: double.infinity,
-        child: FilledButton(
+        child: ElevatedButton(
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const AddFacilityPage(),
+                builder: (context) => const ManageFacilitiesPage(),
               ),
             );
           },
-          child: const Text('Add Facility'),
+          child: const Text('Manage Facilities'),
         ),
-      ),
-    );
-  }
-
-  Widget _buildFacilityToggleList() {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: Column(
-        children: _facilityAvailability.entries.map((entry) {
-          return SwitchListTile(
-            title: Text('${entry.key} (Disable/Enable)'),
-            value: entry.value,
-            onChanged: (bool value) {
-              _toggleFacility(entry.key, value);
-            },
-          );
-        }).toList(),
       ),
     );
   }
@@ -219,20 +229,32 @@ class _FacilityManagementPageState extends State<FacilityManagementPage> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No facilities available'));
         } else {
-          List<Facilities> sortedFacilities =
-              _controller.sortFacilityApplicationsByDate(
-            _controller.sortFacilityApplicationsByStatus(
-                snapshot.data!, sortByStatus),
-            sortByDate,
-          );
+          // Filter facilities based on selected status and facility type
+          List<Facilities> filteredFacilities =
+              snapshot.data!.where((facility) {
+            if (sortByStatus != 'All' &&
+                facility.facilityApplicationStatus != sortByStatus) {
+              return false;
+            }
+            if (selectedFacilityType != 'All' &&
+                facility.facilityType != selectedFacilityType) {
+              return false;
+            }
+            return true;
+          }).toList();
+
+          // Sort filtered facilities by date
+          filteredFacilities.sort((a, b) => sortByDate == 'Newest'
+              ? b.facilityApplicationDate.compareTo(a.facilityApplicationDate)
+              : a.facilityApplicationDate.compareTo(b.facilityApplicationDate));
 
           return ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
-            itemCount: sortedFacilities.length,
+            itemCount: filteredFacilities.length,
             itemBuilder: (context, index) {
-              return _buildFacilityCard(sortedFacilities[index]);
+              return _buildFacilityCard(filteredFacilities[index]);
             },
           );
         }
