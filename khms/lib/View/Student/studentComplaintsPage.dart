@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart';
 
 class ComplaintsPage extends StatefulWidget {
-  const ComplaintsPage({Key? key}) : super(key: key);
+  const ComplaintsPage({super.key});
 
   @override
   State<ComplaintsPage> createState() => _ComplaintsPageState();

@@ -3,7 +3,7 @@ import 'package:khms/Controller/checkOutController.dart';
 import 'package:khms/View/Custom_Widgets/appBar.dart';
 
 class CheckOutPage extends StatefulWidget {
-  const CheckOutPage({Key? key}) : super(key: key);
+  const CheckOutPage({super.key});
 
   @override
   State<CheckOutPage> createState() => _CheckOutPageState();

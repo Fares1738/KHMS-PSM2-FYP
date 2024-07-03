@@ -343,12 +343,12 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
           // The controller already shows an error message, so we don't need to show another one here
         }
       },
-      child: const Text('Submit Complaint'),
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
         backgroundColor: Colors.green,
         minimumSize: const Size(double.infinity, 50),
       ),
+      child: const Text('Submit Complaint'),
     );
   }
 }

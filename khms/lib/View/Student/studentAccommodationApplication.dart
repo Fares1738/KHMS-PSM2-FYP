@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AccommodationApplicationPage extends StatelessWidget {
-  const AccommodationApplicationPage({Key? key}) : super(key: key);
+  const AccommodationApplicationPage({super.key});
 
   Future<String?> _getStudentId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

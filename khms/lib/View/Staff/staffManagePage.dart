@@ -7,7 +7,7 @@ import 'package:khms/View/Staff/staffManageFacilities.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ManageApplications extends StatefulWidget {
-  const ManageApplications({Key? key}) : super(key: key);
+  const ManageApplications({super.key});
 
   @override
   _ManageApplicationsState createState() => _ManageApplicationsState();

@@ -12,8 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class HomeScreenWidgets extends StatefulWidget {
   final String studentId;
 
-  const HomeScreenWidgets({Key? key, required this.studentId})
-      : super(key: key);
+  const HomeScreenWidgets({super.key, required this.studentId});
 
   @override
   _HomeScreenWidgetsState createState() => _HomeScreenWidgetsState();

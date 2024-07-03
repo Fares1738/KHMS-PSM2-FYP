@@ -8,7 +8,7 @@ import 'package:khms/Model/Announcement.dart';
 import 'package:khms/api/firebase_api.dart';
 
 class ManageAnnouncementsPage extends StatefulWidget {
-  const ManageAnnouncementsPage({Key? key}) : super(key: key);
+  const ManageAnnouncementsPage({super.key});
 
   @override
   _ManageAnnouncementsPageState createState() =>

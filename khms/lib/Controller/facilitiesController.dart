@@ -215,7 +215,7 @@ Future<List<Facilities>> fetchStudentFacilityApplications(String studentId) asyn
     return facilities;
   } catch (e) {
     print('Error fetching facility applications: $e');
-    throw e; // Throw the error to handle it in UI or caller function
+    rethrow; // Throw the error to handle it in UI or caller function
   }
 }
 

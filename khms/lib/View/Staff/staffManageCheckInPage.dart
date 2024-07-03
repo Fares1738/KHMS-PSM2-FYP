@@ -5,7 +5,7 @@ import 'package:khms/Model/CheckInApplication.dart';
 import 'package:khms/View/Staff/staffCheckInDetailsPage.dart';
 
 class CheckInApplicationsListPage extends StatefulWidget {
-  const CheckInApplicationsListPage({Key? key}) : super(key: key);
+  const CheckInApplicationsListPage({super.key});
 
   @override
   State<CheckInApplicationsListPage> createState() =>

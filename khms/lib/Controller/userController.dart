@@ -92,7 +92,7 @@ class UserController extends ChangeNotifier {
         // Navigate to the login page
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
+          MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -222,7 +222,7 @@ class UserController extends ChangeNotifier {
     } catch (e) {
       print('Error changing password: $e');
       // Handle error (e.g., show a snackbar or alert dialog)
-      throw e; // Rethrow the error if you want to handle it further up the call chain
+      rethrow; // Rethrow the error if you want to handle it further up the call chain
     }
   }
 
@@ -233,7 +233,7 @@ class UserController extends ChangeNotifier {
     } catch (e) {
       print('Error sending password reset email: $e');
       // Handle error (e.g., show a snackbar or alert dialog)
-      throw e; // Rethrow the error if you want to handle it further up the call chain
+      rethrow; // Rethrow the error if you want to handle it further up the call chain
     }
   }
 
@@ -419,7 +419,7 @@ class UserController extends ChangeNotifier {
       return snapshot.docs.map((doc) => Student.fromFirestore(doc)).toList();
     } catch (e) {
       print('Error fetching students: $e');
-      throw e; // Rethrow the error if you want to handle it further up the call chain
+      rethrow; // Rethrow the error if you want to handle it further up the call chain
     }
   }
 
@@ -431,7 +431,7 @@ class UserController extends ChangeNotifier {
       return snapshot.docs.map((doc) => Staff.fromFirestore(doc)).toList();
     } catch (e) {
       print('Error fetching staff: $e');
-      throw e; // Rethrow the error if you want to handle it further up the call chain
+      rethrow; // Rethrow the error if you want to handle it further up the call chain
     }
   }
 }

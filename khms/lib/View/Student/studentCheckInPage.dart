@@ -110,7 +110,7 @@ class _CheckInPageState extends State<CheckInPage> {
   }
 
   final _formKey = GlobalKey<FormState>(); // Add a GlobalKey for the Form
-  List<bool> _imageUploaded =
+  final List<bool> _imageUploaded =
       List.generate(4, (index) => false); // Track image upload status
 
   @override

@@ -50,7 +50,7 @@ class PaymentController {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error initializing payment sheet: $e')),
       );
-      throw e; // Re-throw the error to be caught in the calling function
+      rethrow; // Re-throw the error to be caught in the calling function
     }
   }
 

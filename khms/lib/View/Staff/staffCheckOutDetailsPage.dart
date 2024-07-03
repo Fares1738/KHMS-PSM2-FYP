@@ -6,8 +6,7 @@ import 'package:khms/Model/CheckOutApplication.dart';
 class CheckOutDetailsPage extends StatefulWidget {
   final CheckOutApplication application;
 
-  const CheckOutDetailsPage({Key? key, required this.application})
-      : super(key: key);
+  const CheckOutDetailsPage({super.key, required this.application});
 
   @override
   State<CheckOutDetailsPage> createState() => _CheckOutDetailsPageState();

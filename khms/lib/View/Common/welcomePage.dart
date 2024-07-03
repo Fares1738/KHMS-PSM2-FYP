@@ -4,7 +4,7 @@ import 'package:khms/View/Student/studentRegisterPage.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class WelcomePage extends StatelessWidget {
-  const WelcomePage({Key? key}) : super(key: key);
+  const WelcomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +110,7 @@ class WelcomePage extends StatelessWidget {
           Colors.white,
           () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => LoginPage()),
+            MaterialPageRoute(builder: (context) => const LoginPage()),
           ),
         ),
       ],
