@@ -25,33 +25,35 @@ class _StudentHomePageState extends State<StudentHomePage> {
         widget.studentName.isNotEmpty ? widget.studentName : 'Student';
 
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                "Welcome $displayName",
-                style: const TextStyle(fontSize: 24),
-              ),
-              const SizedBox(height: 20),
-              FutureBuilder<String?>(
-                future: _getStudentId(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError ||
-                      !snapshot.hasData ||
-                      snapshot.data == null) {
-                    return const Center(child: Text('Student ID not found.'));
-                  }
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  "Welcome $displayName",
+                  style: const TextStyle(fontSize: 24),
+                ),
+                const SizedBox(height: 20),
+                FutureBuilder<String?>(
+                  future: _getStudentId(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError ||
+                        !snapshot.hasData ||
+                        snapshot.data == null) {
+                      return const Center(child: Text('Student ID not found.'));
+                    }
 
-                  return HomeScreenWidgets(studentId: snapshot.data!);
-                },
-              ),
-            ],
+                    return HomeScreenWidgets(studentId: snapshot.data!);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

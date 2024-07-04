@@ -6,8 +6,37 @@ import 'package:khms/View/Student/studentCheckOutPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AccommodationApplicationPage extends StatelessWidget {
+class AccommodationApplicationPage extends StatefulWidget {
   const AccommodationApplicationPage({super.key});
+
+  @override
+  _AccommodationApplicationPageState createState() => _AccommodationApplicationPageState();
+}
+
+class _AccommodationApplicationPageState extends State<AccommodationApplicationPage> {
+  late Future<String?> _studentIdFuture;
+  late Future<Map<String, dynamic>?> _applicationDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeFutures();
+  }
+
+  void _initializeFutures() {
+    _studentIdFuture = _getStudentId();
+    _studentIdFuture.then((studentId) {
+      if (studentId != null) {
+        _applicationDataFuture = _getApplicationData(studentId);
+      }
+    });
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _initializeFutures();
+    });
+  }
 
   Future<String?> _getStudentId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -34,64 +63,68 @@ class AccommodationApplicationPage extends StatelessWidget {
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: FutureBuilder<String?>(
-        future: _getStudentId(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError || snapshot.data == null) {
-            return _buildErrorWidget('Student ID not found.');
-          }
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: FutureBuilder<String?>(
+          future: _studentIdFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError || snapshot.data == null) {
+              return _buildErrorWidget('Student ID not found.');
+            }
 
-          final studentId = snapshot.data!;
+            return FutureBuilder<Map<String, dynamic>?>(
+              future: _applicationDataFuture,
+              builder: (context, applicationSnapshot) {
+                if (applicationSnapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (applicationSnapshot.hasError) {
+                  return _buildErrorWidget('Error fetching application data.');
+                }
 
-          return FutureBuilder<Map<String, dynamic>?>(
-            future: _getApplicationData(studentId),
-            builder: (context, applicationSnapshot) {
-              if (applicationSnapshot.connectionState ==
-                  ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (applicationSnapshot.hasError) {
-                return _buildErrorWidget('Error fetching application data.');
-              }
+                final applicationData = applicationSnapshot.data;
+                final isPaid =
+                    applicationData != null && applicationData['isPaid'] == true;
+                final price =
+                    applicationData != null ? applicationData['price'] : 0;
+                final checkInApplicationId = applicationData != null
+                    ? applicationData['checkInApplicationId']
+                    : '';
 
-              final applicationData = applicationSnapshot.data;
-              final isPaid =
-                  applicationData != null && applicationData['isPaid'] == true;
-              final price =
-                  applicationData != null ? applicationData['price'] : 0;
-              final checkInApplicationId = applicationData != null
-                  ? applicationData['checkInApplicationId']
-                  : '';
-
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildHeaderCard(context),
-                      const SizedBox(height: 20),
-                      if (applicationData != null && !isPaid)
-                        _buildUnpaidApplicationCard(
-                            context, price, checkInApplicationId)
-                      else
-                        _buildApplicationButtons(
-                            context, applicationData, isPaid),
-                    ],
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildHeaderCard(context),
+                        const SizedBox(height: 20),
+                        if (applicationData != null && !isPaid)
+                          _buildUnpaidApplicationCard(
+                              context, price, checkInApplicationId)
+                        else
+                          _buildApplicationButtons(
+                              context, applicationData, isPaid),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildErrorWidget(String message) {
+  // ... (rest of the widget methods remain the same)
+
+    Widget _buildErrorWidget(String message) {
     return Center(
       child: Card(
         color: Colors.red[100],

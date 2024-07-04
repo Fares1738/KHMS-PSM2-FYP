@@ -29,7 +29,7 @@ class _CheckOutPageState extends State<CheckOutPage> {
       initialDate: firstDate,
       firstDate: firstDate,
       lastDate: lastDate,
-      selectableDayPredicate: isSelectableDay,
+      //selectableDayPredicate: isSelectableDay,
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(

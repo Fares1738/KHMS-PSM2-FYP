@@ -326,6 +326,7 @@ class _HomeScreenWidgetsState extends State<HomeScreenWidgets> {
             ),
             const SizedBox(height: 8),
             Container(
+              height: 300, // Set a fixed height for announcements
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(12),

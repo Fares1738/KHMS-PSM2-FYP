@@ -40,6 +40,13 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
     }
   }
 
+  Future<void> _refreshComplaints() async {
+    setState(() {
+      isLoading = true;
+    });
+    await _fetchComplaints();
+  }
+
   Future<void> _updateComplaintStatus(
       String complaintId, ComplaintStatus status) async {
     await _controller.updateComplaintStatus(complaintId, status);
@@ -78,11 +85,14 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
       appBar: AppBar(
         title: const Text('Complaints'),
       ),
-      body: ListView(
-        children: [
-          _buildFilterSection(),
-          _buildComplaintList(filteredComplaints),
-        ],
+      body: RefreshIndicator(
+        onRefresh: _refreshComplaints,
+        child: ListView(
+          children: [
+            _buildFilterSection(),
+            _buildComplaintList(filteredComplaints),
+          ],
+        ),
       ),
     );
   }
@@ -201,7 +211,7 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
 
     return ListView.builder(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: complaints.length,
       itemBuilder: (context, index) {
         final complaint = complaints[index];

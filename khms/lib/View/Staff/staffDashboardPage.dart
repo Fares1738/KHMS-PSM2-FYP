@@ -40,6 +40,7 @@ class _DashboardPageState extends State<DashboardPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text('Dashboard',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),

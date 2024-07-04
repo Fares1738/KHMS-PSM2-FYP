@@ -29,6 +29,8 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
   }
 
   Future<void> _fetchData() async {
+    if (!mounted) return;
+
     setState(() => _isLoading = true);
 
     try {
@@ -43,32 +45,27 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
           .doc(studentId)
           .get();
 
-      if (studentDoc.exists &&
-          studentDoc.data()!.containsKey('studentRoomNo') &&
-          studentDoc['studentRoomNo'] != null &&
-          studentDoc['studentRoomNo'] != "") {
-        if (mounted) {
-          setState(() {
-            _complaints = complaints;
-            _isLoading = false;
-            checkedIn = true;
-            studentRoomNo = studentDoc['studentRoomNo'];
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            checkedIn = false;
-          });
-        }
-      }
+      if (!mounted) return;
+
+      setState(() {
+        _complaints = complaints;
+        checkedIn = studentDoc.exists &&
+            studentDoc.data()!.containsKey('studentRoomNo') &&
+            studentDoc['studentRoomNo'] != null &&
+            studentDoc['studentRoomNo'] != "";
+        studentRoomNo = checkedIn ? studentDoc['studentRoomNo'] : null;
+        _isLoading = false;
+      });
     } catch (e) {
       print('Error fetching complaints: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  Future<void> _refreshData() async {
+    await _fetchData();
   }
 
   @override
@@ -80,37 +77,38 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
         elevation: 0,
         automaticallyImplyLeading: false,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : checkedIn
-              ? _buildComplaintsContent()
-              : _buildNotCheckedInContent(),
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : checkedIn
+                ? _buildComplaintsContent()
+                : _buildNotCheckedInContent(),
+      ),
     );
   }
 
   Widget _buildComplaintsContent() {
-    return RefreshIndicator(
-      onRefresh: _fetchData,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildAddComplaintButton(),
-          const SizedBox(height: 16),
-          _complaints.isEmpty
-              ? _buildEmptyState()
-              : Column(
-                  children: _complaints
-                      .map((complaint) => _buildComplaintItem(complaint))
-                      .toList(),
-                ),
-          const SizedBox(height: 16),
-          const Text(
-            "Your complaints are listed here. Pull down to refresh.",
-            style: TextStyle(color: Colors.grey, fontSize: 12),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildAddComplaintButton(),
+        const SizedBox(height: 16),
+        _complaints.isEmpty
+            ? _buildEmptyState()
+            : Column(
+                children: _complaints
+                    .map((complaint) => _buildComplaintItem(complaint))
+                    .toList(),
+              ),
+        const SizedBox(height: 16),
+        const Text(
+          "Your complaints are listed here. Pull down to refresh.",
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 
@@ -123,8 +121,7 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
             builder: (context) =>
                 AddComplaintPage(studentRoomNo: studentRoomNo),
           ),
-        ).then((_) =>
-            _fetchData()); // Refresh the list when returning from AddComplaintPage
+        ).then((_) => _refreshData());
       },
       icon: const Icon(Icons.add),
       label: const Text("Add New Complaint"),
@@ -138,23 +135,59 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.sentiment_satisfied, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'No complaints yet',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Great! Looks like everything is going well.',
-            style: TextStyle(color: Colors.grey),
-          ),
-        ],
+    return Container(
+      height: MediaQuery.of(context).size.height - 200, // Adjust as needed
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.sentiment_satisfied, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'No complaints yet',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Great! Looks like everything is going well.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildNotCheckedInContent() {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        Container(
+          height: MediaQuery.of(context).size.height - 100, // Adjust as needed
+          child: const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.warning, size: 64, color: Colors.orange),
+                  SizedBox(height: 16),
+                  Text(
+                    'Check-In Required',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Your check-in application must be approved before you can access this page.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -279,31 +312,6 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
           const SizedBox(width: 4),
           Text(text, style: TextStyle(color: color, fontSize: 12)),
         ],
-      ),
-    );
-  }
-
-  Widget _buildNotCheckedInContent() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.warning, size: 64, color: Colors.orange),
-            SizedBox(height: 16),
-            Text(
-              'Check-In Required',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Your check-in application must be approved before you can access this page.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-          ],
-        ),
       ),
     );
   }

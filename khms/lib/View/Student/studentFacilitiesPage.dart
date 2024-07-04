@@ -45,12 +45,18 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
   @override
   void initState() {
     super.initState();
-    _fetchFacilityAvailability();
-    _fetchFacilityTypes();
     _fetchData();
   }
 
   Future<void> _fetchData() async {
+    await Future.wait([
+      _fetchStudentData(),
+      _fetchFacilityAvailability(),
+      _fetchFacilityTypes(),
+    ]);
+  }
+
+  Future<void> _fetchStudentData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final studentId = prefs.getString('userId') as String;
@@ -61,23 +67,15 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
           .doc(studentId)
           .get();
 
-      if (studentDoc.exists &&
-          studentDoc.data()!.containsKey('studentRoomNo') &&
-          studentDoc['studentRoomNo'] != null &&
-          studentDoc['studentRoomNo'] != "") {
-        if (mounted) {
-          setState(() {
-            hasRoomNumber = true;
-            facilitySubscription = studentDoc['facilitySubscription'] ?? false;
-            this.studentId = studentId;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            hasRoomNumber = false;
-          });
-        }
+      if (mounted) {
+        setState(() {
+          hasRoomNumber = studentDoc.exists &&
+              studentDoc.data()!.containsKey('studentRoomNo') &&
+              studentDoc['studentRoomNo'] != null &&
+              studentDoc['studentRoomNo'] != "";
+          facilitySubscription = studentDoc['facilitySubscription'] ?? false;
+          this.studentId = studentId;
+        });
       }
     } catch (e) {
       print('Error fetching student data: $e');
@@ -86,22 +84,36 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
 
   Future<void> _fetchFacilityAvailability() async {
     final availability = await _controller.fetchFacilityAvailability();
-    setState(() {
-      _facilityAvailability = availability;
-    });
+    if (mounted) {
+      setState(() {
+        _facilityAvailability = availability;
+      });
+    }
   }
 
   Future<void> _fetchFacilityTypes() async {
     try {
       final facilitiesSnapshot =
           await FirebaseFirestore.instance.collection('Facilities').get();
-      setState(() {
-        _facilityTypes = facilitiesSnapshot.docs.map((doc) => doc.id).toList();
-      });
+      if (mounted) {
+        setState(() {
+          _facilityTypes =
+              facilitiesSnapshot.docs.map((doc) => doc.id).toList();
+        });
+      }
     } catch (e) {
       print('Error fetching facility types: $e');
       _showErrorSnackBar('Error fetching facility types!');
     }
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _selectedDate = null;
+      _selectedTimeSlot = null;
+      _selectedFacilityType = null;
+    });
+    await _fetchData();
   }
 
   void _updateBookedTimeSlotsStream() {
@@ -123,19 +135,31 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Facility Booking'),
-          centerTitle: true,
-          elevation: 0,
-          automaticallyImplyLeading: false,
+      appBar: AppBar(
+        title: const Text('Facility Booking'),
+        centerTitle: true,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+      ),
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Container(
+            height: MediaQuery.of(context).size.height -
+                AppBar().preferredSize.height,
+            child: hasRoomNumber
+                ? (facilitySubscription == true
+                    ? _buildBookingForm()
+                    : _buildSubscriptionPrompt())
+                : _buildNotCheckedInContent(),
+          ),
         ),
-        body: hasRoomNumber
-            ? (facilitySubscription == true
-                ? _buildBookingForm()
-                : _buildSubscriptionPrompt())
-            : _buildNotCheckedInContent());
+      ),
+    );
   }
 
+  // ... (rest of the widget methods remain the same)
   Widget _buildNotCheckedInContent() {
     return const Center(
       child: Padding(
