@@ -54,20 +54,42 @@ class _CheckInPageState extends State<CheckInPage> {
   String? _studentPhotoLink;
 
   Future<void> _pickFile(int buttonIndex) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
 
     if (result != null) {
       File file = File(result.files.single.path!);
+      
+      // Check file size
+      int fileSizeInBytes = await file.length();
+      double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+
+      if (fileSizeInMB > 5) {
+        // Show error message if file size exceeds 5 MB
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("File size exceeds 5 MB. Please choose a smaller file."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
 
       setState(() {
         if (buttonIndex == 1) {
           _frontMatricPic = file;
+          _imageUploaded[0] = true;
         } else if (buttonIndex == 2) {
           _backMatricPic = file;
+          _imageUploaded[1] = true;
         } else if (buttonIndex == 3) {
           _passportMyKadPic = file;
+          _imageUploaded[2] = true;
         } else if (buttonIndex == 4) {
           _studentPhoto = file;
+          _imageUploaded[3] = true;
         }
       });
     }
@@ -414,10 +436,13 @@ class _CheckInPageState extends State<CheckInPage> {
 
                     if (roomType != null && priceToDisplay != null)
                       Text(
-                        'Price: $priceToDisplay RM',
+                        'Total Price: $priceToDisplay RM + 580 RM Deposit',
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 20),
                       ),
+                    const SizedBox(height: 10),
+                    const Text(
+                        "A deposit of 580 RM is required for first time check-in. It will be refunded upon check-out."),
 
                     const SizedBox(height: 16),
                     Row(

@@ -192,24 +192,43 @@ class UserController extends ChangeNotifier {
           message: 'User not found in any collection',
         );
       }
-
-      // Trigger a rebuild of the widget tree if needed
     } on FirebaseAuthException catch (e) {
-      // Handle specific FirebaseAuthException
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? 'Login failed. Please try again.'),
-        ),
-      );
+      print(
+          "FirebaseAuthException code: ${e.code}"); // Log error code for debugging
+      // Pass the specific FirebaseAuthException to the login page
+      throw e;
     } catch (e) {
-      // Handle other exceptions
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login failed. Please try again.')),
+      print("General exception: $e"); // Log general exceptions
+      // Handle generic errors
+      throw FirebaseAuthException(
+        code: 'unknown-error',
+        message: 'An unexpected error occurred. Please try again.',
       );
     }
   }
 
-
+  String getErrorMessage(String errorCode) {
+    switch (errorCode) {
+      case 'invalid-credential':
+        return 'Email or Password is incorrect. Please try again.';
+      case 'invalid-password':
+        return 'Wrong password provided for this user.';
+      case 'invalid-email':
+        return 'The email address is badly formatted.';
+      case 'user-disabled':
+        return 'This user account has been disabled.';
+      case 'too-many-requests':
+        return 'Too many unsuccessful login attempts. Please try again later.';
+      case 'operation-not-allowed':
+        return 'Email/password accounts are not enabled.';
+      case 'user-not-found':
+        return 'User not found. Please register an account.';
+      case 'email-already-exists':
+        return 'Email already exists. Please use another email.';
+      default:
+        return 'Login failed. Please try again.';
+    }
+  }
 
   Future<void> changePassword(
       String email, String oldPassword, String newPassword) async {

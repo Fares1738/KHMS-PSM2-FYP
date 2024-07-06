@@ -92,10 +92,10 @@ class PaymentController {
 
   final _firestore = FirebaseFirestore.instance;
 
-  Future<void> updateFacilitySubscription(String studentId) async {
+  Future<void> updateFacilitySubscription(String studentId, int facilitiesDaysLeft) async {
     await _firestore.collection('Students').doc(studentId).update({
       'facilitySubscription': true,
-      'lastFacilitySubscriptionPaidDate': DateTime.now()
+      'lastFacilitySubscriptionPaidDate': DateTime.now().add(Duration(days: facilitiesDaysLeft)),
     });
 
     FirebaseApi.sendNotification('Students', studentId, 'Facility Subscription',

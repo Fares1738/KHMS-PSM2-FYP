@@ -1,19 +1,25 @@
-// ignore_for_file: library_private_types_in_public_api
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/paymentController.dart';
 import 'package:khms/Controller/checkInController.dart';
 import 'package:khms/View/Student/studentMainPage.dart';
 
 class StripePaymentPage extends StatefulWidget {
-  final int priceToDisplay;
+  final int? priceToDisplay;
   final String? checkInApplicationId;
   final String? studentId;
+  final int? priceWithDeposit;
+  final int? rentDaysLeft;
+  final int? facilitiesDaysLeft;
 
-  const StripePaymentPage(
-      {super.key,
-      required this.priceToDisplay,
-      this.checkInApplicationId,
-      this.studentId});
+  const StripePaymentPage({
+    super.key,
+    this.priceToDisplay,
+    this.checkInApplicationId,
+    this.studentId,
+    this.priceWithDeposit,
+    this.rentDaysLeft,
+    this.facilitiesDaysLeft,
+  });
 
   @override
   _StripePaymentPageState createState() => _StripePaymentPageState();
@@ -24,11 +30,14 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
   final CheckInController _checkInController = CheckInController();
   bool _isLoading = true;
   bool _paymentSuccessful = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
     super.initState();
-    _makePayment();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _makePayment();
+    });
   }
 
   @override
@@ -42,14 +51,23 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
             ? const CircularProgressIndicator()
             : _paymentSuccessful
                 ? const Text('Payment Successful')
-                : const Text('Payment Cancelled or Failed'),
+                : Text(_errorMessage.isNotEmpty
+                    ? _errorMessage
+                    : 'Payment Cancelled or Failed'),
       ),
     );
   }
 
   Future<void> _makePayment() async {
     try {
-      int price = widget.priceToDisplay * 100;
+      int price;
+      if (widget.priceWithDeposit != null) {
+        price = widget.priceWithDeposit! * 100;
+      } else if (widget.priceToDisplay != null) {
+        price = widget.priceToDisplay! * 100;
+      } else {
+        throw Exception('Both priceWithDeposit and priceToDisplay are null');
+      }
 
       // Create payment intent
       final paymentIntent = await _paymentController.createPaymentIntent(
@@ -64,48 +82,57 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
       await _paymentController.displayPaymentSheet(context);
 
       // Check if the payment was successful
-      // You'll need to implement this method in your PaymentController
+      String paymentIntentId = paymentIntent['id'] as String? ?? '';
+      if (paymentIntentId.isEmpty) {
+        throw Exception('Payment intent ID is empty');
+      }
+
       bool paymentSuccessful =
-          await _paymentController.checkPaymentStatus(paymentIntent['id']);
+          await _paymentController.checkPaymentStatus(paymentIntentId);
 
       if (paymentSuccessful) {
-        // Payment was successful
         setState(() {
           _isLoading = false;
           _paymentSuccessful = true;
         });
 
-        // Update the check-in application with payment status
-        if (widget.checkInApplicationId != null) {
+        if (widget.checkInApplicationId != null && widget.studentId != null) {
           await _checkInController.updateCheckInApplicationWithPayment(
-              widget.checkInApplicationId!, widget.studentId!);
-          Navigator.push(context,
+              widget.checkInApplicationId!, widget.studentId!, widget.rentDaysLeft!);
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => StudentMainPage()));
+        } else if (widget.studentId != null) {
+          await _paymentController
+              .updateFacilitySubscription(widget.studentId!, widget.facilitiesDaysLeft!);
+          Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => StudentMainPage()));
         } else {
-          await _paymentController
-              .updateFacilitySubscription(widget.studentId!);
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => StudentMainPage()));
+          throw Exception('Student ID is null');
         }
       } else {
-        // Payment was cancelled or failed
         setState(() {
           _isLoading = false;
           _paymentSuccessful = false;
+          _errorMessage = 'Payment was not successful';
         });
       }
     } catch (err) {
-      // Handle errors and show a Snackbar or dialog
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Payment was not successful: $err')),
-      );
+      _showErrorSnackBar('Error: ${err.toString()}');
       print('Error making payment: $err');
 
-      // If there's an error, update UI state
       setState(() {
         _isLoading = false;
         _paymentSuccessful = false;
+        _errorMessage = 'Payment failed: ${err.toString()}';
       });
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
     }
   }
 }

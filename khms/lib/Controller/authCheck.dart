@@ -37,6 +37,12 @@ class _AuthCheckState extends State<AuthCheck> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
+              if (snapshot.hasError) {
+                // Handle errors here (e.g., show an error message)
+                return Center(
+                  child: Text('Error: ${snapshot.error}'),
+                );
+              }
               if (snapshot.hasData) {
                 DocumentSnapshot studentDoc = snapshot.data![0];
                 DocumentSnapshot staffDoc = snapshot.data![1];

@@ -124,7 +124,7 @@ class CheckInController {
             MaterialPageRoute(
                 builder: (context) => StripePaymentPage(
                       studentId: storedStudentId,
-                      priceToDisplay: price,
+                      priceWithDeposit: price + 580,
                       checkInApplicationId: checkInApplicationId ?? '',
                     )));
       } else {
@@ -197,13 +197,11 @@ class CheckInController {
     }
   }
 
-  Future<void> updateCheckInApplication(CheckInApplication application,
+  Future updateCheckInApplication(CheckInApplication application,
       String newStatus, String? roomNo, String? rejectionReason) async {
     try {
       final firestore = FirebaseFirestore.instance;
-
       WriteBatch batch = firestore.batch();
-
       Map<String, dynamic> updateData = {
         'checkInStatus': newStatus,
         if (newStatus == 'Approved') 'checkInApprovalDate': Timestamp.now(),
@@ -222,9 +220,14 @@ class CheckInController {
         updateData,
       );
 
+      // Update the Student document
+      Map<String, dynamic> studentUpdateData = {'studentRoomNo': roomNo};
+      if (newStatus == 'Approved') {
+        studentUpdateData['lastRentPaidDate'] = Timestamp.now();
+      }
       batch.update(
         firestore.collection('Students').doc(application.studentId),
-        {'studentRoomNo': roomNo},
+        studentUpdateData,
       );
 
       if (newStatus == 'Approved' &&
@@ -240,14 +243,12 @@ class CheckInController {
           {'roomAvailability': false},
         );
       }
-
       // Check if room type is double or triple
       if (newStatus == 'Approved' &&
           roomNo != null &&
           application.roomType != 'Single') {
         final assignedCount = await getAssignedTenantsCount(roomNo);
         final capacity = application.roomType == 'Double' ? 2 : 3;
-
         if (assignedCount == capacity - 1) {
           // Update roomAvailability to false
           batch.update(
@@ -260,7 +261,6 @@ class CheckInController {
           );
         }
       }
-
       await batch.commit();
       FirebaseApi.sendNotification(
         'CheckInApplications',
@@ -328,7 +328,7 @@ class CheckInController {
   final _firestore = FirebaseFirestore.instance;
 
   Future<void> updateCheckInApplicationWithPayment(
-      String checkInApplicationId, String studentId) async {
+      String checkInApplicationId, String studentId, int rentDaysLeft) async {
     try {
       // Update the CheckInApplication document in Firestore
       await _firestore
@@ -340,7 +340,7 @@ class CheckInController {
 
       // Update the Student document in Firestore
       await _firestore.collection('Students').doc(studentId).update({
-        'lastRentPaidDate': DateTime.now(),
+        'lastRentPaidDate': DateTime.now().add(Duration(days: rentDaysLeft)),
       });
     } catch (e) {
       throw Exception(

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/userController.dart';
 import 'package:khms/View/Common/resetPasswordPage.dart';
@@ -14,8 +15,9 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _controller = UserController();
+  final _userController = UserController();
   bool _obscurePassword = true;
+  String? _errorMessage;
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
@@ -54,7 +56,6 @@ class _LoginPageState extends State<LoginPage> {
             key: _formKey,
             child: Column(
               children: [
-                // Remove mainAxisAlignment
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
@@ -102,28 +103,21 @@ class _LoginPageState extends State<LoginPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 25), // Increase space here
+                const SizedBox(height: 10),
+                if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                const SizedBox(height: 15),
                 FilledButton(
                   style: FilledButton.styleFrom(
-                    minimumSize:
-                        const Size.fromHeight(50), // Adjust button height
+                    minimumSize: const Size.fromHeight(50),
                   ),
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      const LoadingDialog(message: "Logging in");
-
-                      try {
-                        await _controller.signInWithEmailAndPassword(
-                          context,
-                          _emailController.text,
-                          _passwordController.text,
-                        );
-                      } catch (e) {
-                        // Handle any errors here
-                        print('Login failed: $e');
-                      }
-                    }
-                  },
+                  onPressed: _login,
                   child: const Text('Login'),
                 ),
                 TextButton(
@@ -149,6 +143,52 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+
+Future<void> _login() async {
+  if (_formKey.currentState!.validate()) {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const LoadingDialog(message: "Logging in...");
+      },
+    );
+
+    try {
+      await _userController.signInWithEmailAndPassword(
+          context, _emailController.text, _passwordController.text);
+    } on FirebaseAuthException catch (e) {
+      // Hide loading dialog
+      Navigator.of(context).pop();
+
+      setState(() {
+        _errorMessage = _userController.getErrorMessage(e.code);
+      });
+
+      // Show the error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_errorMessage!)),
+      );
+    } catch (e) {
+      // Hide loading dialog
+      Navigator.of(context).pop();
+
+      setState(() {
+        _errorMessage = 'An unexpected error occurred. Please try again.';
+      });
+
+      // Show the error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_errorMessage!)),
+      );
+    }
+  }
+}
+
+
+
+
 
   @override
   void dispose() {

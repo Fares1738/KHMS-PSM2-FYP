@@ -58,11 +58,33 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1920, // Optional: limit image resolution
+      maxHeight: 1080, // Optional: limit image resolution
+    );
 
     if (pickedFile != null) {
+      File file = File(pickedFile.path);
+
+      // Check file size
+      int fileSizeInBytes = await file.length();
+      double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+
+      if (fileSizeInMB > 5) {
+        // Show error message if file size exceeds 5 MB
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text("Image size exceeds 5 MB. Please choose a smaller image."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       setState(() {
-        _pickedImage = File(pickedFile.path);
+        _pickedImage = file;
       });
     }
   }
@@ -295,7 +317,8 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
               backgroundDecoration: const BoxDecoration(
                 color: Colors.black,
               ),
-              heroAttributes: const PhotoViewHeroAttributes(tag: "complaintImage"),
+              heroAttributes:
+                  const PhotoViewHeroAttributes(tag: "complaintImage"),
             ),
           ),
         ),

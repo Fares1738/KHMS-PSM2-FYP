@@ -42,7 +42,54 @@ class _AnnouncementWidgetState extends State<AnnouncementWidget> {
 
   void _showAnnouncementDetails(
       BuildContext context, Announcement announcement) {
-    // ... (keep the existing _showAnnouncementDetails method unchanged)
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (announcement.imageUrl.isNotEmpty)
+                  Image.network(
+                    announcement.imageUrl,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                else
+                  const Icon(
+                    Icons.announcement,
+                    size: 150,
+                    color: Colors.grey,
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        announcement.title,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        announcement.description,
+                        style: const TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildNoAnnouncementsMessage() {

@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:khms/View/Student/stripePaymentPage.dart';
@@ -10,10 +12,12 @@ class AccommodationApplicationPage extends StatefulWidget {
   const AccommodationApplicationPage({super.key});
 
   @override
-  _AccommodationApplicationPageState createState() => _AccommodationApplicationPageState();
+  _AccommodationApplicationPageState createState() =>
+      _AccommodationApplicationPageState();
 }
 
-class _AccommodationApplicationPageState extends State<AccommodationApplicationPage> {
+class _AccommodationApplicationPageState
+    extends State<AccommodationApplicationPage> {
   late Future<String?> _studentIdFuture;
   late Future<Map<String, dynamic>?> _applicationDataFuture;
 
@@ -87,8 +91,8 @@ class _AccommodationApplicationPageState extends State<AccommodationApplicationP
                 }
 
                 final applicationData = applicationSnapshot.data;
-                final isPaid =
-                    applicationData != null && applicationData['isPaid'] == true;
+                final isPaid = applicationData != null &&
+                    applicationData['isPaid'] == true;
                 final price =
                     applicationData != null ? applicationData['price'] : 0;
                 final checkInApplicationId = applicationData != null
@@ -124,7 +128,7 @@ class _AccommodationApplicationPageState extends State<AccommodationApplicationP
 
   // ... (rest of the widget methods remain the same)
 
-    Widget _buildErrorWidget(String message) {
+  Widget _buildErrorWidget(String message) {
     return Center(
       child: Card(
         color: Colors.red[100],
@@ -184,7 +188,7 @@ class _AccommodationApplicationPageState extends State<AccommodationApplicationP
             ),
             const SizedBox(height: 8),
             const Text(
-              "You have submitted the application but have not paid yet.",
+              "You have submitted the application but have not paid yet. Either pay by cash or continue with online payment.",
               style: TextStyle(color: Colors.red, fontSize: 16),
               textAlign: TextAlign.center,
             ),
@@ -204,7 +208,7 @@ class _AccommodationApplicationPageState extends State<AccommodationApplicationP
                   MaterialPageRoute(
                     builder: (context) => StripePaymentPage(
                       checkInApplicationId: checkInApplicationId,
-                      priceToDisplay: price,
+                      priceWithDeposit: price + 580,
                     ),
                   ),
                 );
