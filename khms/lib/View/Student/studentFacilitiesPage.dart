@@ -175,9 +175,12 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
         onRefresh: _refreshData,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height -
-                AppBar().preferredSize.height,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height -
+                  AppBar().preferredSize.height -
+                  MediaQuery.of(context).padding.top,
+            ),
             child: hasRoomNumber
                 ? (facilitySubscription == true
                     ? _buildBookingContent()
@@ -190,7 +193,7 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
   }
 
   Widget _buildBookingContent() {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -203,7 +206,6 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
     );
   }
 
-  // ... (rest of the widget methods remain the same)
   Widget _buildNotCheckedInContent() {
     return const Center(
       child: Padding(
@@ -332,6 +334,9 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
         }
         final facilities = snapshot.data ?? [];
 
+        facilities.sort((a, b) =>
+            b.facilityApplicationDate.compareTo(a.facilityApplicationDate));
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -450,7 +455,6 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
                       );
                     },
                   ),
-            const SizedBox(height: 24)
           ],
         );
       },

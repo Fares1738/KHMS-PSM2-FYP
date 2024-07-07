@@ -47,7 +47,7 @@ class FacilitiesController {
       );
 
       FirebaseApi.sendNotification(
-        'New ${facilityData.facilityType} Booking',
+        'New Facility Booking',
         'A new facility booking has been submitted. Please review it.',
         notificationType: NotificationType.staff,
         staffTypes: {

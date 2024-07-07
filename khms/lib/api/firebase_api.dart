@@ -36,11 +36,10 @@ class FirebaseApi {
           notification.body,
           const NotificationDetails(
             android: AndroidNotificationDetails(
-              'high_importance_channel',
-              'High Importance Notifications',
-              importance: Importance.max,
-              priority: Priority.high,
-            ),
+                'high_importance_channel', 'High Importance Notifications',
+                importance: Importance.max,
+                priority: Priority.high,
+                icon: 'logo'),
           ),
         );
       }
