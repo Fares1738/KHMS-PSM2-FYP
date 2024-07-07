@@ -48,8 +48,8 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
   }
 
   Future<void> _updateComplaintStatus(
-      String complaintId, ComplaintStatus status) async {
-    await _controller.updateComplaintStatus(complaintId, status);
+      String complaintId, ComplaintStatus status, String complaintNote) async {
+    await _controller.updateComplaintStatus(complaintId, status, complaintNote);
     _fetchComplaints();
   }
 
@@ -87,10 +87,34 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
       ),
       body: RefreshIndicator(
         onRefresh: _refreshComplaints,
-        child: ListView(
-          children: [
-            _buildFilterSection(),
-            _buildComplaintList(filteredComplaints),
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: _buildFilterSection(),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  if (isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (filteredComplaints.isEmpty) {
+                    return Center(
+                      child: Text(
+                        "No complaints found.",
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                    );
+                  }
+                  return _buildComplaintCard(filteredComplaints[index]);
+                },
+                childCount: isLoading
+                    ? 1
+                    : filteredComplaints.isEmpty
+                        ? 1
+                        : filteredComplaints.length,
+              ),
+            ),
           ],
         ),
       ),
@@ -165,6 +189,53 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
     );
   }
 
+  Widget _buildComplaintCard(Complaint complaint) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: CircleAvatar(
+          backgroundColor: _getStatusColor(complaint.complaintStatus.name),
+          child: Text(
+            complaint.complaintStatus.name[0],
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+        title: Text(
+          complaint.complaintDescription,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text('Room: ${complaint.studentRoomNo ?? "N/A"}'),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow('Location', complaint.complaintLocation),
+                _buildInfoRow('Type', complaint.complaintType),
+                _buildInfoRow('Sub-Type', complaint.complaintSubType),
+                _buildInfoRow('Date',
+                    DateFormat('MMM d, yyyy').format(complaint.complaintDate)),
+                _buildInfoRow('Notes', complaint.complaintNote ?? 'N/A'),
+                if (complaint.complaintImageUrl.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildExpandableImage(complaint.complaintImageUrl),
+                ],
+                if (complaint.complaintStatus != ComplaintStatus.Resolved) ...[
+                  const SizedBox(height: 16),
+                  _buildActionButtons(complaint),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFilterDropdown(String label, String value, List<String> items,
       Function(String?) onChanged) {
     return Column(
@@ -192,77 +263,6 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildComplaintList(List<Complaint> complaints) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (complaints.isEmpty) {
-      return Center(
-        child: Text(
-          "No complaints found.",
-          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: complaints.length,
-      itemBuilder: (context, index) {
-        final complaint = complaints[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: ExpansionTile(
-            leading: CircleAvatar(
-              backgroundColor: _getStatusColor(complaint.complaintStatus.name),
-              child: Text(
-                complaint.complaintStatus.name[0],
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-            title: Text(
-              complaint.complaintDescription,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text('Room: ${complaint.studentRoomNo ?? "N/A"}'),
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInfoRow('Location', complaint.complaintLocation),
-                    _buildInfoRow('Type', complaint.complaintType),
-                    _buildInfoRow('Sub-Type', complaint.complaintSubType),
-                    _buildInfoRow(
-                        'Date',
-                        DateFormat('MMM d, yyyy')
-                            .format(complaint.complaintDate)),
-                    if (complaint.complaintImageUrl.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      _buildExpandableImage(complaint.complaintImageUrl),
-                    ],
-                    if (complaint.complaintStatus !=
-                        ComplaintStatus.Resolved) ...[
-                      const SizedBox(height: 16),
-                      _buildActionButtons(complaint),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -348,23 +348,57 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
           'Resolved',
           Colors.green,
           () => _updateComplaintStatus(
-              complaint.complaintId, ComplaintStatus.Resolved),
+              complaint.complaintId, ComplaintStatus.Resolved, ''),
         ),
         if (complaint.complaintStatus != ComplaintStatus.Pending)
           _buildActionButton(
             'Pending',
             Colors.orange,
             () => _updateComplaintStatus(
-                complaint.complaintId, ComplaintStatus.Pending),
+                complaint.complaintId, ComplaintStatus.Pending, ''),
           ),
         if (complaint.complaintStatus != ComplaintStatus.Unresolved)
           _buildActionButton(
             'Unresolved',
             Colors.red,
-            () => _updateComplaintStatus(
-                complaint.complaintId, ComplaintStatus.Unresolved),
+            () => _showUnresolvedDialog(complaint),
           ),
       ],
+    );
+  }
+
+  void _showUnresolvedDialog(Complaint complaint) {
+    String complaintNote = '';
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Attach Note'),
+          content: TextField(
+            onChanged: (value) {
+              complaintNote = value;
+            },
+            decoration: const InputDecoration(hintText: "Enter note here"),
+            maxLines: 1,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _updateComplaintStatus(complaint.complaintId,
+                    ComplaintStatus.Unresolved, complaintNote);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

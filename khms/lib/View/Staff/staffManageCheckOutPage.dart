@@ -120,7 +120,7 @@ class _CheckOutApplicationsListPageState
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      labelText: 'Search by name',
+                      labelText: 'Search by Name',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

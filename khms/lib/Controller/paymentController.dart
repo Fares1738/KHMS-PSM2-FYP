@@ -92,13 +92,18 @@ class PaymentController {
 
   final _firestore = FirebaseFirestore.instance;
 
-  Future<void> updateFacilitySubscription(String studentId, int facilitiesDaysLeft) async {
+  Future<void> updateFacilitySubscription(
+      String studentId, int facilitiesDaysLeft) async {
     await _firestore.collection('Students').doc(studentId).update({
       'facilitySubscription': true,
-      'lastFacilitySubscriptionPaidDate': DateTime.now().add(Duration(days: facilitiesDaysLeft)),
+      'lastFacilitySubscriptionPaidDate':
+          DateTime.now().add(Duration(days: facilitiesDaysLeft)),
     });
 
-    FirebaseApi.sendNotification('Students', studentId, 'Facility Subscription',
+    FirebaseApi.sendNotification(
+        collectionName: 'Students',
+        documentId: studentId,
+        'Facility Subscription',
         'Your facility subscription has been activated. Enjoy the facilities!');
   }
 }

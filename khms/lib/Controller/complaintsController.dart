@@ -37,6 +37,13 @@ class ComplaintsController {
         context,
         MaterialPageRoute(builder: (context) => StudentMainPage()),
       );
+
+      FirebaseApi.sendNotification(
+        'New Complaint',
+        'A new complaint has been submitted. Please review it.',
+        notificationType: NotificationType.staff,
+        staffTypes: {StaffType.maintenance},
+      );
     } catch (e) {
       print('Error submitting complaint: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -54,13 +61,14 @@ class ComplaintsController {
   }
 
   Future<void> updateComplaintStatus(
-      String complaintId, ComplaintStatus status) async {
+      String complaintId, ComplaintStatus status, String complaintNote) async {
     await _firestore.collection('Complaints').doc(complaintId).update({
       'complaintStatus': status.name,
+      'complaintNote': complaintNote,
     });
     FirebaseApi.sendNotification(
-        'Complaints',
-        complaintId,
+        collectionName: 'Complaints',
+        documentId: complaintId,
         'Complaint Status is ${status.name}',
         'Your complaint status has been ${status.name}. Check the app for more details.');
   }

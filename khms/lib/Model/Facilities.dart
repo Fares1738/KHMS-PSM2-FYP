@@ -12,17 +12,18 @@ class Facilities {
   Student? student;
   String? studentRoomNo;
   String facilityApplicationStatus;
+  String? facilityRejectedReason;
 
-  Facilities({
-    required this.facilityApplicationId,
-    required this.facilityApplicationDate,
-    required this.facilitySlot,
-    required this.facilityType,
-    required this.studentId,
-     this.studentRoomNo,
-    required this.facilityApplicationStatus,
-    this.student
-  });
+  Facilities(
+      {required this.facilityApplicationId,
+      required this.facilityApplicationDate,
+      required this.facilitySlot,
+      required this.facilityType,
+      required this.studentId,
+      this.studentRoomNo,
+      required this.facilityApplicationStatus,
+      this.student,
+      this.facilityRejectedReason});
 
   // Update toMap method
   Map<String, dynamic> toMap() {
@@ -34,6 +35,7 @@ class Facilities {
       'studentId': studentId,
       'studentRoomNo': studentRoomNo,
       'facilityStatus': facilityApplicationStatus,
+      'facilityRejectedReason': facilityRejectedReason
     };
   }
 
@@ -46,6 +48,7 @@ class Facilities {
         facilityType: map['facilityType'] as String? ?? '',
         studentId: map['studentId'] as String? ?? '',
         studentRoomNo: map['studentRoomNo'] as String? ?? '',
+        facilityRejectedReason: map['rejectedReason'] as String? ?? '',
         facilityApplicationStatus:
             map['facilityStatus'] as String? ?? 'Pending');
   }

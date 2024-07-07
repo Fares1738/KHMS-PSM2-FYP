@@ -43,6 +43,14 @@ class CheckOutController {
           context,
           MaterialPageRoute(builder: (context) => StudentMainPage()),
         );
+
+        // Send a notification to the staff
+        FirebaseApi.sendNotification(
+          'New Check-Out Application',
+          'A new check-out application has been submitted. Please review it.',
+          notificationType: NotificationType.staff,
+          staffTypes: {StaffType.manager, StaffType.staff},
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Please select a date!")));
@@ -113,8 +121,8 @@ class CheckOutController {
       );
 
       FirebaseApi.sendNotification(
-        'CheckOutApplications',
-        application.checkOutApplicationId,
+        collectionName: 'CheckOutApplications',
+        documentId: application.checkOutApplicationId,
         'Check-Out Status is $newStatus',
         'Your check-out time will be at ${selectedTime!.hour}:${selectedTime.minute}. Check the app for more details.',
       );
@@ -153,7 +161,6 @@ class CheckOutController {
 
   Future<void> deleteUserDocuments(String studentId) async {
     try {
-
       List<String> relatedCollections = [
         'CheckInApplications',
         'Complaints',

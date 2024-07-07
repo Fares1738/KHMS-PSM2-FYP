@@ -19,13 +19,17 @@ class BookFacilitiesPage extends StatefulWidget {
 class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
   final FacilitiesController _controller = FacilitiesController();
   final UserController _userController = UserController();
+
   String studentId = '';
   bool? facilitySubscription;
   bool hasRoomNumber = false;
   Stream<List<String>>? _bookedTimeSlotsStream;
+  Stream<List<Facilities>>? _userBookedFacilitiesStream;
+
   DateTime? _selectedDate;
   String? _selectedTimeSlot, _selectedFacilityType;
   Map<String, bool> _facilityAvailability = {};
+
   final List<String> _timeSlots = [
     '10:00 AM - 11:00 AM',
     '11:00 AM - 12:00 PM',
@@ -42,6 +46,24 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
   ];
   List<String> _facilityTypes = [];
 
+  List<String> _getAvailableTimeSlots() {
+    final now = DateTime.now();
+    final currentTime =
+        DateTime(now.year, now.month, now.day, now.hour, now.minute);
+
+    return _timeSlots.where((slot) {
+      final slotStartTime = DateFormat('hh:mm a').parse(slot.split(' - ')[0]);
+      final slotDateTime = DateTime(
+        _selectedDate?.year ?? now.year,
+        _selectedDate?.month ?? now.month,
+        _selectedDate?.day ?? now.day,
+        slotStartTime.hour,
+        slotStartTime.minute,
+      );
+      return slotDateTime.isAfter(currentTime);
+    }).toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +76,14 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
       _fetchFacilityAvailability(),
       _fetchFacilityTypes(),
     ]);
+    _initializeUserBookedFacilitiesStream();
+  }
+
+  void _initializeUserBookedFacilitiesStream() {
+    if (studentId.isNotEmpty) {
+      _userBookedFacilitiesStream =
+          _controller.streamStudentFacilityApplications(studentId);
+    }
   }
 
   Future<void> _fetchStudentData() async {
@@ -145,16 +175,30 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
         onRefresh: _refreshData,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Container(
+          child: SizedBox(
             height: MediaQuery.of(context).size.height -
                 AppBar().preferredSize.height,
             child: hasRoomNumber
                 ? (facilitySubscription == true
-                    ? _buildBookingForm()
+                    ? _buildBookingContent()
                     : _buildSubscriptionPrompt())
                 : _buildNotCheckedInContent(),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBookingContent() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildBookingForm(),
+          const SizedBox(height: 24),
+          _buildUserBookedFacilitiesList(),
+        ],
       ),
     );
   }
@@ -186,20 +230,17 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
   }
 
   Widget _buildBookingForm() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildDatePicker(),
-          const SizedBox(height: 16),
-          _buildFacilityTypeDropdown(),
-          const SizedBox(height: 16),
-          _buildTimeSlotDropdown(),
-          const SizedBox(height: 24),
-          _buildSubmitButton(),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildDatePicker(),
+        const SizedBox(height: 16),
+        _buildFacilityTypeDropdown(),
+        const SizedBox(height: 16),
+        _buildTimeSlotDropdown(),
+        const SizedBox(height: 24),
+        _buildSubmitButton(),
+      ],
     );
   }
 
@@ -279,6 +320,154 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
     );
   }
 
+  Widget _buildUserBookedFacilitiesList() {
+    return StreamBuilder<List<Facilities>>(
+      stream: _userBookedFacilitiesStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+        final facilities = snapshot.data ?? [];
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Your Booked Facilities',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            facilities.isEmpty
+                ? const Text('No facilities booked yet.')
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: facilities.length,
+                    itemBuilder: (context, index) {
+                      final facility = facilities[index];
+                      return Card(
+                        elevation: 2,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      facility.facilityType,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: _getStatusColor(facility
+                                              .facilityApplicationStatus)
+                                          .withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      facility.facilityApplicationStatus,
+                                      style: TextStyle(
+                                        color: _getStatusColor(
+                                            facility.facilityApplicationStatus),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(Icons.calendar_today,
+                                      size: 16, color: Colors.grey[600]),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      DateFormat('MMM d, yyyy').format(
+                                          facility.facilityApplicationDate),
+                                      style: TextStyle(color: Colors.grey[600]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(Icons.access_time,
+                                      size: 16, color: Colors.grey[600]),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      facility.facilitySlot!,
+                                      style: TextStyle(color: Colors.grey[600]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (facility.facilityRejectedReason != null &&
+                                  facility
+                                      .facilityRejectedReason!.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Rejection Reason: ${facility.facilityRejectedReason}',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+            const SizedBox(height: 24)
+          ],
+        );
+      },
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Approved':
+        return Colors.green;
+      case 'Rejected':
+        return Colors.red;
+      default:
+        return Colors.orange;
+    }
+  }
+
   Widget _buildTimeSlotDropdown() {
     return StreamBuilder<List<String>>(
       stream: _bookedTimeSlotsStream,
@@ -287,6 +476,8 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
           return const Center(child: CircularProgressIndicator());
         }
         final bookedTimeSlots = snapshot.data ?? [];
+        final availableTimeSlots = _getAvailableTimeSlots();
+
         return Card(
           elevation: 2,
           shape:
@@ -295,7 +486,7 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: DropdownButtonFormField<String>(
               value: _selectedTimeSlot,
-              items: _timeSlots.map((slot) {
+              items: availableTimeSlots.map((slot) {
                 final isBooked = bookedTimeSlots.contains(slot);
                 return DropdownMenuItem<String>(
                   value: slot,
@@ -349,7 +540,7 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
           facilityApplicationDate: _selectedDate!,
           facilitySlot: _selectedTimeSlot!,
           facilityType: _selectedFacilityType!,
-          studentId: '',
+          studentId: studentId,
           studentRoomNo: _userController.student?.studentRoomNo ?? '',
           facilityApplicationStatus: 'Pending',
         ),

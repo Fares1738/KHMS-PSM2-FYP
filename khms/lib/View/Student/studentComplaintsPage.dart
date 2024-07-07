@@ -72,7 +72,8 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Complaints'),
+        title: const Text('Complaints',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -94,7 +95,7 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
       padding: const EdgeInsets.all(16),
       children: [
         _buildAddComplaintButton(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         _complaints.isEmpty
             ? _buildEmptyState()
             : Column(
@@ -102,10 +103,10 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
                     .map((complaint) => _buildComplaintItem(complaint))
                     .toList(),
               ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         const Text(
-          "Your complaints are listed here. Pull down to refresh.",
-          style: TextStyle(color: Colors.grey, fontSize: 12),
+          "Pull down to refresh your complaints.",
+          style: TextStyle(color: Colors.grey, fontSize: 14),
           textAlign: TextAlign.center,
         ),
       ],
@@ -123,34 +124,35 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
           ),
         ).then((_) => _refreshData());
       },
-      icon: const Icon(Icons.add),
-      label: const Text("Add New Complaint"),
+      icon: const Icon(Icons.add, size: 20),
+      label: const Text("Add New Complaint", style: TextStyle(fontSize: 16)),
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),
         ),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+        elevation: 2,
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Container(
-      height: MediaQuery.of(context).size.height - 200, // Adjust as needed
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - 200,
       child: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.sentiment_satisfied, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
+            Icon(Icons.sentiment_satisfied, size: 80, color: Colors.grey),
+            SizedBox(height: 24),
             Text(
               'No complaints yet',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 12),
             Text(
               'Great! Looks like everything is going well.',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: Colors.grey, fontSize: 16),
             ),
           ],
         ),
@@ -162,25 +164,25 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
-        Container(
-          height: MediaQuery.of(context).size.height - 100, // Adjust as needed
+        SizedBox(
+          height: MediaQuery.of(context).size.height - 100,
           child: const Center(
             child: Padding(
               padding: EdgeInsets.all(24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.warning, size: 64, color: Colors.orange),
-                  SizedBox(height: 16),
+                  Icon(Icons.warning, size: 80, color: Colors.orange),
+                  SizedBox(height: 24),
                   Text(
                     'Check-In Required',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 16),
                   Text(
                     'Your check-in application must be approved before you can access this page.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                 ],
               ),
@@ -214,11 +216,11 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
 
   Widget _buildComplaintItem(Complaint complaint) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -228,28 +230,44 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
                 Text(
                   DateFormat('d MMM yyyy | hh:mm a')
                       .format(complaint.complaintDate),
-                  style: const TextStyle(color: Colors.grey),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
                 _buildStatusIndicator(complaint.complaintStatus),
               ],
             ),
-            const SizedBox(height: 8),
             Text(
               complaint.complaintType,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               complaint.complaintDescription,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 4),
-            Text(
-              complaint.complaintLocation,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            Row(
+              children: [
+                Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 4),
+                Text(
+                  complaint.complaintLocation,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
             ),
+            if (complaint.complaintNote != null &&
+                complaint.complaintNote!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Note from Maintenance: ${complaint.complaintNote}',
+                style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic),
+              ),
+            ],
             if (complaint.complaintImageUrl.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               GestureDetector(
                 onTap: () => _showFullScreenImage(complaint.complaintImageUrl),
                 child: Container(
@@ -260,7 +278,7 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
                       image: NetworkImage(complaint.complaintImageUrl),
                       fit: BoxFit.cover,
                     ),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.shade300),
                   ),
                 ),
@@ -296,21 +314,24 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
       default:
         icon = Icons.info;
         text = 'Visit Office';
-        color = Colors.grey;
+        color = Colors.blue;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: color, size: 16),
-          const SizedBox(width: 4),
-          Text(text, style: TextStyle(color: color, fontSize: 12)),
+          const SizedBox(width: 6),
+          Text(text,
+              style: TextStyle(
+                  color: color, fontSize: 14, fontWeight: FontWeight.bold)),
         ],
       ),
     );

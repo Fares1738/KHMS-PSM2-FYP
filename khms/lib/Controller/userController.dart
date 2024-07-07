@@ -176,6 +176,11 @@ class UserController extends ChangeNotifier {
         // Get userType directly from Firestore
         String userType = staffDoc.get('userType');
         await prefs.setString('userType', userType);
+        await prefs.setString('fcmToken', fcmToken);
+
+        await _firestore.collection('Staff').doc(uid).update({
+          'fcmToken': fcmToken,
+        });
 
         Navigator.pushReplacement(
           context,

@@ -46,23 +46,61 @@ class _FacilityBookingsPageState extends State<FacilityBookingsPage> {
 
   void _approveApplication(String applicationId, String facilityType) {
     _controller.updateFacilityApplicationStatus(
-      applicationId,
-      'Approved',
-      facilityType,
-    );
+        applicationId, 'Approved', facilityType, '');
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Booking Approved')),
     );
   }
 
-  void _rejectApplication(String applicationId, String facilityType) {
+  void _rejectApplication(String applicationId, String facilityType,
+      String facilityRejectedReason) {
     _controller.updateFacilityApplicationStatus(
-      applicationId,
-      'Rejected',
-      facilityType,
-    );
+        applicationId, 'Rejected', facilityType, facilityRejectedReason);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Booking Rejected')),
+    );
+  }
+
+  void _showRejectDialog(String applicationId, String facilityType) {
+    String facilityRejectedReason = '';
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Reject Booking'),
+          content: TextField(
+            onChanged: (value) {
+              facilityRejectedReason = value;
+            },
+            decoration: const InputDecoration(
+              hintText: 'Enter reason for rejection',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Reject'),
+              onPressed: () {
+                if (facilityRejectedReason.isNotEmpty) {
+                  _rejectApplication(
+                      applicationId, facilityType, facilityRejectedReason);
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Please enter a reason for rejection')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -298,22 +336,33 @@ class _FacilityBookingsPageState extends State<FacilityBookingsPage> {
                   'Room No: ${facility.student?.studentRoomNo}',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
-                const SizedBox(height: 16),
+                if (facility.facilityRejectedReason != null &&
+                    facility.facilityRejectedReason!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Rejection Reason: ${facility.facilityRejectedReason}',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic),
+                  ),
+                ],
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    ElevatedButton(
+                      onPressed: () => _showRejectDialog(
+                          facility.facilityApplicationId,
+                          facility.facilityType),
+                      child: const Text('Reject'),
+                    ),
+                    const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: () => _approveApplication(
                           facility.facilityApplicationId,
                           facility.facilityType),
                       child: const Text('Approve'),
-                    ),
-                    const SizedBox(width: 8),
-                    OutlinedButton(
-                      onPressed: () => _rejectApplication(
-                          facility.facilityApplicationId,
-                          facility.facilityType),
-                      child: const Text('Reject'),
                     ),
                   ],
                 ),

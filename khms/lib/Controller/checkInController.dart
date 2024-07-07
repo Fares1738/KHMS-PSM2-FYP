@@ -131,6 +131,14 @@ class CheckInController {
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => StudentMainPage()));
       }
+
+      // Send notification to admin
+      FirebaseApi.sendNotification(
+        'New Check-In Application',
+        'A new check-in application has been submitted. Open the app to view details.',
+        notificationType: NotificationType.staff,
+        staffTypes: {StaffType.manager, StaffType.staff},
+      );
     } on FirebaseException {
     } catch (e) {
       print('Error submitting check-in application: $e');
@@ -263,8 +271,8 @@ class CheckInController {
       }
       await batch.commit();
       FirebaseApi.sendNotification(
-        'CheckInApplications',
-        application.checkInApplicationId,
+        collectionName: 'CheckInApplications',
+        documentId: application.checkInApplicationId,
         'Check-In Application Status Update',
         'Your check-in application status has been $newStatus. Open the app to view details.',
       );

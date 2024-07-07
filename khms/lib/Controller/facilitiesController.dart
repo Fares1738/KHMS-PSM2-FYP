@@ -45,6 +45,16 @@ class FacilitiesController {
         context,
         MaterialPageRoute(builder: (context) => StudentMainPage()),
       );
+
+      FirebaseApi.sendNotification(
+        'New ${facilityData.facilityType} Booking',
+        'A new facility booking has been submitted. Please review it.',
+        notificationType: NotificationType.staff,
+        staffTypes: {
+          StaffType.manager,
+          StaffType.staff,
+        },
+      );
     } on FirebaseException catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error submitting booking: ${error.message}')),
@@ -165,8 +175,7 @@ class FacilitiesController {
       for (var doc in applicationsSnapshot.docs) {
         final facilityData = doc.data();
         final studentId = facilityData['studentId'] as String;
-        final facilityType = doc.reference.parent.parent!
-            .id; // Get facility type from the parent document's ID
+        final facilityType = doc.reference.parent.parent!.id;
 
         // Add the Facility object to the list directly
         facilities.add(Facilities(
@@ -179,6 +188,8 @@ class FacilitiesController {
           studentRoomNo: studentMap[studentId]?.studentRoomNo ?? '',
           facilityApplicationStatus: facilityData['facilityStatus'] as String,
           student: studentMap[studentId],
+          facilityRejectedReason:
+              facilityData['facilityRejectedReason'] as String? ?? '',
         ));
       }
 
@@ -187,30 +198,22 @@ class FacilitiesController {
   }
 
   Future<List<String>> fetchFacilitiesList() {
-
     //return a list of documents within the Facilities collection
     return _firestore.collection('Facilities').get().then((querySnapshot) {
       return querySnapshot.docs.map((doc) => doc.id).toList();
     });
   }
 
-  Future<List<Facilities>> fetchStudentFacilityApplications(
-      String studentId) async {
-    try {
-      final QuerySnapshot applicationsSnapshot = await FirebaseFirestore
-          .instance
-          .collectionGroup('Applications')
-          .where('studentId', isEqualTo: studentId)
-          .get();
-
-      List<Facilities> facilities = [];
-
-      for (var doc in applicationsSnapshot.docs) {
-        final facilityData = doc.data() as Map<String, dynamic>;
-        final facilityType = doc.reference.parent.parent!
-            .id; // Get facility type from the parent document's ID
-
-        facilities.add(Facilities(
+  Stream<List<Facilities>> streamStudentFacilityApplications(String studentId) {
+    return FirebaseFirestore.instance
+        .collectionGroup('Applications')
+        .where('studentId', isEqualTo: studentId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final facilityData = doc.data();
+        final facilityType = doc.reference.parent.parent!.id;
+        return Facilities(
           facilityApplicationId: doc.id,
           facilityApplicationDate:
               (facilityData['facilityApplicationDate'] as Timestamp).toDate(),
@@ -218,29 +221,31 @@ class FacilitiesController {
           facilityType: facilityType,
           facilityApplicationStatus: facilityData['facilityStatus'] as String,
           studentId: studentId,
-          // Add more fields as needed
-        ));
-      }
-
-      return facilities;
-    } catch (e) {
-      print('Error fetching facility applications: $e');
-      rethrow; // Throw the error to handle it in UI or caller function
-    }
+          facilityRejectedReason:
+              facilityData['facilityRejectedReason'] as String? ?? '',
+        );
+      }).toList();
+    });
   }
 
   Future<void> updateFacilityApplicationStatus(
-      String applicationId, String status, String facilityType) async {
+      String applicationId,
+      String status,
+      String facilityType,
+      String? facilityRejectedReason) async {
     await _firestore
         .collection('Facilities')
         .doc(facilityType)
         .collection('Applications')
         .doc(applicationId)
-        .update({'facilityStatus': status});
+        .update({
+      'facilityStatus': status,
+      'facilityRejectedReason': facilityRejectedReason
+    });
 
     FirebaseApi.sendNotification(
-        'Facilities',
-        applicationId,
+        collectionName: 'Facilities',
+        documentId: applicationId,
         'Facility application is $status',
         'Your facility application has been $status. Check the app for more details.',
         subCollectionName: facilityType);

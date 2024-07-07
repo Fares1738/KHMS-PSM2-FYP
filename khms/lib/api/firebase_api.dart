@@ -6,6 +6,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 
+enum NotificationType { student, staff }
+
+enum StaffType { all, manager, staff, maintenance }
+
 class FirebaseApi {
   final _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -90,68 +94,118 @@ class FirebaseApi {
   }
 
   static Future<void> sendNotification(
-      String collectionName, String documentId, String title, String body,
-      {String? subCollectionName}) async {
+    String title,
+    String body, {
+    String? collectionName,
+    String? documentId,
+    String? subCollectionName,
+    NotificationType notificationType = NotificationType.student,
+    Set<StaffType> staffTypes = const {
+      StaffType.manager,
+      StaffType.staff,
+      StaffType.maintenance
+    },
+  }) async {
     final accessToken = await getAccessToken();
 
-    DocumentReference docRef;
+    List<String> fcmTokens = [];
 
-    if (subCollectionName != null) {
-      docRef = FirebaseFirestore.instance
-          .collection('Facilities')
-          .doc(subCollectionName)
-          .collection('Applications')
-          .doc(documentId);
-    } else {
-      docRef =
-          FirebaseFirestore.instance.collection(collectionName).doc(documentId);
+    if (notificationType == NotificationType.student) {
+      if (collectionName == null || documentId == null) {
+        print(
+            'Collection name and document ID are required for student notifications.');
+        return;
+      }
+
+      DocumentReference docRef;
+      if (subCollectionName != null) {
+        docRef = FirebaseFirestore.instance
+            .collection('Facilities')
+            .doc(subCollectionName)
+            .collection('Applications')
+            .doc(documentId);
+      } else {
+        docRef = FirebaseFirestore.instance
+            .collection(collectionName)
+            .doc(documentId);
+      }
+
+      DocumentSnapshot doc = await docRef.get();
+      if (!doc.exists) {
+        print('$collectionName document not found.');
+        return;
+      }
+
+      String studentId = doc['studentId'];
+      DocumentSnapshot studentDoc = await FirebaseFirestore.instance
+          .collection('Students')
+          .doc(studentId)
+          .get();
+      if (!studentDoc.exists) {
+        print('Student document not found.');
+        return;
+      }
+      String? fcmToken = studentDoc['fcmToken'];
+      if (fcmToken != null && fcmToken.isNotEmpty) {
+        fcmTokens.add(fcmToken);
+      }
+    } else if (notificationType == NotificationType.staff) {
+      List<String> userTypes = staffTypes
+          .map((type) => type.toString().split('.').last.capitalize())
+          .toList();
+
+      QuerySnapshot staffSnapshot = await FirebaseFirestore.instance
+          .collection('Staff')
+          .where('userType', whereIn: userTypes)
+          .get();
+
+      fcmTokens = staffSnapshot.docs
+          .map((doc) => doc['fcmToken'] as String?)
+          .where((token) => token != null && token.isNotEmpty)
+          .cast<String>()
+          .toList();
     }
 
-    DocumentSnapshot doc = await docRef.get();
-
-    if (!doc.exists) {
-      print('$collectionName document not found.');
+    if (fcmTokens.isEmpty) {
+      print(
+          'No valid FCM tokens found for ${notificationType.toString()} ${staffTypes.toString()}.');
       return;
     }
 
-    String studentId = doc['studentId'];
-
-    DocumentSnapshot studentDoc = await FirebaseFirestore.instance
-        .collection('Students')
-        .doc(studentId)
-        .get();
-    if (!studentDoc.exists) {
-      print('Student document not found.');
-      return;
-    }
-
-    String fcmToken = studentDoc['fcmToken'];
-
-    final Map<String, dynamic> message = {
-      'message': {
-        'token': fcmToken,
-        'notification': {
-          'title': title,
-          'body': body,
+    for (String fcmToken in fcmTokens) {
+      final Map<String, dynamic> message = {
+        'message': {
+          'token': fcmToken,
+          'notification': {
+            'title': title,
+            'body': body,
+          },
         },
-      },
-    };
+      };
 
-    final http.Response response = await http.post(
-      Uri.parse(
-          'https://fcm.googleapis.com/v1/projects/khms-d556a/messages:send'),
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
-      body: jsonEncode(message),
-    );
+      final http.Response response = await http.post(
+        Uri.parse(
+            'https://fcm.googleapis.com/v1/projects/khms-d556a/messages:send'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode(message),
+      );
 
-    if (response.statusCode == 200) {
-      print('Notification sent successfully');
-    } else {
-      print('Failed to send notification. Error: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      if (response.statusCode == 200) {
+        print('Notification sent successfully to token: $fcmToken');
+      } else {
+        print(
+            'Failed to send notification to token: $fcmToken. Error: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
     }
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }

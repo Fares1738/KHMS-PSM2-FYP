@@ -57,8 +57,8 @@ class _ManageAnnouncementsPageState extends State<ManageAnnouncementsPage> {
 
       for (var student in studentsWithFCM) {
         FirebaseApi.sendNotification(
-          'Students',
-          student.studentId!,
+          collectionName: 'Students',
+          documentId: student.studentId!,
           _titleController.text,
           _descriptionController.text,
         );

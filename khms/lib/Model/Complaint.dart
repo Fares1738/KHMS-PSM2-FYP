@@ -15,6 +15,7 @@ class Complaint {
   String complaintImageUrl;
   String studentId;
   String? studentRoomNo;
+  String? complaintNote;
 
   Complaint({
     required this.complaintDate,
@@ -27,6 +28,7 @@ class Complaint {
     required this.studentId,
     required this.studentRoomNo,
     required this.complaintImageUrl,
+    this.complaintNote,
   });
 
   Map<String, dynamic> toMap() {
@@ -41,6 +43,7 @@ class Complaint {
       'studentId': studentId,
       'complaintImageUrl': complaintImageUrl,
       'studentRoomNo': studentRoomNo,
+      'complaintNote': complaintNote,
     };
   }
 
@@ -57,6 +60,7 @@ class Complaint {
       studentId: data['studentId'],
       studentRoomNo: data['studentRoomNo'],
       complaintImageUrl: data['complaintImageUrl'],
+      complaintNote: data['complaintNote'],
     );
   }
 }
