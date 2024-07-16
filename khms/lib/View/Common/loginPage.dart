@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, file_names
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/userController.dart';
@@ -142,7 +144,6 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      // Show loading dialog
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -155,26 +156,22 @@ class _LoginPageState extends State<LoginPage> {
         await _userController.signInWithEmailAndPassword(
             context, _emailController.text, _passwordController.text);
       } on FirebaseAuthException catch (e) {
-        // Hide loading dialog
         Navigator.of(context).pop();
 
         setState(() {
           _errorMessage = _userController.getErrorMessage(e.code);
         });
 
-        // Show the error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_errorMessage!)),
         );
       } catch (e) {
-        // Hide loading dialog
         Navigator.of(context).pop();
 
         setState(() {
           _errorMessage = 'An unexpected error occurred. Please try again.';
         });
 
-        // Show the error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_errorMessage!)),
         );

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 
 class StudentBottomNavigationBar extends StatefulWidget {
-  final Function(int) onTap; // Function to handle taps
+  final Function(int) onTap; 
 
   const StudentBottomNavigationBar({super.key, required this.onTap});
 
@@ -43,7 +43,7 @@ class _StudentBottomNavigationBar extends State<StudentBottomNavigationBar> {
             _selectedIndex = index;
           });
           widget.onTap(index);
-        } // Notify the parent about taps,
+        } 
         );
   }
 }

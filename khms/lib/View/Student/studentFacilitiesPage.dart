@@ -22,6 +22,9 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
 
   String studentId = '';
   bool? facilitySubscription;
+  String? studentName;
+  String? studentEmail;
+  String? studentPhone;
   bool hasRoomNumber = false;
   Stream<List<String>>? _bookedTimeSlotsStream;
   Stream<List<Facilities>>? _userBookedFacilitiesStream;
@@ -105,6 +108,11 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
               studentDoc['studentRoomNo'] != "";
           facilitySubscription = studentDoc['facilitySubscription'] ?? false;
           this.studentId = studentId;
+          studentName = studentDoc['studentFirstName'] +
+              ' ' +
+              studentDoc['studentLastName'];
+          studentEmail = studentDoc['studentEmail'];
+          studentPhone = studentDoc['studentPhoneNumber'];
         });
       }
     } catch (e) {
@@ -631,6 +639,7 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
         builder: (context) => StripePaymentPage(
           priceToDisplay: 50,
           studentId: studentId,
+          studentEmail: studentEmail,
         ),
       ),
     );

@@ -12,7 +12,6 @@ class GeneralCustomAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    //Provider.of<UserController>(context);
 
     return AppBar(
       title: const Text(
@@ -32,14 +31,13 @@ class HomeCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    //Provider.of<UserController>(context);
 
     return AppBar(
       title: const Text(
         "KHMS",
         style: TextStyle(fontSize: 28),
       ),
-      automaticallyImplyLeading: false, // Disable the default back button
+      automaticallyImplyLeading: false, 
       centerTitle: true,
       leading: Builder(
         builder: (context) => IconButton(
@@ -138,7 +136,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               );
             },
           ),
-          if (userType == 'Manager') // Only show for Manager
+          if (userType == 'Manager')
             ListTile(
               leading: const Icon(Icons.add),
               title: const Text('Add New User'),
@@ -151,7 +149,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 );
               },
             ),
-          if (userType == 'Manager') // Only show for Manager
+          if (userType == 'Manager')
             ListTile(
               leading: const Icon(Icons.people),
               title: const Text('View All Users'),

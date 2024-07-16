@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, file_names, use_build_context_synchronously, avoid_print
+// ignore_for_file: library_private_types_in_public_api, file_names, use_build_context_synchronously, avoid_print, no_leading_underscores_for_local_identifiers
 
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -52,7 +52,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
         });
 
         await _userController.updateUserData(_imageFile);
-        _fetchData(); // Refresh data after updating the image
+        _fetchData(); 
       }
     } catch (e) {
       print('Error picking image: $e');
@@ -259,6 +259,18 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
         TextEditingController newPasswordController = TextEditingController();
         bool obscureOldPassword = true;
         bool obscureNewPassword = true;
+        bool _hasUppercase = false;
+        bool _hasSpecialChar = false;
+        bool _hasValidLength = false;
+
+        void _updatePasswordStrength(String password) {
+          setState(() {
+            _hasUppercase = password.contains(RegExp(r'[A-Z]'));
+            _hasSpecialChar =
+                password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+            _hasValidLength = password.length >= 8 && password.length <= 16;
+          });
+        }
 
         return StatefulBuilder(
           builder: (context, setState) {
@@ -304,6 +316,21 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                         },
                       ),
                     ),
+                    onChanged: (value) {
+                      setState(() {
+                        _hasUppercase = value.contains(RegExp(r'[A-Z]'));
+                        _hasSpecialChar =
+                            value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+                        _hasValidLength =
+                            value.length >= 8 && value.length <= 16;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8.0),
+                  _buildPasswordStrengthIndicator(
+                    _hasValidLength,
+                    _hasUppercase,
+                    _hasSpecialChar,
                   ),
                 ],
               ),
@@ -342,6 +369,41 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildPasswordStrengthIndicator(
+    bool hasValidLength,
+    bool hasUppercase,
+    bool hasSpecialChar,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildRequirementRow(hasValidLength, '8-16 characters'),
+        _buildRequirementRow(hasUppercase, 'At least 1 uppercase letter'),
+        _buildRequirementRow(hasSpecialChar, 'At least 1 special character'),
+      ],
+    );
+  }
+
+  Widget _buildRequirementRow(bool isMet, String requirement) {
+    return Row(
+      children: [
+        Icon(
+          isMet ? Icons.check_circle : Icons.cancel,
+          color: isMet ? Colors.green : Colors.red,
+          size: 16,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          requirement,
+          style: TextStyle(
+            color: isMet ? Colors.green : Colors.red,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 

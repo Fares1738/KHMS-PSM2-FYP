@@ -11,7 +11,7 @@ class ResetPasswordPage extends StatefulWidget {
 }
 
 class _ResetPasswordPageState extends State<ResetPasswordPage> {
-  final UserController _controller = UserController(); // Use your controller
+  final UserController _controller = UserController(); 
   final _emailController = TextEditingController();
 
   @override

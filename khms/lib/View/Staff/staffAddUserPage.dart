@@ -135,6 +135,8 @@ class _AddUserPageState extends State<AddUserPage> {
                   },
                   child: const Text('Submit'),
                 ),
+                const SizedBox(height: 16),
+                const Text("The new user will be provided with the default password 'temporaryPassword123'. Please advise them to change their password upon first login."),
               ],
             ),
           ),

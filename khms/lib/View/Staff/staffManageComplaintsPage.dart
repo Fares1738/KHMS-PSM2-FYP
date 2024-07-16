@@ -127,15 +127,6 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Filter Complaints',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColor,
-            ),
-          ),
-          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -148,7 +139,7 @@ class _StaffComplaintsPageState extends State<StaffComplaintsPage> {
               const SizedBox(width: 16),
               Expanded(
                   child: _buildFilterDropdown(
-                      'Sort by',
+                      'Sort by Date',
                       _selectedDateSort,
                       ['Newest', 'Oldest'],
                       (value) => setState(() => _selectedDateSort = value!))),

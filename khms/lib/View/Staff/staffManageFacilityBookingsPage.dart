@@ -16,7 +16,7 @@ class FacilityBookingsPage extends StatefulWidget {
 
 class _FacilityBookingsPageState extends State<FacilityBookingsPage> {
   final FacilitiesController _controller = FacilitiesController();
-  String sortByDate = 'Newest';
+  String sortByDate = 'Oldest';
   String sortByStatus = 'All';
   String selectedFacilityType = 'All'; // Track selected facility type
   List<Facilities> facilitiesList = [];
@@ -285,6 +285,7 @@ class _FacilityBookingsPageState extends State<FacilityBookingsPage> {
           filteredFacilities.sort((a, b) => sortByDate == 'Newest'
               ? b.facilityApplicationDate.compareTo(a.facilityApplicationDate)
               : a.facilityApplicationDate.compareTo(b.facilityApplicationDate));
+
 
           return ListView.builder(
             shrinkWrap: true,

@@ -30,12 +30,11 @@ class Staff {
       'staffEmail': staffEmail,
       'staffId': staffId,
       'staffPhoneNumber': staffPhoneNumber,
-      'userType': userType.toString().split('.').last, // Convert enum to string
+      'userType': userType.toString().split('.').last, 
       'staffPhoto': staffPhoto ?? '',
     };
   }
 
-  // Create Staff object from Firestore document
   factory Staff.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Staff(
@@ -46,7 +45,7 @@ class Staff {
       staffPhoneNumber: data['staffPhoneNumber'],
       userType: UserType.values.firstWhere(
         (e) => e.toString().split('.').last == data['userType'],
-        orElse: () => UserType.Staff, // Default if type not found
+        orElse: () => UserType.Staff, 
       ),
       staffPhoto: data['staffPhoto'],
     );
@@ -64,7 +63,7 @@ class Staff {
       staffPhoneNumber: userMap['staffPhoneNumber'],
       userType: UserType.values.firstWhere(
         (e) => e.toString().split('.').last == userMap['userType'],
-        orElse: () => UserType.Staff, // Default if type not found
+        orElse: () => UserType.Staff, 
       ),
       staffPhoto: userMap['staffPhoto'],
     );
@@ -77,7 +76,7 @@ class Staff {
       'staffEmail': staffEmail,
       'staffId': staffId,
       'staffPhoneNumber': staffPhoneNumber,
-      'userType': userType.toString().split('.').last, // Convert enum to string
+      'userType': userType.toString().split('.').last,
       'staffPhoto': staffPhoto ?? '',
     };
   }

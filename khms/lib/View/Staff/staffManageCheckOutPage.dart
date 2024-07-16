@@ -241,7 +241,7 @@ class _CheckOutApplicationsListPageState
           const SizedBox(width: 16),
           Expanded(
             child: _buildFilterDropdown(
-              'Sort Order',
+              'Sort by Date',
               selectedSortOrder,
               ['Newest', 'Oldest'],
               (value) {

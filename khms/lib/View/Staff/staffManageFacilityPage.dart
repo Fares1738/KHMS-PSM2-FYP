@@ -80,8 +80,8 @@ class _ManageFacilitiesPageState extends State<ManageFacilitiesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddFacilityDialog,
-        child: const Icon(Icons.add),
         backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add),
       ),
     );
   }

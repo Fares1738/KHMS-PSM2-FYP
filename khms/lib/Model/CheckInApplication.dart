@@ -64,18 +64,18 @@ CheckInApplication.fromFirestore(DocumentSnapshot document)
       checkInStatus = (document.data()
           as Map<String, dynamic>)['checkInStatus'] as String,
       roomType = (document.data() as Map<String, dynamic>)['roomType']
-          as String?, // Treat roomType as optional
+          as String?, 
       price = (document.data() as Map<String, dynamic>)['price']
-          as int?, // Treat price as optional
+          as int?, 
       rejectionReason =
           (document.data() as Map<String, dynamic>)['rejectionReason']
-              as String, // Treat rejectionReason as optional
+              as String, 
       isPaid = (document.data() as Map<String, dynamic>)['isPaid'] as bool,
       checkInApprovalDate = (document.data() as Map<String, dynamic>)
                   .containsKey('checkInApprovalDate')
               ? ((document.data() as Map<String, dynamic>)['checkInApprovalDate']
                   as Timestamp)
                   .toDate()
-              : null; // Set to null if not present
+              : null; 
 
 }

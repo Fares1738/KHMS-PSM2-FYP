@@ -1,6 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/dashboardController.dart';
+import 'package:khms/View/Staff/staffManageCheckInPage.dart';
+import 'package:khms/View/Staff/staffManageCheckOutPage.dart';
+import 'package:khms/View/Staff/staffManageComplaintsPage.dart';
+import 'package:khms/View/Staff/staffManageFacilityBookingsPage.dart';
+import 'package:khms/View/Staff/staffViewAllUsers.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -82,6 +87,13 @@ class _DashboardPageState extends State<DashboardPage>
             Icons.person_add,
             const Color(0xFF4CAF50),
             const Color(0xFF81C784),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const CheckInApplicationsListPage()));
+            },
           ),
           _buildSummaryCard(
             'Pending Check-In Applications',
@@ -110,6 +122,13 @@ class _DashboardPageState extends State<DashboardPage>
             Icons.exit_to_app,
             const Color(0xFF7B1FA2),
             const Color(0xFF9C27B0),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const CheckOutApplicationsListPage()));
+            },
           ),
           _buildSummaryCard(
             'Pending Check-Out Applications',
@@ -134,6 +153,14 @@ class _DashboardPageState extends State<DashboardPage>
             Icons.event,
             const Color(0xFF0097A7),
             const Color(0xFF00BCD4),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const FacilityBookingsPage(
+                            userType: 'Manager',
+                          )));
+            },
           ),
           _buildSummaryCard(
             'Pending Facility Bookings',
@@ -162,6 +189,12 @@ class _DashboardPageState extends State<DashboardPage>
             Icons.report_problem,
             const Color(0xFFD32F2F),
             const Color(0xFFE57373),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const StaffComplaintsPage()));
+            },
           ),
           _buildSummaryCard(
             'Pending Complaints',
@@ -240,50 +273,59 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
-  Widget _buildSummaryCard(String title, int value, IconData icon,
-      Color startColor, Color endColor) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [startColor, endColor],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+  Widget _buildSummaryCard(
+    String title,
+    int value,
+    IconData icon,
+    Color startColor,
+    Color endColor, {
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        elevation: 4,
+        margin: const EdgeInsets.only(bottom: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [startColor, endColor],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
           ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(icon, size: 40, color: Colors.white),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      value.toString(),
-                      style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                  ],
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(icon, size: 40, color: Colors.white),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        value.toString(),
+                        style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -323,18 +365,27 @@ class _DashboardPageState extends State<DashboardPage>
         const SizedBox(height: 16),
         _buildSummaryCard('Total Rooms', displayData['totalRooms'], Icons.hotel,
             const Color(0xFF3949AB), const Color(0xFF5C6BC0)),
-        _buildSummaryCard('Occupied Rooms', displayData['occupiedRooms'],
-            Icons.person, const Color(0xFF00897B), const Color(0xFF26A69A)),
+        _buildSummaryCard(
+          'Occupied Rooms',
+          displayData['occupiedRooms'],
+          Icons.person,
+          const Color(0xFF00897B),
+          const Color(0xFF26A69A),
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const ViewAllUsers()));
+          },
+        ),
         _buildSummaryCard(
             'Available Single Rooms',
             displayData['availableRoomsByType']['Single'],
-            Icons.single_bed,
+            Icons.hotel,
             const Color(0xFF7B1FA2),
             const Color(0xFF9C27B0)),
         _buildSummaryCard(
             'Available Double Rooms',
             displayData['availableRoomsByType']['Double'],
-            Icons.hotel,
+            Icons.bed,
             const Color(0xFFC62828),
             const Color(0xFFE53935)),
         _buildSummaryCard(

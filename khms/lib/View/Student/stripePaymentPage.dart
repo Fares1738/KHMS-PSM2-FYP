@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, file_names
+
 import 'package:flutter/material.dart';
 import 'package:khms/Controller/paymentController.dart';
 import 'package:khms/Controller/checkInController.dart';
@@ -10,6 +12,8 @@ class StripePaymentPage extends StatefulWidget {
   final int? priceWithDeposit;
   final int? rentDaysLeft;
   final int? facilitiesDaysLeft;
+  final String? studentEmail;
+
 
   const StripePaymentPage({
     super.key,
@@ -19,6 +23,7 @@ class StripePaymentPage extends StatefulWidget {
     this.priceWithDeposit,
     this.rentDaysLeft,
     this.facilitiesDaysLeft,
+    this.studentEmail,
   });
 
   @override
@@ -60,6 +65,9 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
 
   Future<void> _makePayment() async {
     try {
+      String customerId = await _paymentController
+          .getOrCreateStripeCustomerId(widget.studentEmail!);
+
       int price;
       if (widget.priceWithDeposit != null) {
         price = widget.priceWithDeposit! * 100;
@@ -69,10 +77,11 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
         throw Exception('Both priceWithDeposit and priceToDisplay are null');
       }
 
-      // Create payment intent
+      // Create payment intent with customer ID
       final paymentIntent = await _paymentController.createPaymentIntent(
         price.toString(),
         'MYR',
+        customerId: customerId,
       );
 
       // Initialize payment sheet
@@ -97,13 +106,17 @@ class _StripePaymentPageState extends State<StripePaymentPage> {
         });
 
         if (widget.checkInApplicationId != null && widget.studentId != null) {
+          print(
+              'Updating check-in application with payment: ${widget.checkInApplicationId}, ${widget.studentId}');
           await _checkInController.updateCheckInApplicationWithPayment(
-              widget.checkInApplicationId!, widget.studentId!, widget.rentDaysLeft!);
+              widget.checkInApplicationId!,
+              widget.studentId!,
+              widget.rentDaysLeft ?? 0);
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => StudentMainPage()));
         } else if (widget.studentId != null) {
-          await _paymentController
-              .updateFacilitySubscription(widget.studentId!, widget.facilitiesDaysLeft!);
+          await _paymentController.updateFacilitySubscription(
+              widget.studentId!, widget.facilitiesDaysLeft ?? 0);
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => StudentMainPage()));
         } else {

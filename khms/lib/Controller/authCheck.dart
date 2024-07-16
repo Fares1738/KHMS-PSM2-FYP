@@ -15,11 +15,11 @@ class AuthCheck extends StatefulWidget {
 class _AuthCheckState extends State<AuthCheck> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String? studentName;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Wrap everything in a Scaffold
       body: StreamBuilder<User?>(
         stream: _auth.authStateChanges(),
         builder: (context, snapshot) {
@@ -38,7 +38,6 @@ class _AuthCheckState extends State<AuthCheck> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  // Use a delayed future to show the error message
                   Future.delayed(Duration.zero, () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Error: ${snapshot.error}')),
@@ -53,12 +52,12 @@ class _AuthCheckState extends State<AuthCheck> {
                   DocumentSnapshot staffDoc = snapshot.data![1];
 
                   if (studentDoc.exists) {
-                    return StudentMainPage();
+                    studentName = studentDoc.get('studentFirstName') + ' ' + studentDoc.get('studentLastName');
+                    return StudentMainPage(studentName: studentName!);
                   } else if (staffDoc.exists) {
                     return const StaffHomePage();
                   }
                 }
-                // If we reach here, the user is authenticated but not in Students or Staff collections
                 Future.delayed(Duration.zero, () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

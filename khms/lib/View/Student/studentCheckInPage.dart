@@ -61,7 +61,7 @@ class _CheckInPageState extends State<CheckInPage> {
 
     if (result != null) {
       File file = File(result.files.single.path!);
-      
+
       // Check file size
       int fileSizeInBytes = await file.length();
       double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
@@ -70,7 +70,8 @@ class _CheckInPageState extends State<CheckInPage> {
         // Show error message if file size exceeds 5 MB
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("File size exceeds 5 MB. Please choose a smaller file."),
+            content:
+                Text("File size exceeds 5 MB. Please choose a smaller file."),
             backgroundColor: Colors.red,
           ),
         );
@@ -490,7 +491,7 @@ class _CheckInPageState extends State<CheckInPage> {
                     const SizedBox(height: 30),
 
                     // Button
-                    ElevatedButton(
+                    FilledButton(
                       onPressed: () async {
                         setState(() {
                           // Update _imageUploaded state based on file selection
@@ -505,9 +506,6 @@ class _CheckInPageState extends State<CheckInPage> {
                           }
                         });
 
-                        print(
-                            "Form is invalid. Don't proceed to payment."); // Debugging message
-
                         if (_formKey.currentState!.validate() &&
                             (_imageUploaded.every((element) =>
                                     element) || // Check if all images are uploaded
@@ -520,7 +518,6 @@ class _CheckInPageState extends State<CheckInPage> {
                             barrierDismissible: false,
                             builder: (BuildContext context) {
                               return LoadingDialog(
-                                // Remove the "const" keyword to allow for dynamic message
                                 message: isPaid
                                     ? "Resubmitting Application" // If isPaid is true
                                     : "Submitting check in application.\nRedirecting to payment...", // If isPaid is false
@@ -560,7 +557,7 @@ class _CheckInPageState extends State<CheckInPage> {
                       // ...
                       child: Text(isPaid
                           ? "Resubmit Application"
-                          : "Proceed to Payment"), // Conditional Text
+                          : "Submit and Proceed to Payment"), // Conditional Text
                     ),
                   ],
                 ),

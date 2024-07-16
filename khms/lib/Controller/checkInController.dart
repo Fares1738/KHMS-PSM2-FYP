@@ -38,6 +38,7 @@ class CheckInController {
       final _firestore = FirebaseFirestore.instance;
       final prefs2 = await SharedPreferences.getInstance();
       String? storedStudentId = prefs2.getString('userId') as String;
+      String? storedEmail = prefs2.getString('studentEmail') as String;
 
       CheckInApplication newApplication = CheckInApplication(
           checkInApplicationDate: DateTime.now(),
@@ -60,7 +61,7 @@ class CheckInController {
 
         await docRef.update({'checkInApplicationId': docRef.id});
         checkInApplicationId =
-            docRef.id; // Update the local variable with the new ID
+            docRef.id; 
       } else {
         await _firestore
             .collection('CheckInApplications')
@@ -116,8 +117,6 @@ class CheckInController {
         });
       }
 
-      //String studentName = '$firstName $lastName';
-
       if (isPaid == false) {
         Navigator.push(
             context,
@@ -126,13 +125,13 @@ class CheckInController {
                       studentId: storedStudentId,
                       priceWithDeposit: price + 580,
                       checkInApplicationId: checkInApplicationId ?? '',
+                      studentEmail: storedEmail,
                     )));
       } else {
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => StudentMainPage()));
       }
 
-      // Send notification to admin
       FirebaseApi.sendNotification(
         'New Check-In Application',
         'A new check-in application has been submitted. Open the app to view details.',
@@ -336,7 +335,7 @@ class CheckInController {
   final _firestore = FirebaseFirestore.instance;
 
   Future<void> updateCheckInApplicationWithPayment(
-      String checkInApplicationId, String studentId, int rentDaysLeft) async {
+      String checkInApplicationId, String studentId, int? rentDaysLeft) async {
     try {
       // Update the CheckInApplication document in Firestore
       await _firestore
@@ -348,7 +347,8 @@ class CheckInController {
 
       // Update the Student document in Firestore
       await _firestore.collection('Students').doc(studentId).update({
-        'lastRentPaidDate': DateTime.now().add(Duration(days: rentDaysLeft)),
+        'lastRentPaidDate':
+            DateTime.now().add(Duration(days: rentDaysLeft ?? 0)),
       });
     } catch (e) {
       throw Exception(

@@ -68,6 +68,7 @@ class UserController extends ChangeNotifier {
           null,
           null,
           '',
+          '',
           userType: 'Student',
           studentId: userCredential.user!.uid,
         );
@@ -156,14 +157,22 @@ class UserController extends ChangeNotifier {
           studentDoc.get('studentRoomNo') ?? '',
         );
         await prefs.setString('fcmToken', fcmToken);
+        await prefs.setString(
+            'studentEmail', studentDoc.get('studentEmail') ?? '');
 
         await _firestore.collection('Students').doc(uid).update({
           'fcmToken': fcmToken,
         });
 
+        String? studentName;
+        studentName = studentDoc.get('studentFirstName') +
+            ' ' +
+            studentDoc.get('studentLastName');
+
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => StudentMainPage()),
+          MaterialPageRoute(
+              builder: (context) => StudentMainPage(studentName: studentName!)),
         );
 
         ScaffoldMessenger.of(context).showSnackBar(

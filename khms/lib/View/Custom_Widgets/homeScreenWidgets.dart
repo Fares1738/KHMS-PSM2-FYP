@@ -27,6 +27,7 @@ class _HomeScreenWidgetsState extends State<HomeScreenWidgets> {
   DateTime? _lastFacilitySubscriptionPaidDate;
   DateTime? _lastRentPaidDate;
   bool? _facilitySubscription;
+  String? _studentEmail;
 
   @override
   void initState() {
@@ -49,6 +50,7 @@ class _HomeScreenWidgetsState extends State<HomeScreenWidgets> {
       _lastFacilitySubscriptionPaidDate =
           student.lastFacilitySubscriptionPaidDate;
       _facilitySubscription = student.facilitySubscription;
+      _studentEmail = student.studentEmail;
     }
 
     setState(() {
@@ -298,6 +300,7 @@ class _HomeScreenWidgetsState extends State<HomeScreenWidgets> {
                       priceToDisplay: _application!.price!,
                       studentId: widget.studentId,
                       rentDaysLeft: rentDaysLeft,
+                      studentEmail: _studentEmail ?? 'UnknownEmail@gmail.com',
                     ),
                   ),
                 ),
@@ -314,6 +317,7 @@ class _HomeScreenWidgetsState extends State<HomeScreenWidgets> {
                         priceToDisplay: 50,
                         studentId: widget.studentId,
                         facilitiesDaysLeft: facilityDaysLeft,
+                        studentEmail: _studentEmail ?? 'UnknownEmail@gmail.com',
                       ),
                     ),
                   ),
@@ -330,7 +334,7 @@ class _HomeScreenWidgetsState extends State<HomeScreenWidgets> {
             ),
             const SizedBox(height: 8),
             Container(
-              height: 300, // Set a fixed height for announcements
+              height: 300, 
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(12),

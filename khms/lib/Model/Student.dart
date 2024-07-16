@@ -22,6 +22,7 @@ class Student {
   bool facilitySubscription;
   DateTime? lastRentPaidDate;
   DateTime? lastFacilitySubscriptionPaidDate;
+  String? stripeCustomerId;
 
   Student(
     this.studentDoB,
@@ -41,6 +42,7 @@ class Student {
     this.fcmToken,
     this.lastFacilitySubscriptionPaidDate,
     this.lastRentPaidDate,
+    this.stripeCustomerId,
     this.passportMyKadPic, {
     this.studentId,
     userType,
@@ -64,6 +66,10 @@ class Student {
       'passportMyKadPic': passportMyKadPic,
       'studentId': studentId,
       'fcmToken': fcmToken,
+      'facilitySubscription': facilitySubscription,
+      'lastRentPaidDate': lastRentPaidDate,
+      'lastFacilitySubscriptionPaidDate': lastFacilitySubscriptionPaidDate,
+      'stripeCustomerId': stripeCustomerId,
     };
   }
 
@@ -87,7 +93,8 @@ class Student {
         facilitySubscription = json['facilitySubscription'],
         lastRentPaidDate = json['lastRentPaidDate'],
         lastFacilitySubscriptionPaidDate =
-            json['lastFacilitySubscriptionPaidDate'];
+            json['lastFacilitySubscriptionPaidDate'],
+        stripeCustomerId = json['stripeCustomerId'];
 
   Map<String, dynamic> toMap() {
     return {
@@ -111,6 +118,7 @@ class Student {
       'facilitySubscription': facilitySubscription,
       'lastRentPaidDate': lastRentPaidDate,
       'lastFacilitySubscriptionPaidDate': lastFacilitySubscriptionPaidDate,
+      'stripeCustomerId': stripeCustomerId ?? '',
     };
   }
 
@@ -171,5 +179,7 @@ class Student {
             ? ((document.data() as Map<String, dynamic>)[
                     'lastFacilitySubscriptionPaidDate'] as Timestamp)
                 .toDate()
-            : DateTime.now();
+            : DateTime.now(),
+        stripeCustomerId = (document.data() as Map<String, dynamic>)[
+                'stripeCustomerId'] ?? '';
 }

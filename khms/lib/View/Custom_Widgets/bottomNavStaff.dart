@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 
 class StaffBottomNavigationBar extends StatefulWidget {
-  final Function(int) onTap; // Function to handle taps
+  final Function(int) onTap; 
   final List<BottomNavigationBarItem>
-      items; // List of items for the navigation bar
+      items; 
 
   const StaffBottomNavigationBar({
     super.key,
@@ -32,7 +32,7 @@ class _StaffBottomNavigationBar extends State<StaffBottomNavigationBar> {
           _selectedIndex = index;
         });
         widget.onTap(index);
-      }, // Notify the parent about taps
+      }, 
     );
   }
 }

@@ -50,13 +50,13 @@ class Complaint {
   factory Complaint.fromMap(Map<String, dynamic> data, String docId) {
     return Complaint(
       complaintDate: (data['complaintDate'] as Timestamp)
-          .toDate(), // Assuming Timestamp for Firestore dates
+          .toDate(), 
       complaintDescription: data['complaintDescription'],
       complaintLocation: data['complaintLocation'],
       complaintStatus: ComplaintStatus.values.byName(data['complaintStatus']),
       complaintType: data['complaintType'],
       complaintSubType: data['complaintSubType'],
-      complaintId: docId, // Get the document ID
+      complaintId: docId, 
       studentId: data['studentId'],
       studentRoomNo: data['studentRoomNo'],
       complaintImageUrl: data['complaintImageUrl'],
