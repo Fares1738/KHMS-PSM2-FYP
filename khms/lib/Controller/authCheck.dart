@@ -6,7 +6,7 @@ import 'package:khms/View/Staff/staffHomePage.dart';
 import 'package:khms/View/Student/studentMainPage.dart';
 
 class AuthCheck extends StatefulWidget {
-  const AuthCheck({Key? key}) : super(key: key);
+  const AuthCheck({super.key});
 
   @override
   _AuthCheckState createState() => _AuthCheckState();

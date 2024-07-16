@@ -17,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class UserController extends ChangeNotifier {
   final formKey = GlobalKey<FormState>();
-  final _auth = FirebaseAuth.instance; // Firebase authentication instance
+  final _auth = FirebaseAuth.instance;
   Student? student;
   Staff? staff;
   final _emailController = TextEditingController();
@@ -213,7 +213,6 @@ class UserController extends ChangeNotifier {
       throw e;
     } catch (e) {
       print("General exception: $e"); // Log general exceptions
-      // Handle generic errors
       throw FirebaseAuthException(
         code: 'unknown-error',
         message: 'An unexpected error occurred. Please try again.',
@@ -221,6 +220,7 @@ class UserController extends ChangeNotifier {
     }
   }
 
+  // List of error codes and their corresponding error messages
   String getErrorMessage(String errorCode) {
     switch (errorCode) {
       case 'invalid-credential':
@@ -254,8 +254,7 @@ class UserController extends ChangeNotifier {
       }
     } catch (e) {
       print('Error changing password: $e');
-      // Handle error (e.g., show a snackbar or alert dialog)
-      rethrow; // Rethrow the error if you want to handle it further up the call chain
+      rethrow; 
     }
   }
 
@@ -265,8 +264,7 @@ class UserController extends ChangeNotifier {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     } catch (e) {
       print('Error sending password reset email: $e');
-      // Handle error (e.g., show a snackbar or alert dialog)
-      rethrow; // Rethrow the error if you want to handle it further up the call chain
+      rethrow; 
     }
   }
 
@@ -282,7 +280,6 @@ class UserController extends ChangeNotifier {
       );
     } catch (e) {
       print('Error signing out: $e');
-      // Handle error (e.g., show a snackbar or alert dialog)
     }
   }
 
@@ -298,7 +295,7 @@ class UserController extends ChangeNotifier {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: email,
-        password: 'temporaryPassword123', // Or generate a random password
+        password: 'temporaryPassword123',
       );
 
       // Get the user's UID
@@ -320,9 +317,9 @@ class UserController extends ChangeNotifier {
           .doc(uid) // Use UID as document ID
           .set(newStaff.toMap());
 
-      // (Optional) Send an email to the new staff member with instructions to reset their password
     } catch (e) {
-      // Handle errors (e.g., email already in use)
+      print('Error adding staff: $e');
+      rethrow; 
     }
   }
 
@@ -348,7 +345,6 @@ class UserController extends ChangeNotifier {
         notifyListeners();
       } catch (e) {
         print('Error fetching user data: $e');
-        // Handle the error (e.g., show a SnackBar)
       }
     }
   }
@@ -386,7 +382,6 @@ class UserController extends ChangeNotifier {
         notifyListeners();
       } catch (e) {
         print('Error updating user data: $e');
-        // Handle the error (e.g., show a SnackBar)
       }
     }
   }
@@ -452,7 +447,7 @@ class UserController extends ChangeNotifier {
       return snapshot.docs.map((doc) => Student.fromFirestore(doc)).toList();
     } catch (e) {
       print('Error fetching students: $e');
-      rethrow; // Rethrow the error if you want to handle it further up the call chain
+      rethrow; 
     }
   }
 
@@ -464,7 +459,7 @@ class UserController extends ChangeNotifier {
       return snapshot.docs.map((doc) => Staff.fromFirestore(doc)).toList();
     } catch (e) {
       print('Error fetching staff: $e');
-      rethrow; // Rethrow the error if you want to handle it further up the call chain
+      rethrow; 
     }
   }
 }

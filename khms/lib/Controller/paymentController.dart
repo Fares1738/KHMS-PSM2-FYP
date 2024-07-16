@@ -118,13 +118,11 @@ class PaymentController {
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: paymentIntentData['client_secret'],
           merchantDisplayName: 'KHMS',
-          // ...add other parameters as needed
           googlePay: const PaymentSheetGooglePay(
               merchantCountryCode: "MY", currencyCode: "MYR", testEnv: true),
         ),
       );
     } catch (e) {
-      // Handle initialization error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error initializing payment sheet: $e')),
       );

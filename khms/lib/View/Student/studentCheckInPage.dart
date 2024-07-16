@@ -39,8 +39,8 @@ class _CheckInPageState extends State<CheckInPage> {
   String? roomType;
   int? priceToDisplay;
   String? checkInApplicationId;
-  DateTime? _dateOfBirth; // For the date of birth picker
-  DateTime? _checkInDate; // For the check-in date picker
+  DateTime? _dateOfBirth;
+  DateTime? _checkInDate;
   bool isPaid = false;
 
   File? _frontMatricPic;
@@ -132,7 +132,7 @@ class _CheckInPageState extends State<CheckInPage> {
     }
   }
 
-  final _formKey = GlobalKey<FormState>(); // Add a GlobalKey for the Form
+  final _formKey = GlobalKey<FormState>(); 
   final List<bool> _imageUploaded =
       List.generate(4, (index) => false); // Track image upload status
 
@@ -282,7 +282,7 @@ class _CheckInPageState extends State<CheckInPage> {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your phone number';
                         }
-                        return null; // You can add more specific phone number validation here
+                        return null; 
                       },
                       isPhoneNumber:
                           true, // Enable numeric keyboard for this field
@@ -554,7 +554,6 @@ class _CheckInPageState extends State<CheckInPage> {
                           );
                         }
                       },
-                      // ...
                       child: Text(isPaid
                           ? "Resubmit Application"
                           : "Submit and Proceed to Payment"), // Conditional Text

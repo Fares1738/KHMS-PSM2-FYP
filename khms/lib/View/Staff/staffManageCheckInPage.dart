@@ -19,7 +19,7 @@ class _CheckInApplicationsListPageState
   String _selectedStatusFilter = 'All';
   String _selectedRoomTypeFilter = 'All';
   String _selectedDateFilter = 'Newest';
-  String _selectedPaidFilter = 'All'; // New filter for payment status
+  String _selectedPaidFilter = 'All'; 
   String _searchQuery = '';
 
   @override
@@ -51,13 +51,13 @@ class _CheckInApplicationsListPageState
             final applications = _filterAndSortApplications(snapshot.data!);
             return ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: applications.length + 1, // +1 for the filter section
+              itemCount: applications.length + 1, 
               itemBuilder: (context, index) {
                 if (index == 0) {
-                  return _buildFilterSection(); // First item is the filter section
+                  return _buildFilterSection(); 
                 }
                 final application =
-                    applications[index - 1]; // Adjust for filter section
+                    applications[index - 1]; 
                 return _buildApplicationCard(application);
               },
             );

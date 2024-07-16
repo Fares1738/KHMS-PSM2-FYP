@@ -60,8 +60,7 @@ class CheckInController {
             .add(newApplication.toMap());
 
         await docRef.update({'checkInApplicationId': docRef.id});
-        checkInApplicationId =
-            docRef.id; 
+        checkInApplicationId = docRef.id;
       } else {
         await _firestore
             .collection('CheckInApplications')
@@ -146,7 +145,6 @@ class CheckInController {
 
   Stream<List<Room>> getAvailableRoomsStream(
       String roomType, String blockName, int floorNumber) {
-    // floorNumber is optional
     Query<Map<String, dynamic>> query = _firestore
         .collection('Blocks')
         .doc('Block $blockName')
@@ -310,19 +308,13 @@ class CheckInController {
   }
 
   Future<String> _uploadImageToFirebase(File image) async {
-    // Create a unique file name (you might integrate timestamps, user IDs, etc.)
     String fileName = DateTime.now().toString();
 
-    // Define storage reference (adjust the path as needed)
     final storageRef =
         FirebaseStorage.instance.ref().child('checkInImages/$fileName');
 
-    // Upload task
     final UploadTask uploadTask = storageRef.putFile(image);
 
-    // Handle progress if desired
-
-    // Wait for upload completion
     final TaskSnapshot downloadSnapshot =
         await uploadTask.whenComplete(() => null);
 

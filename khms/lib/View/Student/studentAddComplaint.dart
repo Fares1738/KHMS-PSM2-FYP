@@ -60,8 +60,8 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
-      maxWidth: 1920, // Optional: limit image resolution
-      maxHeight: 1080, // Optional: limit image resolution
+      maxWidth: 1920,
+      maxHeight: 1080,
     );
 
     if (pickedFile != null) {
@@ -360,10 +360,8 @@ class _AddComplaintPageState extends State<AddComplaintPage> {
 
         try {
           await _controller.submitComplaint(context, complaint, _pickedImage);
-          // The controller handles success message and navigation, so we don't need to do anything here
         } catch (e) {
           print('Error submitting complaint: $e');
-          // The controller already shows an error message, so we don't need to show another one here
         }
       },
       style: ElevatedButton.styleFrom(

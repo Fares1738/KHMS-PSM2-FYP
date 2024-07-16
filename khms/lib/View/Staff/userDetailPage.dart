@@ -57,7 +57,6 @@ class UserDetailPage extends StatelessWidget {
             DateFormat('dd-MM-yyyy').format(student!.studentDoB)),
         _buildCard(Icons.document_scanner, 'MyKad/Passport',
             student!.studentmyKadPassportNumber),
-        // Add more fields as necessary
       ],
     );
   }
@@ -80,7 +79,6 @@ class UserDetailPage extends StatelessWidget {
         _buildCard(
             Icons.work, 'Role', staff!.userType.toString().split('.').last),
         _buildCard(Icons.badge, 'Staff ID', staff!.staffId),
-        // Add more fields as necessary
       ],
     );
   }

@@ -308,19 +308,18 @@ class FacilitiesController {
     }
   }
 
-Future<void> deleteFacility(String facilityType) async {
-  
-  final facilityDocRef = _firestore.collection('Facilities').doc(facilityType);
-  final applicationsCollectionRef = facilityDocRef.collection('Applications');
-  final querySnapshot = await applicationsCollectionRef.get();
-  final batch = _firestore.batch();
-  
-  for (var doc in querySnapshot.docs) {
-    batch.delete(doc.reference);
+  Future<void> deleteFacility(String facilityType) async {
+    final facilityDocRef =
+        _firestore.collection('Facilities').doc(facilityType);
+    final applicationsCollectionRef = facilityDocRef.collection('Applications');
+    final querySnapshot = await applicationsCollectionRef.get();
+    final batch = _firestore.batch();
+
+    for (var doc in querySnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
+    await facilityDocRef.delete();
   }
-  
-  await batch.commit();
-  await facilityDocRef.delete();
-  
-}
 }

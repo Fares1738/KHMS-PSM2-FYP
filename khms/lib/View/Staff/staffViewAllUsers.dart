@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:khms/Controller/userController.dart';
 import 'package:khms/Model/Staff.dart';
 import 'package:khms/Model/Student.dart';
-import 'userDetailPage.dart'; // Import the new user detail page
+import 'userDetailPage.dart';
 
 class ViewAllUsers extends StatefulWidget {
   const ViewAllUsers({super.key});

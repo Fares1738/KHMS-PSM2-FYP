@@ -24,7 +24,7 @@ List<Room> generateRoomsForBlock(String blockName) {
           '$blockName$roomNumber', 
           roomType,
           true, 
-          floor,  // Include floor number
+          floor, 
         ),
       );
     }

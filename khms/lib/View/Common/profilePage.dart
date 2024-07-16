@@ -52,7 +52,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
         });
 
         await _userController.updateUserData(_imageFile);
-        _fetchData(); 
+        _fetchData();
       }
     } catch (e) {
       print('Error picking image: $e');
@@ -240,7 +240,6 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                         onPressed: _showChangePasswordDialog,
                         child: const Text('Change Password'),
                       ),
-                      // ... other staff-specific details
                     ] else ...[
                       const Text('No user data available'),
                     ],
@@ -262,15 +261,6 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
         bool _hasUppercase = false;
         bool _hasSpecialChar = false;
         bool _hasValidLength = false;
-
-        void _updatePasswordStrength(String password) {
-          setState(() {
-            _hasUppercase = password.contains(RegExp(r'[A-Z]'));
-            _hasSpecialChar =
-                password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
-            _hasValidLength = password.length >= 8 && password.length <= 16;
-          });
-        }
 
         return StatefulBuilder(
           builder: (context, setState) {

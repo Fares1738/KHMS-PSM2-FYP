@@ -18,7 +18,7 @@ class _FacilityBookingsPageState extends State<FacilityBookingsPage> {
   final FacilitiesController _controller = FacilitiesController();
   String sortByDate = 'Oldest';
   String sortByStatus = 'All';
-  String selectedFacilityType = 'All'; // Track selected facility type
+  String selectedFacilityType = 'All'; 
   List<Facilities> facilitiesList = [];
 
   Widget _buildStatusIndicator(String status) {

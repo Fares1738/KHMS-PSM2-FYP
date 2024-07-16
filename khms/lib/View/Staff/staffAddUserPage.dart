@@ -85,7 +85,7 @@ class _AddUserPageState extends State<AddUserPage> {
                 DropdownButtonFormField<UserType>(
                   value: _selectedRole,
                   onChanged: (UserType? value) {
-                    // Change to UserType?
+                    // Change to UserType
                     setState(() {
                       _selectedRole = value;
                     });
@@ -102,7 +102,7 @@ class _AddUserPageState extends State<AddUserPage> {
                       borderSide:
                           const BorderSide(color: Colors.blue, width: 2),
                     ),
-                  ), // Add this line
+                  ), 
                   items: UserType.values.map((UserType role) {
                     return DropdownMenuItem<UserType>(
                       // Change to UserType
@@ -111,8 +111,7 @@ class _AddUserPageState extends State<AddUserPage> {
                           role.toString().split('.').last), // Display enum name
                     );
                   }).toList(),
-                  // ... (rest of the DropdownButtonFormField code)
-                ),
+                  ),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: () {

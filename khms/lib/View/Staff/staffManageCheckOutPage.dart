@@ -112,7 +112,7 @@ class _CheckOutApplicationsListPageState
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: filteredApplications.length +
-                2, // +2 for search bar and filter section
+                2, 
             itemBuilder: (context, index) {
               if (index == 0) {
                 return Padding(
@@ -136,7 +136,7 @@ class _CheckOutApplicationsListPageState
                 return _buildFilterSection();
               }
               final application = filteredApplications[
-                  index - 2]; // Adjust for search bar and filter section
+                  index - 2];
               return _buildCheckOutItem(application);
             },
           );

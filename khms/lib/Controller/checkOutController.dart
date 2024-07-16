@@ -29,7 +29,6 @@ class CheckOutController {
           studentId: storedStudentId!,
         );
 
-        // Add to Firestore; gets auto-generated ID
         DocumentReference docRef = await firestore
             .collection('CheckOutApplications')
             .add(checkOutApplication.toMap());
@@ -99,7 +98,6 @@ class CheckOutController {
 
   Future<void> updateCheckOutnApplicationStatus(CheckOutApplication application,
       String newStatus, DateTime? selectedTime) async {
-    // Make selectedTime optional
     try {
       final firestore = FirebaseFirestore.instance;
 
@@ -137,7 +135,6 @@ class CheckOutController {
 
       await batch.commit(); // Commit both updates as a single transaction
     } catch (e) {
-      // Handle errors appropriately (e.g., display a snackbar)
       print('Error updating check-out application status: $e');
     }
   }
@@ -154,7 +151,6 @@ class CheckOutController {
           .doc(roomNo)
           .update({'roomAvailability': isAvailable});
     } catch (e) {
-      // Handle errors
       print('Error updating room availability: $e');
     }
   }
@@ -194,9 +190,7 @@ class CheckOutController {
         }
       }
 
-      // Finally, delete the student document itself
     } catch (e) {
-      // Handle errors
       print('Error deleting user documents: $e');
     }
   }

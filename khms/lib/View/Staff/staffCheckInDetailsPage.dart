@@ -393,8 +393,7 @@ class _CheckInDetailsPageState extends State<CheckInDetailsPage> {
                                 selectedRoom!.roomNo,
                                 null,
                               );
-                              // Optionally, navigate back or show a success message
-                              Navigator.pop(context); // For example
+                              Navigator.pop(context);
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

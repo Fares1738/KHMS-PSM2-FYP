@@ -3,7 +3,7 @@ import 'package:khms/Controller/facilitiesController.dart';
 import 'package:khms/View/Custom_Widgets/textFormFieldDesign.dart';
 
 class ManageFacilitiesPage extends StatefulWidget {
-  const ManageFacilitiesPage({Key? key}) : super(key: key);
+  const ManageFacilitiesPage({super.key});
 
   @override
   _ManageFacilitiesPageState createState() => _ManageFacilitiesPageState();

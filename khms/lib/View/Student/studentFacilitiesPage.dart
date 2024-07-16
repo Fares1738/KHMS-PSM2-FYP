@@ -565,7 +565,7 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
   }
 
   void _showSuccessDialog() {
-    if (!mounted) return; // Check if the widget is still mounted
+    if (!mounted) return; 
 
     showDialog(
       context: context,
@@ -580,7 +580,6 @@ class _BookFacilitiesPageState extends State<BookFacilitiesPage> {
               onPressed: () {
                 Navigator.of(context).pop();
                 if (mounted) {
-                  // Check again before calling setState
                   setState(() {
                     _selectedDate = null;
                     _selectedTimeSlot = null;

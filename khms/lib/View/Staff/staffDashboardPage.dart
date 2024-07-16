@@ -533,7 +533,6 @@ class _DashboardPageState extends State<DashboardPage>
                   sectionsSpace: 2,
                   pieTouchData: PieTouchData(
                     touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                      // Handle touch events if needed
                     },
                   ),
                 ),

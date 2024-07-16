@@ -126,8 +126,6 @@ class _AccommodationApplicationPageState
     );
   }
 
-  // ... (rest of the widget methods remain the same)
-
   Widget _buildErrorWidget(String message) {
     return Center(
       child: Card(

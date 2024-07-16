@@ -6,8 +6,8 @@ class DashboardController {
   // Cache variables
   late Map<String, dynamic> _dashboardDataCache;
   late DateTime _dashboardDataCacheTime;
-  late Map<String, dynamic> _blockDataCache; // Updated to Map of Map
-  late Map<String, DateTime> _blockDataCacheTime; // Updated to Map of DateTime
+  late Map<String, dynamic> _blockDataCache; 
+  late Map<String, DateTime> _blockDataCacheTime; 
 
   // Cache duration (in seconds)
   static const int cacheDurationSeconds = 300; // 5 minutes
@@ -16,8 +16,8 @@ class DashboardController {
     _dashboardDataCache = {};
     _dashboardDataCacheTime = DateTime.now()
         .subtract(const Duration(seconds: cacheDurationSeconds + 1));
-    _blockDataCache = {}; // Initialize as empty map
-    _blockDataCacheTime = {}; // Initialize as empty map
+    _blockDataCache = {}; 
+    _blockDataCacheTime = {}; 
   }
 
   Future<Map<String, dynamic>> fetchDashboardData() async {
