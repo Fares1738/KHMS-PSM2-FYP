@@ -1,4 +1,4 @@
-#KLG Hostel Management System (KHMS)
+KLG Hostel Management System (KHMS)
 
 A solution to digitalize the manual and strenuous processes of KLG Campus Residence in Johor, Malaysia
 
